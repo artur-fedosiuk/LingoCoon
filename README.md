@@ -1,8 +1,8 @@
-# 🦝 LingoCoon
+# LingoCoon
 
 LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'intelligenza artificiale. Utilizza la ripetizione spaziata (SM-2), la sintesi vocale e la traduzione automatica per aiutare gli utenti a imparare nuove lingue in modo efficace.
 
-🔗 **Live Demo:** [https://lingo-coon.vercel.app](https://lingo-coon.vercel.app)
+**Live Demo:** [https://lingo-coon.vercel.app](https://lingo-coon.vercel.app)
 
 ## Funzionalità Principali
 
@@ -41,10 +41,6 @@ LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'int
     ```bash
     npm run dev
     ```
-
-## 🛡️ Sicurezza
-
-Questo progetto utilizza variabili d'ambiente per proteggere le chiavi API. Non committare mai il file `.env.local`.
 
 ---
 *Progetto sviluppato da Artur Fedosyuk*
