@@ -1,16 +1,50 @@
-# React + Vite
+# 🦝 LingoCoon
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'intelligenza artificiale. Utilizza la ripetizione spaziata (SM-2), la sintesi vocale e la traduzione automatica per aiutare gli utenti a imparare nuove lingue in modo efficace.
 
-Currently, two official plugins are available:
+🔗 **Live Demo:** [https://lingo-coon.vercel.app](https://lingo-coon.vercel.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Funzionalità Principali
 
-## React Compiler
+* **Autenticazione:** Login sicuro con Email/Password e Google (Firebase).
+* **Flashcard Intelligenti:** Algoritmo SM-2 per ottimizzare i tempi di ripasso.
+* **Text-to-Speech:** Ascolta la pronuncia corretta grazie all'integrazione con Google TTS.
+* **Traduzione Automatica:** Supporto multilingua immediato.
+* **Interfaccia Responsiva:** Ottimizzata per desktop e mobile.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Stack Tecnologico
 
-## Expanding the ESLint configuration
+* **Frontend:** React 19, Vite
+* **Stili:** Tailwind CSS
+* **Backend & DB:** Firebase (Auth, Firestore)
+* **AI & API:** Google Cloud TTS, Hugging Face, MyMemory Translation
+* **CI/CD:** GitHub Actions + Vercel
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Installazione Locale
+
+1.  Clona il repository:
+    ```bash
+    git clone [https://github.com/ArturRaccoon/LingoCoon.git](https://github.com/ArturRaccoon/LingoCoon.git)
+    cd LingoCoon
+    ```
+
+2.  Installa le dipendenze:
+    ```bash
+    npm install
+    ```
+
+3.  Configura le variabili d'ambiente:
+    * Copia `.env.example` in `.env.local`
+    * Inserisci le tue chiavi API in `.env.local`
+
+4.  Avvia il server di sviluppo:
+    ```bash
+    npm run dev
+    ```
+
+## 🛡️ Sicurezza
+
+Questo progetto utilizza variabili d'ambiente per proteggere le chiavi API. Non committare mai il file `.env.local`.
+
+---
+*Progetto sviluppato da Artur Fedosyuk*
