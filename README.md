@@ -4,7 +4,7 @@ LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'int
 
 🔗 **Live Demo:** [https://lingo-coon.vercel.app](https://lingo-coon.vercel.app)
 
-## ✨ Funzionalità Principali
+## Funzionalità Principali
 
 * **Autenticazione:** Login sicuro con Email/Password e Google (Firebase).
 * **Flashcard Intelligenti:** Algoritmo SM-2 per ottimizzare i tempi di ripasso.
@@ -12,7 +12,7 @@ LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'int
 * **Traduzione Automatica:** Supporto multilingua immediato.
 * **Interfaccia Responsiva:** Ottimizzata per desktop e mobile.
 
-## 🛠️ Stack Tecnologico
+## Stack Tecnologico
 
 * **Frontend:** React 19, Vite
 * **Stili:** Tailwind CSS
@@ -20,7 +20,7 @@ LingoCoon è un'applicazione web per l'apprendimento linguistico basata sull'int
 * **AI & API:** Google Cloud TTS, Hugging Face, MyMemory Translation
 * **CI/CD:** GitHub Actions + Vercel
 
-## 🚀 Installazione Locale
+## Installazione Locale
 
 1.  Clona il repository:
     ```bash
