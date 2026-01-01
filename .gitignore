@@ -5,3 +5,6 @@ github.rtf
 vite
 dist/
 .vercel
+.env.local
+.env
+.DS_Store
