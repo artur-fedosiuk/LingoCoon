@@ -136,9 +136,20 @@
     "signIn": "Accedi",
     "continue": "Continua",
     "finish": "Salva preferenze",
+    "style": {
+      "title": "Come impari meglio?",
+      "subtitle": "Seleziona il tuo stile di apprendimento",
+      "visual": "Visivo",
+      "visual_desc": "Imparo guardando immagini e video",
+      "auditory": "Uditivo",
+      "auditory_desc": "Imparo ascoltando audio e conversazioni",
+      "kinesthetic": "Pratico",
+      "kinesthetic_desc": "Imparo facendo esercizi e scrivendo"
+    },
     "errors": {
       "selectLanguage": "Seleziona una lingua",
       "selectGoal": "Seleziona almeno un obiettivo",
+      "selectStyle": "Seleziona il tuo stile di apprendimento",
       "selectLevel": "Seleziona il tuo livello",
       "generic": "Impossibile salvare le preferenze. Riprova."
     }
@@ -272,22 +283,17 @@
     "coming_soon": "Le statistiche dettagliate saranno disponibili presto!"
   },
   "landing": {
-    "hero_title": "Il tuo compagno intelligente per imparare le lingue",
-    "hero_subtitle": "Parla, scrivi, impara. Con feedback AI in tempo reale.",
-    "cta_primary": "Inizia gratis",
-    "cta_secondary": "Ho già un account",
-    "login_button": "Accedi",
-    "features": {
-      "personalized": "Feedback personalizzato",
-      "five_mins": "5 minuti al giorno",
-      "no_card": "Nessuna carta richiesta"
-    }
+    "hero_title": "Impara le lingue con l'IA",
+    "hero_subtitle": "Il tuo compagno di apprendimento linguistico basato sull'IA. Intelligente, adattivo e progettato per risultati reali.",
+    "cta_start": "Inizia a Imparare",
+    "cta_login": "Ho già un account",
+    "login_button": "Accedi"
   },
   "cookies": {
-    "title": "LinguaCoon usa i cookie",
-    "description": "LinguaCoon e i nostri partner utilizzano cookie e tecnologie simili per fornire i nostri servizi, personalizzare i contenuti e analizzare gli annunci. Cliccando su 'Accetta Cookie', acconsenti alla nostra Informativa sull'uso dei Cookie.",
-    "accept": "ACCETTA COOKIE",
-    "reject": "RIFIUTA TUTTO",
-    "readMore": "Leggi la nostra Informativa sull'uso dei Cookie"
+    "title": "Utilizziamo i cookie",
+    "description": "Utilizziamo i cookie per migliorare la tua esperienza e analizzare l'utilizzo del sito. Continuando, accetti la nostra politica sui cookie.",
+    "accept": "Accetta Tutto",
+    "reject": "Rifiuta Tutto",
+    "readMore": "Scopri di più"
   }
 }

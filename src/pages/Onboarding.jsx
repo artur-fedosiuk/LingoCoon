@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Eye, Headphones, Hand } from 'lucide-react';
 import { useAuthentication } from '../contexts/AuthenticationContext';
 import { completeOnboarding } from '../services/userService';
 import '../styles/Onboarding.css';
@@ -14,7 +15,8 @@ import '../styles/Onboarding.css';
 const STEPS = {
   LANGUAGE: 0,
   GOALS: 1,
-  LEVEL: 2
+  LEARNING_STYLE: 2,
+  LEVEL: 3
 };
 
 const AVAILABLE_LANGUAGES = [
@@ -41,6 +43,12 @@ const LEVELS = [
   { code: 'native', key: 'levels.native' }
 ];
 
+const LEARNING_STYLES = [
+  { id: 'visual', icon: Eye, label: 'Visivo', desc: 'Imparo guardando immagini e video' },
+  { id: 'auditory', icon: Headphones, label: 'Uditivo', desc: 'Imparo ascoltando audio e conversazioni' },
+  { id: 'kinesthetic', icon: Hand, label: 'Pratico', desc: 'Imparo facendo esercizi e scrivendo' }
+];
+
 function Onboarding() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -49,6 +57,7 @@ function Onboarding() {
   const [preferences, setPreferences] = useState({
     targetLanguage: '',
     goals: [],
+    learningStyle: '',
     level: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +91,10 @@ function Onboarding() {
     setPreferences(prev => ({ ...prev, level: levelCode }));
   };
 
+  const handleLearningStyleSelect = (styleId) => {
+    setPreferences(prev => ({ ...prev, learningStyle: styleId }));
+  };
+
   const handleNext = async () => {
     if (currentStep === STEPS.LANGUAGE && !preferences.targetLanguage) {
       alert(t('publicOnboarding.errors.selectLanguage', 'Please select a language'));
@@ -89,6 +102,10 @@ function Onboarding() {
     }
     if (currentStep === STEPS.GOALS && preferences.goals.length === 0) {
       alert(t('publicOnboarding.errors.selectGoal', 'Please select at least one goal'));
+      return;
+    }
+    if (currentStep === STEPS.LEARNING_STYLE && !preferences.learningStyle) {
+      alert(t('publicOnboarding.errors.selectStyle', 'Please select your learning style'));
       return;
     }
     if (currentStep === STEPS.LEVEL && !preferences.level) {
@@ -109,6 +126,7 @@ function Onboarding() {
           targetLanguage: preferences.targetLanguage,
           interfaceLanguage: resolvedInterfaceLanguage,
           level: preferences.level,
+          learningStyle: preferences.learningStyle,
           dailyGoals: userProfile?.dailyGoals || 10,
           goals: preferences.goals
         });
@@ -155,6 +173,7 @@ function Onboarding() {
   const canProceed = () => {
     if (currentStep === STEPS.LANGUAGE) return preferences.targetLanguage !== '';
     if (currentStep === STEPS.GOALS) return preferences.goals.length > 0;
+    if (currentStep === STEPS.LEARNING_STYLE) return preferences.learningStyle !== '';
     if (currentStep === STEPS.LEVEL) return preferences.level !== '';
     return false;
   };
@@ -232,6 +251,33 @@ function Onboarding() {
                     </span>
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {currentStep === STEPS.LEARNING_STYLE && (
+            <div className="step">
+              <h1>{t('publicOnboarding.style.title', 'Come impari meglio?')}</h1>
+              <p className="subtitle">
+                {t('publicOnboarding.style.subtitle', 'Seleziona il tuo stile di apprendimento')}
+              </p>
+              
+              <div className="goals-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                {LEARNING_STYLES.map((style) => {
+                  const Icon = style.icon;
+                  const isSelected = preferences.learningStyle === style.id;
+                  return (
+                    <button
+                      key={style.id}
+                      className={`group ${getCardClass(isSelected)}`}
+                      onClick={() => handleLearningStyleSelect(style.id)}
+                    >
+                      <Icon className={`w-12 h-12 mb-4 transition-colors duration-300 ${isSelected ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} />
+                      <span className="goal-title">{t(`publicOnboarding.style.${style.id}`, style.label)}</span>
+                      <span className="goal-desc">{t(`publicOnboarding.style.${style.id}_desc`, style.desc)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -1,61 +1,75 @@
-/**
- * FILE: src/components/LanguageSelector.jsx
- * DATA CREAZIONE: 2025-01-19
- * DESCRIZIONE: Selettore lingua riutilizzabile e accessibile
- */
+// File: src/components/LanguageSelector.jsx
+// Created: 2025-01-06
+// Last-Updated: 2025-01-06
+// Author: Claude
+// Description: Minimalist language selector with flag icons only
 
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './LanguageSelector.css';
 
-const AVAILABLE_LANGUAGES = [
-  { code: 'it', label: 'IT', name: 'Italiano' },
-  { code: 'en', label: 'EN', name: 'English' },
-  { code: 'uk', label: 'UK', name: 'Українська' },
-  { code: 'fr', label: 'FR', name: 'Français' }
+const LANGUAGES = [
+  { code: 'en', flag: '🇬🇧', label: 'English' },
+  { code: 'it', flag: '🇮🇹', label: 'Italiano' },
+  { code: 'uk', flag: '🇺🇦', label: 'Українська' },
+  { code: 'fr', flag: '🇫🇷', label: 'Français' }
 ];
 
-function LanguageSelector({ variant = 'default' }) {
+function LanguageSelector() {
   const { i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  function changeLanguage(langCode) {
-    i18n.changeLanguage(langCode);
-    console.log(' Lingua cambiata:', langCode);
+  const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function selectLanguage(code) {
+    i18n.changeLanguage(code);
+    setIsOpen(false);
   }
 
-  const currentLang = i18n.language.split('-')[0]; // Example: 'it-IT' becomes 'it'
-
-  if (variant === 'dropdown') {
-    return (
-      <select
-        value={currentLang}
-        onChange={(e) => changeLanguage(e.target.value)}
-        className="language-selector-dropdown"
-        aria-label="Seleziona lingua"
-      >
-        {AVAILABLE_LANGUAGES.map(lang => (
-          <option key={lang.code} value={lang.code}>
-            {lang.name}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  // Variant: buttons (default)
   return (
-    <div className="language-selector-buttons" role="group" aria-label="Language selector">
-      {AVAILABLE_LANGUAGES.map(lang => (
-        <button
-          key={lang.code}
-          onClick={() => changeLanguage(lang.code)}
-          className={`lang-btn ${currentLang === lang.code ? 'active' : ''}`}
-          aria-label={`Change language to ${lang.name}`}
-          aria-pressed={currentLang === lang.code}
-          title={lang.name}
+    <div className="lang-selector" ref={dropdownRef}>
+      <button
+        className="lang-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Select language"
+        aria-expanded={isOpen}
+      >
+        <span className="lang-flag">{currentLang.flag}</span>
+        <svg 
+          className={`lang-chevron ${isOpen ? 'open' : ''}`}
+          viewBox="0 0 16 16"
+          aria-hidden="true"
         >
-          <span className="lang-code">{lang.label}</span>
-        </button>
-      ))}
+          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="lang-dropdown">
+          {LANGUAGES.map(lang => (
+            <button
+              key={lang.code}
+              className={`lang-option ${lang.code === currentLang.code ? 'active' : ''}`}
+              onClick={() => selectLanguage(lang.code)}
+              title={lang.label}
+              aria-label={`Switch to ${lang.label}`}
+            >
+              <span className="lang-flag-large">{lang.flag}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

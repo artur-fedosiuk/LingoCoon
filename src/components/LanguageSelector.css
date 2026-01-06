@@ -1,53 +1,162 @@
-/* FILE: src/components/LanguageSelector.css */
+/**
+ * FILE: src/components/LanguageSelector.css
+ * CREATED: 2025-01-06
+ * LAST-UPDATED: 2025-01-06
+ * AUTHOR: Claude
+ * DESCRIPTION: Minimalist language selector - flags only, no text
+ */
 
-.language-selector-buttons {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
+/* === CONTAINER === */
+.lang-selector {
+  position: relative;
+  display: inline-block;
 }
 
-.lang-btn {
+/* === TRIGGER BUTTON === */
+.lang-trigger {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: white;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 600;
-  font-size: 0.85rem;
+  backdrop-filter: blur(10px);
 }
 
-.lang-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
+.lang-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
-.lang-btn.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+.lang-trigger:active {
+  transform: translateY(0);
 }
 
-.lang-code {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* === FLAG EMOJI === */
+.lang-flag {
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+  user-select: none;
 }
 
-/* Responsive per mobile */
-@media (max-width: 768px) {
-  .language-selector-buttons {
-    flex-wrap: wrap;
+/* === CHEVRON ICON === */
+.lang-chevron {
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.lang-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* === DROPDOWN MENU === */
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: dropdownSlide 0.2s ease;
+  z-index: 1000;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  
-  .lang-btn {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.6rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === LANGUAGE OPTION === */
+.lang-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.lang-option.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.lang-flag-large {
+  font-size: 32px;
+  line-height: 1;
+  display: block;
+  user-select: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .lang-trigger {
+    padding: 6px 10px;
+  }
+
+  .lang-flag {
+    font-size: 18px;
+  }
+
+  .lang-dropdown {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .lang-option {
+    width: 48px;
+    height: 48px;
+  }
+
+  .lang-flag-large {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lang-dropdown {
+    right: -10px;
+  }
+
+  .lang-option {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lang-flag-large {
+    font-size: 24px;
   }
 }

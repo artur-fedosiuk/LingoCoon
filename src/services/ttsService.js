@@ -22,6 +22,33 @@ const cacheVoci = new Map();
 const cacheAudio = new Map();
 const MAX_CACHE_AUDIO = 50;
 
+// Mappa di conversione codici lingua brevi -> BCP-47 completi per Google TTS
+const LANGUAGE_MAP = {
+  'it': 'it-IT',
+  'en': 'en-US',
+  'uk': 'uk-UA',
+  'fr': 'fr-FR',
+  // Supporto codici già completi
+  'it-IT': 'it-IT',
+  'en-US': 'en-US',
+  'en-GB': 'en-GB',
+  'uk-UA': 'uk-UA',
+  'fr-FR': 'fr-FR',
+  // Fallback
+  'default': 'en-US'
+};
+
+/**
+ * Converte codice lingua breve in codice BCP-47 completo
+ * @param {string} langCode - Codice lingua (es. 'it' o 'it-IT')
+ * @returns {string} - Codice BCP-47 completo (es. 'it-IT')
+ */
+function toGoogleLanguageCode(langCode) {
+  if (!langCode) return LANGUAGE_MAP['default'];
+  const code = langCode.toLowerCase().split('-')[0]; // Estrai parte principale
+  return LANGUAGE_MAP[langCode] || LANGUAGE_MAP[code] || LANGUAGE_MAP['default'];
+}
+
 /**
  * Inizializza il servizio TTS
  */
@@ -39,32 +66,35 @@ export function inizializzaTTS() {
 /**
  * Ottiene le voci disponibili per una lingua specifica
  * Filtra SOLO voci di alta qualità (Neural2, WaveNet)
- * @param {string} languageCode - Codice lingua (es. 'en-US', 'it-IT')
+ * @param {string} languageCode - Codice lingua (es. 'en', 'it', 'en-US', 'it-IT')
  * @returns {Promise<Array>} - Array di voci di alta qualità
  */
 async function getVoicesForLanguage(languageCode) {
+  // Converti a codice Google completo
+  const googleLanguageCode = toGoogleLanguageCode(languageCode);
+  
   try {
     // Controlla cache
-    if (cacheVoci.has(languageCode)) {
-      console.log(` Voci per ${languageCode} da cache`);
-      return cacheVoci.get(languageCode);
+    if (cacheVoci.has(googleLanguageCode)) {
+      console.log(` Voci per ${googleLanguageCode} da cache`);
+      return cacheVoci.get(googleLanguageCode);
     }
 
-    console.log(` Recupero voci per ${languageCode}...`);
+    console.log(` Recupero voci per ${googleLanguageCode}...`);
 
     const response = await fetch(
-      `${GOOGLE_VOICES_ENDPOINT}?languageCode=${languageCode}&key=${GOOGLE_TTS_API_KEY}`
+      `${GOOGLE_VOICES_ENDPOINT}?languageCode=${googleLanguageCode}&key=${GOOGLE_TTS_API_KEY}`
     );
 
     if (!response.ok) {
-      console.error(` Errore recupero voci: ${response.status}`);
+      console.error(` Errore recupero voci: ${response.status} per lingua: ${googleLanguageCode}`);
       return [];
     }
 
     const data = await response.json();
 
     if (!data.voices || data.voices.length === 0) {
-      console.warn(` Nessuna voce trovata per ${languageCode}`);
+      console.warn(` Nessuna voce trovata per ${googleLanguageCode}`);
       return [];
     }
 
@@ -74,15 +104,15 @@ async function getVoicesForLanguage(languageCode) {
       return name.includes('neural2') || name.includes('wavenet');
     });
 
-    console.log(` ${vociHighQuality.length} voci di alta qualità per ${languageCode}`);
+    console.log(` ${vociHighQuality.length} voci di alta qualità per ${googleLanguageCode}`);
 
     // Salva in cache
-    cacheVoci.set(languageCode, vociHighQuality);
+    cacheVoci.set(googleLanguageCode, vociHighQuality);
 
     return vociHighQuality;
 
   } catch (errore) {
-    console.error(' Errore getVoicesForLanguage:', errore);
+    console.error(` Errore getVoicesForLanguage per ${googleLanguageCode}:`, errore);
     return [];
   }
 }
@@ -115,7 +145,7 @@ function generaChiaveAudio(testo, lingua, nomeVoce) {
 /**
  * Legge un testo usando Google Cloud TTS con voce CASUALE
  * @param {string} testo - Testo da leggere (max 5000 caratteri)
- * @param {string} lingua - Codice lingua (es. 'en-US', 'it-IT')
+ * @param {string} lingua - Codice lingua (es. 'en', 'it', 'en-US', 'it-IT')
  * @param {Object} opzioni - Opzioni aggiuntive
  * @returns {Promise<void>}
  */
@@ -124,6 +154,10 @@ export async function leggiTesto(
   lingua = 'en-US', 
   opzioni = {}
 ) {
+  // Converti subito la lingua al codice Google completo
+  const googleLanguageCode = toGoogleLanguageCode(lingua);
+  console.log(` TTS: lingua richiesta "${lingua}" -> Google code "${googleLanguageCode}"`);
+
   try {
     // Validazione API key
     if (!GOOGLE_TTS_API_KEY) {
@@ -144,8 +178,8 @@ export async function leggiTesto(
       fermaTTS();
     }
 
-    //  OTTIENI VOCI DISPONIBILI PER LA LINGUA
-    const vociDisponibili = await getVoicesForLanguage(lingua);
+    //  OTTIENI VOCI DISPONIBILI PER LA LINGUA (usa codice convertito)
+    const vociDisponibili = await getVoicesForLanguage(googleLanguageCode);
 
     // Prepara configurazione voce
     let voiceConfig;
@@ -155,13 +189,13 @@ export async function leggiTesto(
       const voceCasuale = selezionaVoceCasuale(vociDisponibili);
 
       voiceConfig = {
-        languageCode: lingua,
+        languageCode: googleLanguageCode, // USA CODICE GOOGLE COMPLETO
         name: voceCasuale.name
         // Non specifichiamo ssmlGender, Google usa quello della voce
       };
 
       // Controlla cache audio specifica per questa voce
-      const chiaveCache = generaChiaveAudio(testo, lingua, voceCasuale.name);
+      const chiaveCache = generaChiaveAudio(testo, googleLanguageCode, voceCasuale.name);
       
       if (cacheAudio.has(chiaveCache)) {
         console.log(' Audio specifico da cache');
@@ -171,15 +205,15 @@ export async function leggiTesto(
 
     } else {
       // Fallback: usa configurazione base
-      console.warn(` Nessuna voce trovata, uso fallback per ${lingua}`);
+      console.warn(` Nessuna voce trovata, uso fallback per ${googleLanguageCode}`);
       voiceConfig = {
-        languageCode: lingua,
+        languageCode: googleLanguageCode, // USA CODICE GOOGLE COMPLETO
         ssmlGender: 'NEUTRAL'
       };
     }
 
     //  CHIAMATA API Google Cloud TTS
-    console.log(' Richiesta Google Cloud TTS...');
+    console.log(` Richiesta Google Cloud TTS con lingua: ${googleLanguageCode}...`);
 
     const requestBody = {
       input: {
@@ -209,9 +243,11 @@ export async function leggiTesto(
     // Gestione errori API
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(' Errore API Google TTS:', errorData);
+      console.error(` Errore API Google TTS per lingua ${googleLanguageCode}:`, errorData);
       
-      if (response.status === 403) {
+      if (response.status === 400) {
+        throw new Error(`Parametri non validi per lingua: ${googleLanguageCode}`);
+      } else if (response.status === 403) {
         throw new Error('API key non valida o quota esaurita');
       } else if (response.status === 429) {
         throw new Error('Troppe richieste, riprova tra poco');
@@ -231,7 +267,7 @@ export async function leggiTesto(
 
     // Salva in cache (solo se abbiamo usato voce specifica)
     if (voiceConfig.name) {
-      const chiaveCache = generaChiaveAudio(testo, lingua, voiceConfig.name);
+      const chiaveCache = generaChiaveAudio(testo, googleLanguageCode, voiceConfig.name);
       cacheAudio.set(chiaveCache, audioUrl);
 
       // Gestisci dimensione cache
@@ -247,7 +283,7 @@ export async function leggiTesto(
     return riproduciAudio(audioUrl);
 
   } catch (errore) {
-    console.error(' Errore TTS:', errore);
+    console.error(` Tentativo fallito con lingua: ${googleLanguageCode}`, errore);
     inRiproduzione = false;
     throw errore;
   }

@@ -137,9 +137,20 @@
     "signIn": "Sign in",
     "continue": "Continue",
     "finish": "Save preferences",
+    "style": {
+      "title": "How do you learn best?",
+      "subtitle": "Select your learning style",
+      "visual": "Visual",
+      "visual_desc": "I learn by watching images and videos",
+      "auditory": "Auditory",
+      "auditory_desc": "I learn by listening to audio and conversations",
+      "kinesthetic": "Kinesthetic",
+      "kinesthetic_desc": "I learn by doing exercises and writing"
+    },
     "errors": {
       "selectLanguage": "Please select a language",
       "selectGoal": "Please select at least one goal",
+      "selectStyle": "Please select your learning style",
       "selectLevel": "Please select your level",
       "generic": "We couldn't save your preferences. Please try again."
     }
@@ -273,22 +284,17 @@
     "coming_soon": "Detailed statistics will be available soon!"
   },
   "landing": {
-    "hero_title": "Your intelligent companion for language mastery",
-    "hero_subtitle": "Speak, write, learn. With real-time AI feedback.",
-    "cta_primary": "Get Started",
-    "cta_secondary": "I already have an account",
-    "login_button": "Login",
-    "features": {
-      "personalized": "Personalized feedback",
-      "five_mins": "5 minutes a day",
-      "no_card": "No credit card required"
-    }
+    "hero_title": "Master Languages with AI",
+    "hero_subtitle": "Your personal AI-powered language learning companion. Smart, adaptive, and designed for real results.",
+    "cta_start": "Start Learning",
+    "cta_login": "I Already Have an Account",
+    "login_button": "Sign In"
   },
   "cookies": {
-    "title": "LinguaCoon uses cookies",
-    "description": "LinguaCoon and our partners use cookies and similar technologies to provide our services, help personalize content, and analyze ads. By clicking 'Accept Cookies', you consent to our Cookie Policy.",
-    "accept": "ACCEPT COOKIES",
-    "reject": "REJECT ALL",
-    "readMore": "Read our Cookie Policy"
+    "title": "We use cookies",
+    "description": "We use cookies to improve your experience and analyze site usage. By continuing, you accept our cookie policy.",
+    "accept": "Accept All",
+    "reject": "Reject All",
+    "readMore": "Learn More"
   }
 }
