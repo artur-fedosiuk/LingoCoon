@@ -136,9 +136,20 @@
     "signIn": "Se connecter",
     "continue": "Continuer",
     "finish": "Enregistrer les préférences",
+    "style": {
+      "title": "Comment apprenez-vous le mieux ?",
+      "subtitle": "Sélectionnez votre style d'apprentissage",
+      "visual": "Visuel",
+      "visual_desc": "J'apprends en regardant des images et des vidéos",
+      "auditory": "Auditif",
+      "auditory_desc": "J'apprends en écoutant des fichiers audio et des conversations",
+      "kinesthetic": "Kinesthésique",
+      "kinesthetic_desc": "J'apprends en faisant des exercices et en écrivant"
+    },
     "errors": {
       "selectLanguage": "Veuillez sélectionner une langue",
       "selectGoal": "Sélectionnez au moins un objectif",
+      "selectStyle": "Sélectionnez votre style d'apprentissage",
       "selectLevel": "Sélectionnez votre niveau",
       "generic": "Impossible d'enregistrer vos préférences. Réessayez."
     }
@@ -272,22 +283,17 @@
     "coming_soon": "Les statistiques détaillées seront bientôt disponibles!"
   },
   "landing": {
-    "hero_title": "Votre compagnon intelligent pour maîtriser les langues",
-    "hero_subtitle": "Parlez, écrivez, apprenez. Avec des commentaires IA en temps réel.",
-    "cta_primary": "Commencer",
-    "cta_secondary": "J'ai déjà un compte",
-    "login_button": "Connexion",
-    "features": {
-      "personalized": "Feedback personnalisé",
-      "five_mins": "5 minutes par jour",
-      "no_card": "Aucune carte requise"
-    }
+    "hero_title": "Maîtrisez les langues avec l'IA",
+    "hero_subtitle": "Votre compagnon d'apprentissage des langues alimenté par l'IA. Intelligent, adaptatif et conçu pour de vrais résultats.",
+    "cta_start": "Commencer à Apprendre",
+    "cta_login": "J'ai déjà un compte",
+    "login_button": "Se connecter"
   },
   "cookies": {
-    "title": "LinguaCoon utilise des cookies",
-    "description": "LinguaCoon et nos partenaires utilisent des cookies et des technologies similaires pour fournir nos services, personnaliser le contenu et analyser les publicités. En cliquant sur 'Accepter les cookies', vous consentez à notre Politique relative aux cookies.",
-    "accept": "ACCEPTER LES COOKIES",
-    "reject": "TOUT REFUSER",
-    "readMore": "Lire notre Politique relative aux cookies"
+    "title": "Nous utilisons des cookies",
+    "description": "Nous utilisons des cookies pour améliorer votre expérience et analyser l'utilisation du site. En continuant, vous acceptez notre politique de cookies.",
+    "accept": "Tout accepter",
+    "reject": "Tout refuser",
+    "readMore": "En savoir plus"
   }
 }
