@@ -20,7 +20,6 @@ export interface OnboardingFormData {
 export interface Language {
   code: string;
   name: string;
-  flag: string;
 }
 
 /**
@@ -38,17 +37,16 @@ export interface Level {
 export interface Purpose {
   value: string;
   title: string;
-  emoji: string;
 }
 
 /**
  * Available languages for selection
  */
 export const LANGUAGES: Language[] = [
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'ua', name: 'Ukrainian', flag: '🇺🇦' },
-  { code: 'gb', name: 'English', flag: '🇬🇧' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
+  { code: 'it', name: 'Italian' },
+  { code: 'ua', name: 'Ukrainian' },
+  { code: 'gb', name: 'English' },
+  { code: 'fr', name: 'French' },
 
 ];
 
@@ -82,10 +80,10 @@ export const LEVELS: Level[] = [
  * Learning purposes with icons
  */
 export const PURPOSES: Purpose[] = [
-  { value: 'work', title: 'Work', emoji: '💼' },
-  { value: 'study', title: 'Study', emoji: '🎓' },
-  { value: 'travel', title: 'Travel', emoji: '✈️' },
-  { value: 'hobby', title: 'Hobby', emoji: '🎯' },
+  { value: 'work', title: 'Work' },
+  { value: 'study', title: 'Study' },
+  { value: 'travel', title: 'Travel' },
+  { value: 'hobby', title: 'Hobby' },
 ];
 
 /**

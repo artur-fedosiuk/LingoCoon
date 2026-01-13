@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
+import LanguageSelector from '@/components/LanguageSelector'
+import DashboardContent from '@/components/DashboardContent'
 import {
     Card,
     CardContent,
@@ -22,6 +24,15 @@ export default async function DashboardPage() {
         redirect('/login')
     }
 
+    // Fetch user profile to get nickname
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('id', user.id)
+        .single()
+
+    const nickname = profile?.nickname || 'Learner'
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
             {/* Header */}
@@ -31,6 +42,7 @@ export default async function DashboardPage() {
                         LinguaFlow
                     </h1>
                     <div className="flex items-center gap-4">
+                        <LanguageSelector />
                         <span className="text-sm text-slate-600 dark:text-slate-400">
                             {user.email}
                         </span>
@@ -49,111 +61,100 @@ export default async function DashboardPage() {
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="mx-auto max-w-6xl px-4 py-8">
-                {/* Welcome Section */}
-                <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-                        Bentornato! 
-                    </h2>
-                    <p className="mt-2 text-slate-600 dark:text-slate-400">
-                        Continua il tuo percorso di apprendimento
-                    </p>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="mb-8 grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-600">
-                                Streak Attuale
-                            </CardTitle>
-                            <Zap className="h-4 w-4 text-amber-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">0 giorni</div>
-                            <p className="text-xs text-muted-foreground">
-                                Inizia oggi per creare il tuo streak!
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-600">
-                                Lezioni Completate
-                            </CardTitle>
-                            <BookOpen className="h-4 w-4 text-blue-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">0</div>
-                            <p className="text-xs text-muted-foreground">
-                                Inizia la tua prima lezione
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-600">
-                                Punti Totali
-                            </CardTitle>
-                            <Trophy className="h-4 w-4 text-emerald-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">0 XP</div>
-                            <p className="text-xs text-muted-foreground">
-                                Guadagna punti completando le lezioni
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Start Learning Section */}
-                <Card className="border-2 border-dashed border-slate-300 bg-white/50 dark:border-slate-700 dark:bg-slate-900/50">
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-2xl">
-                            Inizia ad Imparare
-                        </CardTitle>
-                        <CardDescription>
-                            Seleziona una lingua e inizia il tuo percorso di apprendimento personalizzato
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-6">
-                        <div className="flex flex-wrap justify-center gap-4">
-                            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                                <span className="text-3xl">🇬🇧</span>
-                                <span className="font-medium">Inglese</span>
-                                <span className="text-xs text-muted-foreground">Prossimamente</span>
-                            </Button>
-                            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                                <span className="text-3xl">🇫🇷</span>
-                                <span className="font-medium">Francese</span>
-                                <span className="text-xs text-muted-foreground">Prossimamente</span>
-                            </Button>
-                            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                                <span className="text-3xl">🇩🇪</span>
-                                <span className="font-medium">Tedesco</span>
-                                <span className="text-xs text-muted-foreground">Prossimamente</span>
-                            </Button>
-                            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                                <span className="text-3xl">🇪🇸</span>
-                                <span className="font-medium">Spagnolo</span>
-                                <span className="text-xs text-muted-foreground">Prossimamente</span>
-                            </Button>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col items-center gap-2">
-                        <p className="text-sm text-muted-foreground">
-                            Il tuo progresso verso il prossimo livello
-                        </p>
-                        <div className="flex w-full max-w-md items-center gap-3">
-                            <Progress value={0} className="flex-1" />
-                            <span className="text-sm font-medium text-slate-600">0%</span>
-                        </div>
-                    </CardFooter>
-                </Card>
-            </main>
+            {/* Main Content - Pass nickname to client component */}
+            <DashboardContent nickname={nickname} />
         </div>
+    )
+}
+{/* Stats Grid */ }
+<div className="mb-8 grid gap-4 md:grid-cols-3">
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+                Current Streak
+            </CardTitle>
+            <Zap className="h-4 w-4 text-amber-500" />
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">0 days</div>
+            <p className="text-xs text-muted-foreground">
+                Start today to create your streak!
+            </p>
+        </CardContent>
+    </Card>
+
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+                Completed Lessons
+            </CardTitle>
+            <BookOpen className="h-4 w-4 text-blue-500" />
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">
+                Start your first lesson
+            </p>
+        </CardContent>
+    </Card>
+
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">
+                Total Points
+            </CardTitle>
+            <Trophy className="h-4 w-4 text-emerald-500" />
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">0 XP</div>
+            <p className="text-xs text-muted-foreground">
+                Earn points by completing lessons
+            </p>
+        </CardContent>
+    </Card>
+</div>
+
+{/* Start Learning Section */ }
+<Card className="border-2 border-dashed border-slate-300 bg-white/50 dark:border-slate-700 dark:bg-slate-900/50">
+    <CardHeader className="text-center">
+        <CardTitle className="text-2xl">
+            Start Learning
+        </CardTitle>
+        <CardDescription>
+            Select a language and start your personalized learning path
+        </CardDescription>
+    </CardHeader>
+    <CardContent className="flex flex-col items-center gap-6">
+        <div className="flex flex-wrap justify-center gap-4">
+            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
+                <span className="font-medium">English</span>
+                <span className="text-xs text-muted-foreground">Coming Soon</span>
+            </Button>
+            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
+                <span className="font-medium">French</span>
+                <span className="text-xs text-muted-foreground">Coming Soon</span>
+            </Button>
+            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
+                <span className="font-medium">German</span>
+                <span className="text-xs text-muted-foreground">Coming Soon</span>
+            </Button>
+            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
+                <span className="font-medium">Spanish</span>
+                <span className="text-xs text-muted-foreground">Coming Soon</span>
+            </Button>
+        </div>
+    </CardContent>
+    <CardFooter className="flex flex-col items-center gap-2">
+        <p className="text-sm text-muted-foreground">
+            Your progress toward the next level
+        </p>
+        <div className="flex w-full max-w-md items-center gap-3">
+            <Progress value={0} className="flex-1" />
+            <span className="text-sm font-medium text-slate-600">0%</span>
+        </div>
+    </CardFooter>
+</Card>
+            </main >
+        </div >
     )
 }

@@ -46,6 +46,18 @@
   "onboarding": {
     "welcome": "Benvenuto!",
     "subtitle": "Iniziamo a configurare la tua esperienza",
+    "welcome_title": "Benvenuto su LinguaCoon",
+    "welcome_subtitle": "Impara le lingue con la personalizzazione basata sull'IA",
+    "get_started": "Inizia",
+    "setup_time": "Ci vogliono meno di 2 minuti per configurare",
+    "welcome_benefits": {
+      "ai_title": "Personalizzazione basata sull'IA",
+      "ai_desc": "Le lezioni si adattano al tuo stile e ritmo di apprendimento",
+      "tracking_title": "Monitoraggio Intelligente dei Progressi",
+      "tracking_desc": "Traccia il tuo percorso con approfondimenti dettagliati",
+      "faster_title": "Impara Più Velocemente",
+      "faster_desc": "Metodi scientificamente provati per la memorizzazione"
+    },
     "step_indicator": "Step {{current}} di {{total}}",
     "step1": {
       "title": "Che lingue vuoi imparare?",

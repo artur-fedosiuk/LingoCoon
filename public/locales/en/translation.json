@@ -47,6 +47,18 @@
   "onboarding": {
     "welcome": "Welcome!",
     "subtitle": "Let's set up your learning experience",
+    "welcome_title": "Welcome to LinguaCoon",
+    "welcome_subtitle": "Learn languages with AI-powered personalization",
+    "get_started": "Get Started",
+    "setup_time": "Takes less than 2 minutes to set up",
+    "welcome_benefits": {
+      "ai_title": "AI-Powered Personalization",
+      "ai_desc": "Lessons adapt to your learning style and pace",
+      "tracking_title": "Smart Progress Tracking",
+      "tracking_desc": "Track your journey with detailed insights",
+      "faster_title": "Learn Faster",
+      "faster_desc": "Scientifically proven methods for retention"
+    },
     "step_indicator": "Step {{current}} of {{total}}",
     "step1": {
       "title": "Which languages do you want to learn?",
@@ -285,7 +297,7 @@
   },
   "landing": {
     "hero_title": "Master Languages with AI",
-    "hero_subtitle": "Your personal AI-powered language learning companion. Smart, adaptive, and designed for real results.",
+    "hero_subtitle": "Your personal AI-powered language learning companion designed for real results.",
     "cta_start": "Start Learning",
     "cta_login": "I Already Have an Account",
     "login_button": "Sign In"

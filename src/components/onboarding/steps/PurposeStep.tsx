@@ -59,9 +59,6 @@ export function PurposeStep({
                   : 'border-border bg-card'
               )}
             >
-              <span className="text-3xl" role="img" aria-hidden="true">
-                {purpose.emoji}
-              </span>
               <span
                 className={cn(
                   'font-medium text-sm',

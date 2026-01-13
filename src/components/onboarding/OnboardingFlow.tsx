@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useProfile } from '@/hooks/useProfile';
+import LanguageSelector from '@/components/LanguageSelector';
 import { ProgressBar } from './ProgressBar';
 import { StepNavigation } from './StepNavigation';
 import { WelcomeStep } from './steps/WelcomeStep';
@@ -199,6 +200,11 @@ export function OnboardingFlow() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Language Selector Header */}
+      <header className="relative z-50 flex justify-end p-4 sm:p-6 border-b border-gray-200">
+        <LanguageSelector />
+      </header>
+
       {/* Loading overlay during submission */}
       {isSubmitting && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">

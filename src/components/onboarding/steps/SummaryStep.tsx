@@ -30,8 +30,7 @@ export function SummaryStep({
   const getLanguageName = (code: string) =>
     LANGUAGES.find((l) => l.code === code)?.name || code;
 
-  const getLanguageFlag = (code: string) =>
-    LANGUAGES.find((l) => l.code === code)?.flag || '';
+
 
   const getLevelTitle = (value: string) =>
     LEVELS.find((l) => l.value === value)?.title || value;
@@ -39,19 +38,16 @@ export function SummaryStep({
   const getPurposeTitle = (value: string) =>
     PURPOSES.find((p) => p.value === value)?.title || value;
 
-  const getPurposeEmoji = (value: string) =>
-    PURPOSES.find((p) => p.value === value)?.emoji || '';
-
   // Summary items with their step numbers for editing
   const summaryItems = [
     {
       label: 'Native language',
-      value: `${getLanguageFlag(data.native_language)} ${getLanguageName(data.native_language)}`,
+      value: getLanguageName(data.native_language),
       step: 1,
     },
     {
       label: 'Learning',
-      value: `${getLanguageFlag(data.target_language)} ${getLanguageName(data.target_language)}`,
+      value: getLanguageName(data.target_language),
       step: 2,
     },
     {
@@ -61,17 +57,17 @@ export function SummaryStep({
     },
     {
       label: 'Purpose',
-      value: `${getPurposeEmoji(data.learning_purpose)} ${getPurposeTitle(data.learning_purpose)}`,
+      value: getPurposeTitle(data.learning_purpose),
       step: 4,
     },
     ...(data.nickname
       ? [
-          {
-            label: 'Nickname',
-            value: data.nickname,
-            step: 5,
-          },
-        ]
+        {
+          label: 'Nickname',
+          value: data.nickname,
+          step: 5,
+        },
+      ]
       : []),
   ];
 
@@ -79,8 +75,8 @@ export function SummaryStep({
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="text-5xl mb-2" role="img" aria-hidden="true">
-          🎉
+        <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black flex items-center justify-center">
+          <span className="text-5xl font-bold text-white">L</span>
         </div>
         <h2 className="text-2xl font-bold">You're all set!</h2>
         <p className="text-muted-foreground">

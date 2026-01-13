@@ -35,8 +35,8 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
     <div className="flex flex-col items-center text-center space-y-8 py-8">
       {/* Hero Section */}
       <div className="space-y-4">
-        <div className="text-6xl mb-4" role="img" aria-label="Raccoon mascot">
-          🦝
+        <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black flex items-center justify-center">
+          <span className="text-5xl font-bold text-white">L</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           Welcome to LinguaCoon
