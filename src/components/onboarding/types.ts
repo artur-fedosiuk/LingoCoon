@@ -46,15 +46,10 @@ export interface Purpose {
  */
 export const LANGUAGES: Language[] = [
   { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'ua', name: 'Ukrainian', flag: '🇺🇦' },
+  { code: 'gb', name: 'English', flag: '🇬🇧' },
   { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
-  { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
-  { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
+
 ];
 
 /**
@@ -88,10 +83,9 @@ export const LEVELS: Level[] = [
  */
 export const PURPOSES: Purpose[] = [
   { value: 'work', title: 'Work', emoji: '💼' },
-  { value: 'university', title: 'University', emoji: '🎓' },
+  { value: 'study', title: 'Study', emoji: '🎓' },
   { value: 'travel', title: 'Travel', emoji: '✈️' },
   { value: 'hobby', title: 'Hobby', emoji: '🎯' },
-  { value: 'exam', title: 'Exam', emoji: '📝' },
 ];
 
 /**
