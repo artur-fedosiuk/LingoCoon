@@ -22,6 +22,7 @@ export default async function DashboardPage() {
         .eq('id', user.id)
         .single()
 
+    // @ts-ignore - Supabase types need to be regenerated from database schema
     const nickname = profile?.nickname || 'Learner'
 
     return (
