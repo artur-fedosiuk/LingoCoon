@@ -4,16 +4,7 @@ import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import LanguageSelector from '@/components/LanguageSelector'
 import DashboardContent from '@/components/DashboardContent'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { BookOpen, Trophy, Zap, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -64,97 +55,5 @@ export default async function DashboardPage() {
             {/* Main Content - Pass nickname to client component */}
             <DashboardContent nickname={nickname} />
         </div>
-    )
-}
-{/* Stats Grid */ }
-<div className="mb-8 grid gap-4 md:grid-cols-3">
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-                Current Streak
-            </CardTitle>
-            <Zap className="h-4 w-4 text-amber-500" />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">0 days</div>
-            <p className="text-xs text-muted-foreground">
-                Start today to create your streak!
-            </p>
-        </CardContent>
-    </Card>
-
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-                Completed Lessons
-            </CardTitle>
-            <BookOpen className="h-4 w-4 text-blue-500" />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-                Start your first lesson
-            </p>
-        </CardContent>
-    </Card>
-
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-                Total Points
-            </CardTitle>
-            <Trophy className="h-4 w-4 text-emerald-500" />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">0 XP</div>
-            <p className="text-xs text-muted-foreground">
-                Earn points by completing lessons
-            </p>
-        </CardContent>
-    </Card>
-</div>
-
-{/* Start Learning Section */ }
-<Card className="border-2 border-dashed border-slate-300 bg-white/50 dark:border-slate-700 dark:bg-slate-900/50">
-    <CardHeader className="text-center">
-        <CardTitle className="text-2xl">
-            Start Learning
-        </CardTitle>
-        <CardDescription>
-            Select a language and start your personalized learning path
-        </CardDescription>
-    </CardHeader>
-    <CardContent className="flex flex-col items-center gap-6">
-        <div className="flex flex-wrap justify-center gap-4">
-            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                <span className="font-medium">English</span>
-                <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </Button>
-            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                <span className="font-medium">French</span>
-                <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </Button>
-            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                <span className="font-medium">German</span>
-                <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </Button>
-            <Button variant="outline" size="lg" className="h-auto flex-col gap-2 px-6 py-4" disabled>
-                <span className="font-medium">Spanish</span>
-                <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </Button>
-        </div>
-    </CardContent>
-    <CardFooter className="flex flex-col items-center gap-2">
-        <p className="text-sm text-muted-foreground">
-            Your progress toward the next level
-        </p>
-        <div className="flex w-full max-w-md items-center gap-3">
-            <Progress value={0} className="flex-1" />
-            <span className="text-sm font-medium text-slate-600">0%</span>
-        </div>
-    </CardFooter>
-</Card>
-            </main >
-        </div >
     )
 }
