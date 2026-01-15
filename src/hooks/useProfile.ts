@@ -91,7 +91,7 @@ export function useProfile(): UseProfileReturn {
       }
 
       setUserId(user.id);
-// yes
+// yesss
       // Fetch profile from database
       const { data, error: fetchError } = await supabase
         .from('profiles')
