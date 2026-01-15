@@ -20,7 +20,7 @@ interface LanguageStepProps {
 
 /**
  * Language selection step - reusable for both native and target language.
- * Displays a grid of language cards with flags.
+ * Displays a grid of language cards with language names.
  */
 export function LanguageStep({
   title,
@@ -68,9 +68,6 @@ export function LanguageStep({
                   : 'border-border bg-card'
               )}
             >
-              <span className="text-4xl" role="img" aria-label={`${language.name} flag`}>
-                {language.flag}
-              </span>
               <span
                 className={cn(
                   'font-medium text-sm',
