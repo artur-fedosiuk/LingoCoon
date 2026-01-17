@@ -4,6 +4,7 @@
  */
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { PURPOSES } from '../types';
 
@@ -22,10 +23,6 @@ interface PurposeStepProps {
  * Purpose selection step - asks why the user is learning.
  * Displays 5 cards with emojis and an optional details textarea.
  */
-import { useTranslation } from 'react-i18next';
-
-// ... existing imports
-
 export function PurposeStep({
   value,
   details,

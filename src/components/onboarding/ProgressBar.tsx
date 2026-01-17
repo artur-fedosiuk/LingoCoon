@@ -39,21 +39,24 @@ export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const key = STEP_LABEL_KEYS[currentStep] || 'steps';
   // Use 'onboarding.step_labels.' + key
   // Add missing keys: onboarding.step_labels.welcome, etc.
-  
+
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-2" role="region" aria-label={t('onboarding.progress_region')}>
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-foreground">
           {t(`onboarding.step_labels.${key}`)}
         </span>
-        <span className="text-muted-foreground">
+        <span className="text-muted-foreground" aria-live="polite">
           {t('onboarding.step_indicator', { current: currentStep + 1, total: totalSteps })}
         </span>
       </div>
-      <Progress 
-        value={progressPercentage} 
+      <Progress
+        value={progressPercentage}
         className="h-2"
         aria-label={t('onboarding.progress_aria', { current: currentStep + 1, total: totalSteps })}
+        aria-valuenow={currentStep + 1}
+        aria-valuemin={1}
+        aria-valuemax={totalSteps}
       />
     </div>
   );

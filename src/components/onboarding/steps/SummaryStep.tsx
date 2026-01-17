@@ -4,9 +4,10 @@
  */
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Pencil, Check, Loader2 } from 'lucide-react';
-import { LANGUAGES, LEVELS, PURPOSES } from '../types';
+import { LANGUAGES, LEVELS, PURPOSES, LANG_KEY_MAP } from '../types';
 import type { OnboardingFormData } from '../types';
 
 interface SummaryStepProps {
@@ -24,17 +25,6 @@ interface SummaryStepProps {
  * Summary step - displays all collected data with edit options.
  * Final step before completing onboarding.
  */
-import { useTranslation } from 'react-i18next';
-
-// ... existing imports
-
-// Map for translation keys (should be shared or duplicated if not exporting)
-const LANG_KEY_MAP: Record<string, string> = {
-  it: 'it-IT',
-  ua: 'ua-UA',
-  gb: 'en-US',
-  fr: 'fr-FR',
-};
 
 export function SummaryStep({
   data,

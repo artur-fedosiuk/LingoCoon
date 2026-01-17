@@ -22,7 +22,9 @@ export interface OnboardingFormData {
  * Language option for selection
  */
 export interface Language {
+  /** ISO 639-1 language code (e.g., 'en', 'fr', 'it') */
   code: string;
+  /** Display name of the language in English */
   name: string;
 }
 
@@ -30,8 +32,11 @@ export interface Language {
  * Proficiency level option
  */
 export interface Level {
+  /** Unique identifier for the level */
   value: string;
+  /** Display title for the level */
   title: string;
+  /** Descriptive text explaining what this level means */
   description: string;
 }
 
@@ -39,7 +44,9 @@ export interface Level {
  * Learning purpose option
  */
 export interface Purpose {
+  /** Unique identifier for the purpose */
   value: string;
+  /** Display title for the purpose */
   title: string;
 }
 
@@ -51,8 +58,17 @@ export const LANGUAGES: Language[] = [
   { code: 'ua', name: 'Ukrainian' },
   { code: 'gb', name: 'English' },
   { code: 'fr', name: 'French' },
-
 ];
+
+/**
+ * Map language codes to translation keys
+ */
+export const LANG_KEY_MAP: Record<string, string> = {
+  it: 'it-IT',
+  ua: 'ua-UA',
+  gb: 'en-US',
+  fr: 'fr-FR',
+};
 
 /**
  * Proficiency levels with descriptions

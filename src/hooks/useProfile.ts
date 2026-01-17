@@ -95,7 +95,7 @@ export function useProfile(): UseProfileReturn {
       }
 
       setUserId(user.id);
-// yesss
+
       // Fetch profile from database
       const { data, error: fetchError } = await supabase
         .from('profiles')
@@ -150,13 +150,13 @@ export function useProfile(): UseProfileReturn {
 
       // Update database - remove readonly fields that shouldn't be updated
       const { id, created_at, ...updateFields } = updates as Partial<Profile>;
-      
+
       const updateData = {
         ...updateFields,
         updated_at: new Date().toISOString(),
       };
-      
-      // Type assertion needed due to Supabase SSR client type inference issues
+
+      // Note: Type assertion required due to Supabase generated types not supporting dynamic updates
       const { data, error: updateError } = await (supabase.from('profiles') as any)
         .update(updateData)
         .eq('id', userId)
@@ -199,7 +199,7 @@ export function useProfile(): UseProfileReturn {
       setLoading(true);
       setError(null);
 
-      // Call RPC function to update learning profile
+      // Note: Type assertion required for RPC function parameter typing
       const { data: result, error: rpcError } = await supabase
         .rpc('update_learning_profile', { new_data: data } as any);
 
@@ -275,8 +275,7 @@ export function useProfile(): UseProfileReturn {
 
       const now = new Date().toISOString();
 
-      // Update profile with onboarding data
-      // Type assertion needed due to Supabase SSR client type inference issues
+      // Note: Type assertion required due to Supabase generated types not supporting dynamic updates
       const { data: updatedProfile, error: updateError } = await (supabase.from('profiles') as any)
         .update({
           nickname: data.nickname,

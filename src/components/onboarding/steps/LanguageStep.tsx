@@ -5,7 +5,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { LANGUAGES } from '../types';
+import { useTranslation } from 'react-i18next';
+import { LANGUAGES, LANG_KEY_MAP } from '../types';
 
 interface LanguageStepProps {
   /** Title to display */
@@ -21,16 +22,6 @@ interface LanguageStepProps {
   /** Language to exclude from options (e.g., native language when selecting target) */
   excludeLanguage?: string;
 }
-
-import { useTranslation } from 'react-i18next';
-
-// Map for translation keys
-const LANG_KEY_MAP: Record<string, string> = {
-  it: 'it-IT',
-  ua: 'ua-UA',
-  gb: 'en-US',
-  fr: 'fr-FR',
-};
 
 /**
  * Language selection step - reusable for both native and target language.

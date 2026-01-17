@@ -4,6 +4,7 @@
  */
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
@@ -21,10 +22,6 @@ interface NicknameStepProps {
  * Nickname step - allows user to set a display name.
  * This step is optional and can be skipped.
  */
-import { useTranslation } from 'react-i18next';
-
-// ...
-
 export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
   const { t } = useTranslation();
 

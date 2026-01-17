@@ -51,6 +51,14 @@
     "welcome_subtitle": "Learn languages with AI-powered personalization",
     "get_started": "Get Started",
     "setup_time": "Takes less than 2 minutes to set up",
+    "creating_account": "Creating your account...",
+    "saving": "Saving...",
+    "skip": "Skip",
+    "optional": "optional",
+    "tell_us_more": "Tell us more",
+    "tell_us_more_placeholder": "Share any additional details about your learning goals...",
+    "progress_region": "Onboarding progress",
+    "progress_aria": "Step {{current}} of {{total}}",
     "welcome_benefits": {
       "ai_title": "AI-Powered Personalization",
       "ai_desc": "Lessons adapt to your learning style and pace",
@@ -60,15 +68,26 @@
       "faster_desc": "Scientifically proven methods for retention"
     },
     "step_indicator": "Step {{current}} of {{total}}",
+    "step_labels": {
+      "welcome": "Welcome",
+      "native_label": "Native Language",
+      "target_label": "Target Language",
+      "level_label": "Your Level",
+      "purpose_label": "Learning Purpose",
+      "nickname_label": "Nickname",
+      "summary_label": "Summary"
+    },
     "step1": {
       "title": "Which languages do you want to learn?",
       "subtitle": "Choose your native language and the one you want to study",
       "native_language": "Your native language",
-      "target_language": "Language you want to learn"
+      "native_subtitle": "Select the language you speak fluently",
+      "target_language": "Language you want to learn",
+      "target_subtitle": "Choose the language you want to study"
     },
     "step2": {
       "title": "Why do you want to learn?",
-      "subtitle": "Select one or more goals",
+      "subtitle": "This helps us personalize your learning experience",
       "goals": {
         "travel": "Travel",
         "travel_desc": "Communicate while traveling",
@@ -76,6 +95,8 @@
         "work_desc": "Professional use",
         "study": "Study",
         "study_desc": "Exams and certifications",
+        "hobby": "Hobby",
+        "hobby_desc": "Personal interest and enjoyment",
         "culture": "Culture",
         "culture_desc": "Movies, books, music",
         "conversation": "Conversation",
@@ -88,24 +109,44 @@
       "title": "What's your level?",
       "subtitle": "In the language you want to learn",
       "levels": {
+        "absolute_beginner": "Absolute Beginner",
+        "absolute_beginner_desc": "I've never studied this language before",
         "beginner": "Beginner",
-        "beginner_desc": "I know few words",
+        "beginner_desc": "I know some basic words and phrases",
         "elementary": "Elementary",
         "elementary_desc": "Simple sentences",
         "intermediate": "Intermediate",
-        "intermediate_desc": "Basic conversations",
+        "intermediate_desc": "I can hold simple conversations",
         "advanced": "Advanced",
-        "advanced_desc": "Fluent",
+        "advanced_desc": "I can discuss complex topics fluently",
         "native": "Native",
         "native_desc": "Native competence"
       }
+    },
+    "nickname_step": {
+      "title": "What should we call you?",
+      "subtitle": "Choose a nickname for your profile",
+      "placeholder": "Enter your nickname",
+      "aria_label": "Nickname input",
+      "helper": "You can change this later in settings"
+    },
+    "summary": {
+      "title": "Ready to start learning?",
+      "subtitle": "Review your choices before we begin",
+      "level": "Current Level",
+      "purpose": "Learning Purpose",
+      "nickname": "Nickname",
+      "additional_details": "Additional Details",
+      "change_later": "You can change these settings later in your profile"
     },
     "continue_to_register": "Go to Registration",
     "errors": {
       "select_both_languages": "Select both languages",
       "languages_must_differ": "Languages must be different",
       "select_at_least_one_goal": "Select at least one goal",
-      "select_level": "Select your level"
+      "select_level": "Select your level",
+      "generic_save": "Failed to save your preferences. Please try again.",
+      "invalid_data": "Please complete all required fields"
     }
   },
   "publicOnboarding": {

@@ -104,6 +104,11 @@ export function OnboardingFlow() {
    * Handle final submission
    */
   const handleComplete = useCallback(async () => {
+    if (!isStepValid()) {
+      toast.error(t('onboarding.errors.invalid_data'));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -119,11 +124,13 @@ export function OnboardingFlow() {
       // Redirect to dashboard on success
       router.push('/dashboard');
     } catch (error) {
-      console.error('Failed to complete onboarding:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to complete onboarding:', errorMessage, error);
       toast.error(t('onboarding.errors.generic_save'));
+    } finally {
       setIsSubmitting(false);
     }
-  }, [formData, completeOnboarding, router, t]);
+  }, [formData, completeOnboarding, router, t, isStepValid]);
 
   /**
    * Render the current step component

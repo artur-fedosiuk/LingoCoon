@@ -50,6 +50,14 @@
     "welcome_subtitle": "Impara le lingue con la personalizzazione basata sull'IA",
     "get_started": "Inizia",
     "setup_time": "Ci vogliono meno di 2 minuti per configurare",
+    "creating_account": "Creazione del tuo account...",
+    "saving": "Salvataggio...",
+    "skip": "Salta",
+    "optional": "opzionale",
+    "tell_us_more": "Raccontaci di più",
+    "tell_us_more_placeholder": "Condividi ulteriori dettagli sui tuoi obiettivi di apprendimento...",
+    "progress_region": "Progresso onboarding",
+    "progress_aria": "Step {{current}} di {{total}}",
     "welcome_benefits": {
       "ai_title": "Personalizzazione basata sull'IA",
       "ai_desc": "Le lezioni si adattano al tuo stile e ritmo di apprendimento",
@@ -59,15 +67,26 @@
       "faster_desc": "Metodi scientificamente provati per la memorizzazione"
     },
     "step_indicator": "Step {{current}} di {{total}}",
+    "step_labels": {
+      "welcome": "Benvenuto",
+      "native_label": "Lingua Madre",
+      "target_label": "Lingua Obiettivo",
+      "level_label": "Il Tuo Livello",
+      "purpose_label": "Obiettivo di Apprendimento",
+      "nickname_label": "Nickname",
+      "summary_label": "Riepilogo"
+    },
     "step1": {
       "title": "Che lingue vuoi imparare?",
       "subtitle": "Scegli la tua lingua madre e quella che vuoi studiare",
       "native_language": "La tua lingua madre",
-      "target_language": "Lingua che vuoi imparare"
+      "native_subtitle": "Seleziona la lingua che parli fluentemente",
+      "target_language": "Lingua che vuoi imparare",
+      "target_subtitle": "Scegli la lingua che vuoi studiare"
     },
     "step2": {
       "title": "Perché vuoi imparare?",
-      "subtitle": "Seleziona uno o più obiettivi",
+      "subtitle": "Questo ci aiuta a personalizzare la tua esperienza di apprendimento",
       "goals": {
         "travel": "Viaggio",
         "travel_desc": "Comunicare in viaggio",
@@ -75,6 +94,8 @@
         "work_desc": "Uso professionale",
         "study": "Studio",
         "study_desc": "Esami e certificazioni",
+        "hobby": "Hobby",
+        "hobby_desc": "Interesse personale e divertimento",
         "culture": "Cultura",
         "culture_desc": "Film, libri, musica",
         "conversation": "Conversazione",
@@ -87,24 +108,44 @@
       "title": "Qual è il tuo livello?",
       "subtitle": "Nella lingua che vuoi imparare",
       "levels": {
+        "absolute_beginner": "Principiante Assoluto",
+        "absolute_beginner_desc": "Non ho mai studiato questa lingua prima",
         "beginner": "Principiante",
-        "beginner_desc": "Conosco poche parole",
+        "beginner_desc": "Conosco alcune parole e frasi di base",
         "elementary": "Elementare",
         "elementary_desc": "Frasi semplici",
         "intermediate": "Intermedio",
-        "intermediate_desc": "Conversazioni base",
+        "intermediate_desc": "Posso sostenere conversazioni semplici",
         "advanced": "Avanzato",
-        "advanced_desc": "Fluente",
+        "advanced_desc": "Posso discutere argomenti complessi fluentemente",
         "native": "Madrelingua",
         "native_desc": "Competenza nativa"
       }
+    },
+    "nickname_step": {
+      "title": "Come dovremmo chiamarti?",
+      "subtitle": "Scegli un nickname per il tuo profilo",
+      "placeholder": "Inserisci il tuo nickname",
+      "aria_label": "Campo nickname",
+      "helper": "Puoi cambiarlo più tardi nelle impostazioni"
+    },
+    "summary": {
+      "title": "Pronto per iniziare a imparare?",
+      "subtitle": "Rivedi le tue scelte prima di iniziare",
+      "level": "Livello Attuale",
+      "purpose": "Obiettivo di Apprendimento",
+      "nickname": "Nickname",
+      "additional_details": "Dettagli Aggiuntivi",
+      "change_later": "Puoi cambiare queste impostazioni più tardi nel tuo profilo"
     },
     "continue_to_register": "Vai alla Registrazione",
     "errors": {
       "select_both_languages": "Seleziona entrambe le lingue",
       "languages_must_differ": "Le lingue devono essere diverse",
       "select_at_least_one_goal": "Seleziona almeno un obiettivo",
-      "select_level": "Seleziona il tuo livello"
+      "select_level": "Seleziona il tuo livello",
+      "generic_save": "Impossibile salvare le tue preferenze. Riprova.",
+      "invalid_data": "Compila tutti i campi obbligatori"
     }
   },
   "publicOnboarding": {
