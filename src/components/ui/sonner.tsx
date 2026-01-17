@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/sonner.tsx
+ * Description: Toast notification provider and component using the 'sonner' library.
+ */
 "use client"
 
 import {

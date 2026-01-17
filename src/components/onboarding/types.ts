@@ -1,4 +1,8 @@
 /**
+ * Filename: src/components/onboarding/types.ts
+ * Description: Type definitions and constants (Language, Level, Purpose) used across the onboarding components.
+ */
+/**
  * Shared types and constants for the onboarding flow
  */
 

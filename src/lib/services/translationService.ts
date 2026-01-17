@@ -1,4 +1,8 @@
 /**
+ * Filename: src/lib/services/translationService.ts
+ * Description: Service for translating text using the MyMemory API, with built-in caching and language detection.
+ */
+/**
  * Translation service using MyMemory API with caching
  */
 
@@ -11,17 +15,7 @@ const translationCache = new Map<string, TranslationResult>();
 const LANGUAGE_CODES: Record<string, string> = {
   'english': 'en',
   'italian': 'it',
-  'spanish': 'es',
   'french': 'fr',
-  'german': 'de',
-  'portuguese': 'pt',
-  'japanese': 'ja',
-  'chinese': 'zh',
-  'korean': 'ko',
-  'arabic': 'ar',
-  'dutch': 'nl',
-  'polish': 'pl',
-  'turkish': 'tr',
   'ukrainian': 'uk'
 };
 

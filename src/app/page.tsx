@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/page.tsx
+ * Description: The main landing page of the application, featuring the hero section and language selection.
+ */
 'use client';
 
 import Link from "next/link";
@@ -33,7 +37,7 @@ export default function Home() {
 
         {/* Title */}
         <h1 className="text-6xl sm:text-7xl font-bold tracking-tight mb-6 text-black">
-          LinguaFlow
+          Lingocoon
         </h1>
 
         {/* Subtitle */}
@@ -73,7 +77,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 text-center text-sm text-gray-400 border-t border-gray-200">
-        © 2026 LinguaFlow
+        © 2026 Lingocoon
       </footer>
     </div>
   );

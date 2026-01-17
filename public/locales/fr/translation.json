@@ -267,17 +267,8 @@
   },
   "languages": {
     "it-IT": "Italien",
-    "en-US": "Anglais (US)",
-    "en-GB": "Anglais (UK)",
-    "es-ES": "Espagnol",
-    "fr-FR": "Français",
-    "de-DE": "Allemand",
-    "pt-BR": "Portugais",
-    "ja-JP": "Japonais",
-    "ko-KR": "Coréen",
-    "zh-CN": "Chinois",
-    "ru-RU": "Russe",
-    "ar-XA": "Arabe"
+    "en-US": "Anglais",
+    "fr-FR": "Français"
   },
   "settings": {
     "title": "Paramètres",

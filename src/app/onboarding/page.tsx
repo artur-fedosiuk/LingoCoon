@@ -1,9 +1,15 @@
+/**
+ * Filename: src/app/onboarding/page.tsx
+ * Description: Client-side page component that initializes the onboarding process and redirects if already completed.
+ */
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '@/hooks/useProfile';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+
+import { useTranslation } from 'react-i18next';
 
 /**
  * Onboarding page component.
@@ -12,6 +18,7 @@ import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 export default function OnboardingPage() {
   const router = useRouter();
   const { profile, loading } = useProfile();
+  const { t } = useTranslation();
 
   // Redirect to dashboard if onboarding already completed
   useEffect(() => {
@@ -26,7 +33,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );

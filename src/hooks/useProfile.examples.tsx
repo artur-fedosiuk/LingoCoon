@@ -1,4 +1,8 @@
 /**
+ * Filename: src/hooks/useProfile.examples.tsx
+ * Description: Example usage components demonstrating how to implement the useProfile hook in various scenarios.
+ */
+/**
  * Usage Examples for useProfile Hook
  * 
  * This file demonstrates various ways to use the useProfile hook
@@ -137,7 +141,6 @@ export function OnboardingPage() {
         >
           <option value="">Select your native language</option>
           <option value="en">English</option>
-          <option value="es">Spanish</option>
           <option value="fr">French</option>
           <option value="it">Italian</option>
         </select>
@@ -149,7 +152,6 @@ export function OnboardingPage() {
         >
           <option value="">Language you want to learn</option>
           <option value="en">English</option>
-          <option value="es">Spanish</option>
           <option value="fr">French</option>
           <option value="it">Italian</option>
         </select>

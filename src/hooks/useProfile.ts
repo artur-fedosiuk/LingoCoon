@@ -1,3 +1,7 @@
+/**
+ * Filename: src/hooks/useProfile.ts
+ * Description: Custom hook for managing user profile data, including Supabase synchronization and real-time updates.
+ */
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';

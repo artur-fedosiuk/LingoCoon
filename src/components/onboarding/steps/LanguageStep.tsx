@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/onboarding/steps/LanguageStep.tsx
+ * Description: Reusable onboarding step component for selecting native or target languages.
+ */
 'use client';
 
 import { cn } from '@/lib/utils';
@@ -18,6 +22,16 @@ interface LanguageStepProps {
   excludeLanguage?: string;
 }
 
+import { useTranslation } from 'react-i18next';
+
+// Map for translation keys
+const LANG_KEY_MAP: Record<string, string> = {
+  it: 'it-IT',
+  ua: 'ua-UA',
+  gb: 'en-US',
+  fr: 'fr-FR',
+};
+
 /**
  * Language selection step - reusable for both native and target language.
  * Displays a grid of language cards with language names.
@@ -30,6 +44,8 @@ export function LanguageStep({
   type,
   excludeLanguage,
 }: LanguageStepProps) {
+  const { t } = useTranslation();
+
   // Filter out excluded language if provided
   const availableLanguages = excludeLanguage
     ? LANGUAGES.filter((lang) => lang.code !== excludeLanguage)
@@ -47,10 +63,15 @@ export function LanguageStep({
       <div
         className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         role="radiogroup"
-        aria-label={`Select your ${type} language`}
+        aria-label={
+          type === 'native'
+            ? t('onboarding.step1.native_language')
+            : t('onboarding.step1.target_language')
+        }
       >
         {availableLanguages.map((language) => {
           const isSelected = value === language.code;
+          const nameKey = LANG_KEY_MAP[language.code] || 'en-US';
 
           return (
             <button
@@ -74,7 +95,7 @@ export function LanguageStep({
                   isSelected ? 'text-primary' : 'text-foreground'
                 )}
               >
-                {language.name}
+                {t(`languages.${nameKey}`)}
               </span>
             </button>
           );

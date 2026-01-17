@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/login/actions.ts
+ * Description: Server actions for handling user authentication: login, signup, and logout.
+ */
 'use server'
 
 import { revalidatePath } from 'next/cache'

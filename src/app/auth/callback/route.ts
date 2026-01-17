@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/auth/callback/route.ts
+ * Description: Handles the OAuth callback from Supabase Authentication, exchanging the code for a session and redirecting the user.
+ */
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 

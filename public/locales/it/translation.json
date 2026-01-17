@@ -267,17 +267,9 @@
   },
   "languages": {
     "it-IT": "Italiano",
-    "en-US": "Inglese (US)",
-    "en-GB": "Inglese (UK)",
-    "es-ES": "Spagnolo",
+    "en-US": "Inglese",
     "fr-FR": "Francese",
-    "de-DE": "Tedesco",
-    "pt-BR": "Portoghese",
-    "ja-JP": "Giapponese",
-    "ko-KR": "Coreano",
-    "zh-CN": "Cinese",
-    "ru-RU": "Russo",
-    "ar-XA": "Arabo"
+    "uk-UA": "Ukrainiano"
   },
   "settings": {
     "title": "Impostazioni",

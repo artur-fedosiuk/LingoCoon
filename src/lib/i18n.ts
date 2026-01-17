@@ -1,3 +1,7 @@
+/**
+ * Filename: src/lib/i18n.ts
+ * Description: Configuration for i18next, initializing language detection, backend loading, and React integration.
+ */
 'use client';
 
 import i18n from 'i18next';

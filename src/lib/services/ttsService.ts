@@ -1,4 +1,8 @@
 /**
+ * Filename: src/lib/services/ttsService.ts
+ * Description: Client-side service wrapper for Text-to-Speech functionality, communicating with the server-side proxy.
+ */
+/**
  * Text-to-Speech Service with Google Cloud TTS
  * Secure implementation using server-side API routes
  */

@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/card.tsx
+ * Description: Reusable Card component system (Container, Header, Title, Content, Footer) for grouping content.
+ */
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

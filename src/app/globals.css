@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/globals.css
+ * Description: Global CSS styles including Tailwind directives and theme variables.
+ */
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));

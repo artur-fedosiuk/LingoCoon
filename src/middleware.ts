@@ -1,3 +1,7 @@
+/**
+ * Filename: src/middleware.ts
+ * Description: Middleware to update the user's session with Supabase before navigating to protected routes.
+ */
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/supabase/types'

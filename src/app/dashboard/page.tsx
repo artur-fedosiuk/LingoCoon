@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/dashboard/page.tsx
+ * Description: Server-side dashboard page that verifies authentication and fetches user profile data.
+ */
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
@@ -31,7 +35,7 @@ export default async function DashboardPage() {
             <header className="border-b bg-white/80 backdrop-blur-sm dark:bg-slate-950/80">
                 <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                        LinguaFlow
+                        Lingocoon
                     </h1>
                     <div className="flex items-center gap-4">
                         <LanguageSelector />

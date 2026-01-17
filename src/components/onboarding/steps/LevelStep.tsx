@@ -1,7 +1,12 @@
+/**
+ * Filename: src/components/onboarding/steps/LevelStep.tsx
+ * Description: Onboarding step component for users to self-assess and select their current language proficiency level.
+ */
 'use client';
 
 import { cn } from '@/lib/utils';
 import { LEVELS } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface LevelStepProps {
   /** Currently selected level value */
@@ -15,52 +20,58 @@ interface LevelStepProps {
  * Displays 4 large cards with titles and descriptions.
  */
 export function LevelStep({ value, onChange }: LevelStepProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">What's your current level?</h2>
+        <h2 className="text-2xl font-bold">{t('onboarding.step3.title')}</h2>
         <p className="text-muted-foreground">
-          This helps us personalize your learning path
+          {t('onboarding.step3.subtitle')}
         </p>
       </div>
 
-      {/* Level Grid */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-        role="radiogroup"
-        aria-label="Select your current proficiency level"
-      >
+      {/* Levels List */}
+      <div className="space-y-3">
         {LEVELS.map((level) => {
           const isSelected = value === level.value;
 
           return (
             <button
               key={level.value}
-              type="button"
-              role="radio"
-              aria-checked={isSelected}
               onClick={() => onChange(level.value)}
               className={cn(
-                'flex flex-col items-start text-left p-5 rounded-xl border-2 transition-all',
+                'w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left',
                 'hover:border-primary/50 hover:bg-muted/50',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 isSelected
                   ? 'border-primary bg-primary/5 shadow-sm'
                   : 'border-border bg-card'
               )}
             >
-              <span
+              <div>
+                <h3
+                  className={cn(
+                    'font-semibold',
+                    isSelected ? 'text-primary' : 'text-foreground'
+                  )}
+                >
+                  {t(`onboarding.step3.levels.${level.value}`)}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t(`onboarding.step3.levels.${level.value}_desc`)}
+                </p>
+              </div>
+              <div
                 className={cn(
-                  'font-semibold text-lg',
-                  isSelected ? 'text-primary' : 'text-foreground'
+                  'h-5 w-5 rounded-full border-2 flex items-center justify-center ml-4',
+                  isSelected
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-muted-foreground'
                 )}
               >
-                {level.title}
-              </span>
-              <span className="text-sm text-muted-foreground mt-1">
-                {level.description}
-              </span>
+                {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
+              </div>
             </button>
           );
         })}

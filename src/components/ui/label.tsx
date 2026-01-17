@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/label.tsx
+ * Description: Label component for accessible form inputs and controls.
+ */
 "use client"
 
 import * as React from "react"

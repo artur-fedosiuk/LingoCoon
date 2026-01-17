@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/api/tts/synthesize/route.ts
+ * Description: API route handler to synthesize text into speech using the Google Cloud Text-to-Speech API.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 
 const GOOGLE_TTS_API_KEY = process.env.GOOGLE_TTS_API_KEY;

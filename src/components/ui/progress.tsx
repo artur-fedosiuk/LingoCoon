@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/progress.tsx
+ * Description: Progress bar component used to visualize completion or loading status.
+ */
 "use client"
 
 import * as React from "react"

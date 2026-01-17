@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/input.tsx
+ * Description: Styled Input component for text fields and form data entry.
+ */
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

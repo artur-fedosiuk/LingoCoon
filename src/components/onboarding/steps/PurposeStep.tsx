@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/onboarding/steps/PurposeStep.tsx
+ * Description: Onboarding step component for selecting the user's primary reason for learning a language.
+ */
 'use client';
 
 import { cn } from '@/lib/utils';
@@ -18,19 +22,25 @@ interface PurposeStepProps {
  * Purpose selection step - asks why the user is learning.
  * Displays 5 cards with emojis and an optional details textarea.
  */
+import { useTranslation } from 'react-i18next';
+
+// ... existing imports
+
 export function PurposeStep({
   value,
   details,
   onChange,
   onDetailsChange,
 }: PurposeStepProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Why are you learning?</h2>
+        <h2 className="text-2xl font-bold">{t('onboarding.step2.title')}</h2>
         <p className="text-muted-foreground">
-          This helps us tailor content to your goals
+          {t('onboarding.step2.subtitle')}
         </p>
       </div>
 
@@ -38,7 +48,7 @@ export function PurposeStep({
       <div
         className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         role="radiogroup"
-        aria-label="Select your learning purpose"
+        aria-label={t('onboarding.step2.subtitle')}
       >
         {PURPOSES.map((purpose) => {
           const isSelected = value === purpose.value;
@@ -65,7 +75,7 @@ export function PurposeStep({
                   isSelected ? 'text-primary' : 'text-foreground'
                 )}
               >
-                {purpose.title}
+                {t(`onboarding.step2.goals.${purpose.value}`)}
               </span>
             </button>
           );
@@ -78,14 +88,14 @@ export function PurposeStep({
           htmlFor="purpose-details"
           className="block text-sm font-medium text-foreground"
         >
-          Tell us more{' '}
-          <span className="text-muted-foreground font-normal">(optional)</span>
+          {t('onboarding.tell_us_more')}{' '}
+          <span className="text-muted-foreground font-normal">({t('onboarding.optional')})</span>
         </label>
         <textarea
           id="purpose-details"
           value={details}
           onChange={(e) => onDetailsChange(e.target.value)}
-          placeholder="E.g., I want to get a job in Italy, I'm preparing for a trip to Japan..."
+          placeholder={t('onboarding.tell_us_more_placeholder')}
           className={cn(
             'w-full min-h-[100px] px-4 py-3 rounded-xl border bg-card',
             'text-foreground placeholder:text-muted-foreground',

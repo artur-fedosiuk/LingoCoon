@@ -1,4 +1,8 @@
 /**
+ * Filename: src/lib/supabase/types.ts
+ * Description: TypeScript definitions matching the Supabase database schema (Profiles, LearningProfile, OnboardingData).
+ */
+/**
  * TypeScript types for Supabase database schema
  * These types match the database schema exactly and provide type safety
  * for all database operations.

@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/providers/I18nProvider.tsx
+ * Description: Provider component that initializes and makes i18n functionality available throughout the app.
+ */
 'use client';
 
 import { I18nextProvider } from 'react-i18next';

@@ -1,3 +1,7 @@
+/**
+ * Filename: src/app/login/page.tsx
+ * Description: Login page component allowing users to sign in via email/password or Google (OAuth).
+ */
 import Link from 'next/link'
 import { login, signup, loginWithGoogle } from './actions'
 
@@ -6,7 +10,7 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
                 <h1 className="mb-8 text-center text-2xl font-bold text-gray-900">
-                    Accedi a LinguaFlow
+                    Accedi a Lingocoon
                 </h1>
 
                 {/* Google Sign-in Button */}

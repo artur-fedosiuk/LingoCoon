@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/onboarding/steps/SummaryStep.tsx
+ * Description: Final onboarding step that summarizes user choices and allows for editing before submission.
+ */
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -20,50 +24,64 @@ interface SummaryStepProps {
  * Summary step - displays all collected data with edit options.
  * Final step before completing onboarding.
  */
+import { useTranslation } from 'react-i18next';
+
+// ... existing imports
+
+// Map for translation keys (should be shared or duplicated if not exporting)
+const LANG_KEY_MAP: Record<string, string> = {
+  it: 'it-IT',
+  ua: 'ua-UA',
+  gb: 'en-US',
+  fr: 'fr-FR',
+};
+
 export function SummaryStep({
   data,
   onEdit,
   onComplete,
   isLoading,
 }: SummaryStepProps) {
+  const { t } = useTranslation();
+
   // Helper to get display names from codes
-  const getLanguageName = (code: string) =>
-    LANGUAGES.find((l) => l.code === code)?.name || code;
-
-
+  const getLanguageName = (code: string) => {
+    const key = LANG_KEY_MAP[code] || 'en-US';
+    return t(`languages.${key}`);
+  };
 
   const getLevelTitle = (value: string) =>
-    LEVELS.find((l) => l.value === value)?.title || value;
+    t(`onboarding.step3.levels.${value}`);
 
   const getPurposeTitle = (value: string) =>
-    PURPOSES.find((p) => p.value === value)?.title || value;
+    t(`onboarding.step2.goals.${value}`);
 
   // Summary items with their step numbers for editing
   const summaryItems = [
     {
-      label: 'Native language',
+      label: t('onboarding.step1.native_language'),
       value: getLanguageName(data.native_language),
       step: 1,
     },
     {
-      label: 'Learning',
+      label: t('onboarding.step1.target_language'),
       value: getLanguageName(data.target_language),
       step: 2,
     },
     {
-      label: 'Current level',
+      label: t('onboarding.summary.level'),
       value: getLevelTitle(data.current_level),
       step: 3,
     },
     {
-      label: 'Purpose',
+      label: t('onboarding.summary.purpose'),
       value: getPurposeTitle(data.learning_purpose),
       step: 4,
     },
     ...(data.nickname
       ? [
         {
-          label: 'Nickname',
+          label: t('onboarding.summary.nickname'),
           value: data.nickname,
           step: 5,
         },
@@ -78,9 +96,9 @@ export function SummaryStep({
         <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black flex items-center justify-center">
           <span className="text-5xl font-bold text-white">L</span>
         </div>
-        <h2 className="text-2xl font-bold">You're all set!</h2>
+        <h2 className="text-2xl font-bold">{t('onboarding.summary.title')}</h2>
         <p className="text-muted-foreground">
-          Review your choices before we begin
+          {t('onboarding.summary.subtitle')}
         </p>
       </div>
 
@@ -102,7 +120,7 @@ export function SummaryStep({
               size="icon"
               onClick={() => onEdit(item.step)}
               disabled={isLoading}
-              aria-label={`Edit ${item.label}`}
+              aria-label={`${t('common.edit')} ${item.label}`}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -113,7 +131,7 @@ export function SummaryStep({
         {data.learning_purpose_details && (
           <div className="p-4 rounded-xl bg-muted/50 border">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-              Additional details
+              {t('onboarding.summary.additional_details')}
             </p>
             <p className="text-sm text-foreground">
               {data.learning_purpose_details}
@@ -133,19 +151,19 @@ export function SummaryStep({
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Setting up your account...
+              {t('onboarding.creating_account')}
             </>
           ) : (
             <>
               <Check className="h-5 w-5" />
-              Complete Setup
+              {t('common.complete')}
             </>
           )}
         </Button>
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        You can always change these in settings later
+        {t('onboarding.summary.change_later')}
       </p>
     </div>
   );

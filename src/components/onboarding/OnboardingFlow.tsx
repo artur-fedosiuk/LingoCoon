@@ -1,8 +1,13 @@
+/**
+ * Filename: src/components/onboarding/OnboardingFlow.tsx
+ * Description: Orchestrator component for the multi-step user onboarding flow, managing state and navigation.
+ */
 'use client';
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useProfile } from '@/hooks/useProfile';
 import LanguageSelector from '@/components/LanguageSelector';
 import { ProgressBar } from './ProgressBar';
@@ -23,6 +28,7 @@ import type { OnboardingFormData } from './types';
 export function OnboardingFlow() {
   const router = useRouter();
   const { completeOnboarding } = useProfile();
+  const { t } = useTranslation();
 
   // Current step (0-based index)
   const [currentStep, setCurrentStep] = useState(0);
@@ -114,10 +120,10 @@ export function OnboardingFlow() {
       router.push('/dashboard');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
-      toast.error('Failed to save your preferences. Please try again.');
+      toast.error(t('onboarding.errors.generic_save'));
       setIsSubmitting(false);
     }
-  }, [formData, completeOnboarding, router]);
+  }, [formData, completeOnboarding, router, t]);
 
   /**
    * Render the current step component
@@ -130,8 +136,8 @@ export function OnboardingFlow() {
       case 1:
         return (
           <LanguageStep
-            title="What's your native language?"
-            subtitle="The language you're most comfortable with"
+            title={t('onboarding.step1.native_language')}
+            subtitle={t('onboarding.step1.native_subtitle')}
             type="native"
             value={formData.native_language}
             onChange={(code) => updateField('native_language', code)}
@@ -141,8 +147,8 @@ export function OnboardingFlow() {
       case 2:
         return (
           <LanguageStep
-            title="What do you want to learn?"
-            subtitle="Choose the language you'd like to master"
+            title={t('onboarding.step1.target_language')}
+            subtitle={t('onboarding.step1.target_subtitle')}
             type="target"
             value={formData.target_language}
             onChange={(code) => updateField('target_language', code)}
@@ -194,6 +200,14 @@ export function OnboardingFlow() {
     }
   };
 
+  /*
+   * Missing Keys:
+   * onboarding.creating_account
+   * onboarding.errors.generic_save
+   * onboarding.step1.native_subtitle
+   * onboarding.step1.target_subtitle
+   */
+
   // Don't show navigation on welcome or summary steps
   const showNavigation = currentStep > 0 && currentStep < 6;
   const isLastStep = currentStep === TOTAL_STEPS - 1;
@@ -210,7 +224,7 @@ export function OnboardingFlow() {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-muted-foreground">Setting up your account...</p>
+            <p className="text-muted-foreground">{t('onboarding.creating_account')}</p>
           </div>
         </div>
       )}

@@ -1,5 +1,10 @@
+/**
+ * Filename: src/components/onboarding/StepNavigation.tsx
+ * Description: Navigation buttons (Back, Next/Complete) component for moving between onboarding steps.
+ */
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -30,6 +35,8 @@ export function StepNavigation({
   isLoading = false,
   isLastStep = false,
 }: StepNavigationProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between gap-4 pt-6">
       <Button
@@ -37,26 +44,26 @@ export function StepNavigation({
         onClick={onBack}
         disabled={!canGoBack || isLoading}
         className="gap-2"
-        aria-label="Go to previous step"
+        aria-label={t('common.back')}
       >
         <ArrowLeft className="h-4 w-4" />
-        <span className="hidden sm:inline">Back</span>
+        <span className="hidden sm:inline">{t('common.back')}</span>
       </Button>
 
       <Button
         onClick={onNext}
         disabled={!canGoNext || isLoading}
         className="gap-2 min-w-[140px]"
-        aria-label={isLastStep ? 'Complete setup' : 'Go to next step'}
+        aria-label={isLastStep ? t('common.complete') : t('common.next')}
       >
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Saving...</span>
+            <span>{t('onboarding.saving')}</span>
           </>
         ) : (
           <>
-            <span>{isLastStep ? 'Complete Setup' : 'Continue'}</span>
+            <span>{isLastStep ? t('common.complete') : t('common.next')}</span>
             {!isLastStep && <ArrowRight className="h-4 w-4" />}
           </>
         )}

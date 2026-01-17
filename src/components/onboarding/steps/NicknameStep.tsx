@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/onboarding/steps/NicknameStep.tsx
+ * Description: Optional onboarding step allowing users to set a custom nickname for their profile.
+ */
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -17,7 +21,13 @@ interface NicknameStepProps {
  * Nickname step - allows user to set a display name.
  * This step is optional and can be skipped.
  */
+import { useTranslation } from 'react-i18next';
+
+// ...
+
 export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 py-4">
       {/* Header */}
@@ -25,9 +35,9 @@ export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-2">
           <User className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h2 className="text-2xl font-bold">What should we call you?</h2>
+        <h2 className="text-2xl font-bold">{t('onboarding.nickname_step.title')}</h2>
         <p className="text-muted-foreground">
-          Choose a nickname for your learning journey
+          {t('onboarding.nickname_step.subtitle')}
         </p>
       </div>
 
@@ -37,15 +47,15 @@ export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Your nickname"
+          placeholder={t('onboarding.nickname_step.placeholder')}
           className="text-center text-lg py-6"
           maxLength={30}
-          aria-label="Nickname"
+          aria-label={t('onboarding.nickname_step.aria_label')}
           autoFocus
         />
 
         <p className="text-xs text-muted-foreground text-center">
-          This is how you'll appear in the app
+          {t('onboarding.nickname_step.helper')}
         </p>
       </div>
 
@@ -56,7 +66,7 @@ export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
           onClick={onSkip}
           className="text-muted-foreground"
         >
-          Skip for now
+          {t('onboarding.skip')}
         </Button>
       </div>
     </div>

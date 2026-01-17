@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/avatar.tsx
+ * Description: Avatar component for displaying user profile images or fallbacks.
+ */
 "use client"
 
 import * as React from "react"

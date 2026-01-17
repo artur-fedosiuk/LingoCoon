@@ -1,3 +1,7 @@
+/**
+ * Filename: src/lib/supabase/client.ts
+ * Description: Utility to create and manage the client-side Supabase instance with environment validation.
+ */
 import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';

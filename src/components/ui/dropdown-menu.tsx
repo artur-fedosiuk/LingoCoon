@@ -1,3 +1,7 @@
+/**
+ * Filename: src/components/ui/dropdown-menu.tsx
+ * Description: Dropdown menu components (Trigger, Content, Item) for creating accessible menus.
+ */
 "use client"
 
 import * as React from "react"

@@ -1,3 +1,7 @@
+/**
+ * Filename: src/lib/supabase/server.ts
+ * Description: Utility to create a server-side Supabase client for use in Server Actions and Components.
+ */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from './types'

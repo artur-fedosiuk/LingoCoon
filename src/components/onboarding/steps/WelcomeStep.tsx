@@ -1,7 +1,12 @@
+/**
+ * Filename: src/components/onboarding/steps/WelcomeStep.tsx
+ * Description: Initial onboarding step displaying a welcome message and key benefits of the application.
+ */
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Sparkles, Brain, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WelcomeStepProps {
   /** Callback when user clicks to start */
@@ -13,21 +18,23 @@ interface WelcomeStepProps {
  * First step in the onboarding flow.
  */
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
+  const { t } = useTranslation();
+
   const benefits = [
     {
       icon: Brain,
-      title: 'AI-Powered Personalization',
-      description: 'Lessons adapt to your learning style and pace',
+      title: t('onboarding.welcome_benefits.ai_title'),
+      description: t('onboarding.welcome_benefits.ai_desc'),
     },
     {
       icon: Sparkles,
-      title: 'Smart Progress Tracking',
-      description: 'Track your journey with detailed insights',
+      title: t('onboarding.welcome_benefits.tracking_title'),
+      description: t('onboarding.welcome_benefits.tracking_desc'),
     },
     {
       icon: Zap,
-      title: 'Learn Faster',
-      description: 'Scientifically proven methods for retention',
+      title: t('onboarding.welcome_benefits.faster_title'),
+      description: t('onboarding.welcome_benefits.faster_desc'),
     },
   ];
 
@@ -39,18 +46,18 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           <span className="text-5xl font-bold text-white">L</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-          Welcome to LinguaCoon
+          {t('onboarding.welcome_title')}
         </h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          Learn languages with AI-powered personalization
+          {t('onboarding.welcome_subtitle')}
         </p>
       </div>
 
       {/* Benefits */}
       <div className="grid gap-4 w-full max-w-md">
-        {benefits.map((benefit) => (
+        {benefits.map((benefit, index) => (
           <div
-            key={benefit.title}
+            key={index}
             className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 text-left"
           >
             <div className="flex-shrink-0 p-2 rounded-full bg-primary/10">
@@ -72,11 +79,11 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
         onClick={onNext}
         className="w-full max-w-md text-lg py-6"
       >
-        Get Started
+        {t('onboarding.get_started')}
       </Button>
 
       <p className="text-xs text-muted-foreground">
-        Takes less than 2 minutes to set up
+        {t('onboarding.setup_time')}
       </p>
     </div>
   );
