@@ -163,6 +163,76 @@ export interface UpdateLearningProfileResponse {
 }
 
 /**
+ * Deck interface - Flashcard deck
+ * Matches actual database schema with language_from and language_to
+ */
+export interface Deck {
+  /** UUID primary key */
+  id: string;
+  /** Owner's user ID, references auth.users(id) */
+  user_id: string;
+  /** Deck title (1-100 chars) */
+  title: string;
+  /** Optional deck description */
+  description: string | null;
+  /** Source language code (e.g., 'en', 'it', 'fr', 'uk') - defaults to 'en' */
+  language_from: string;
+  /** Target language code (e.g., 'en', 'it', 'fr', 'uk') - defaults to 'it' */
+  language_to: string;
+  /** Number of cards in this deck */
+  card_count: number;
+  /** When the deck was created */
+  created_at: string;
+  /** When the deck was last updated */
+  updated_at: string;
+}
+
+/**
+ * Card interface - Individual flashcard
+ * Matches actual database schema with difficulty field
+ */
+export interface Card {
+  /** UUID primary key */
+  id: string;
+  /** Parent deck ID, references decks(id) */
+  deck_id: string;
+  /** Front side text (1-500 chars) */
+  front: string;
+  /** Back side text (1-500 chars) */
+  back: string;
+  /** Difficulty level: 1 (easy) to 5 (hard) */
+  difficulty: number;
+  /** When the card was created */
+  created_at: string;
+  /** When the card was last updated */
+  updated_at: string;
+}
+
+/**
+ * StudyProgress interface - Tracks user progress on individual cards
+ */
+export interface StudyProgress {
+  /** UUID primary key */
+  id: string;
+  /** User ID, references auth.users(id) */
+  user_id: string;
+  /** Card ID, references cards(id) */
+  card_id: string;
+  /** Current ease factor for spaced repetition */
+  ease_factor: number;
+  /** Current interval in days */
+  interval: number;
+  /** Number of times reviewed */
+  repetitions: number;
+  /** When the card should next be reviewed */
+  next_review: string;
+  /** When the progress was created */
+  created_at: string;
+  /** When the progress was last updated */
+  updated_at: string;
+}
+
+/**
  * Database schema type definition for Supabase client.
  * This provides full type safety when using the Supabase client.
  */
@@ -176,6 +246,37 @@ export interface Database {
           updated_at?: string;
         };
         Update: ProfileUpdate;
+      };
+      decks: {
+        Row: Deck;
+        Insert: Omit<Deck, 'id' | 'created_at' | 'updated_at' | 'card_count'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          card_count?: number;
+          language_from?: string; // defaults to 'en'
+          language_to?: string;   // defaults to 'it'
+        };
+        Update: Partial<Omit<Deck, 'id' | 'created_at' | 'user_id'>>;
+      };
+      cards: {
+        Row: Card;
+        Insert: Omit<Card, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          difficulty?: number; // defaults to 3
+        };
+        Update: Partial<Omit<Card, 'id' | 'created_at' | 'deck_id'>>;
+      };
+      study_progress: {
+        Row: StudyProgress;
+        Insert: Omit<StudyProgress, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<StudyProgress, 'id' | 'created_at' | 'user_id' | 'card_id'>>;
       };
     };
     Functions: {

@@ -25,7 +25,7 @@ export default function LanguageSelector() {
     }, []);
 
     const supportedLngs = (i18n.options.supportedLngs as string[])?.filter(l => l !== 'cimode') || ['en'];
-    
+
     const getLanguageLabel = (code: string) => {
         const key = LANGUAGE_KEY_MAP[code] || code;
         return t(`languages.${key}`);
@@ -81,7 +81,7 @@ export default function LanguageSelector() {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-900 p-2 min-w-[180px] z-50">
+                <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg border border-gray-900 p-2 min-w-[180px] z-50">
                     {supportedLngs.map(code => (
                         <button
                             key={code}

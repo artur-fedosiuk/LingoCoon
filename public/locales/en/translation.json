@@ -341,5 +341,35 @@
     "accept": "Accept All",
     "reject": "Reject All",
     "readMore": "Learn More"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "flashcards": "Flashcards",
+    "settings": "Settings"
+  },
+  "decks": {
+    "title": "Flashcard Hub",
+    "subtitle": "Manage your decks and start studying",
+    "create_new": "Create Deck",
+    "card_count": "{{count}} cards",
+    "card_count_single": "{{count}} card",
+    "study": "Study",
+    "edit": "Edit",
+    "empty": {
+      "title": "No decks yet",
+      "description": "Create your first deck to start organizing your flashcards and begin your learning journey.",
+      "create_button": "Create Your First Deck"
+    },
+    "modal": {
+      "create_title": "Create New Deck",
+      "deck_title": "Deck Title",
+      "title_placeholder": "Enter deck title...",
+      "creating": "Creating...",
+      "create_button": "Create Deck"
+    },
+    "errors": {
+      "title_required": "Please enter a deck title",
+      "create_failed": "Failed to create deck. Please try again."
+    }
   }
 }

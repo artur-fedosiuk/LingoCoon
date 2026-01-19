@@ -340,5 +340,35 @@
     "accept": "Accetta Tutto",
     "reject": "Rifiuta Tutto",
     "readMore": "Scopri di più"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "flashcards": "Flashcard",
+    "settings": "Impostazioni"
+  },
+  "decks": {
+    "title": "Hub Flashcard",
+    "subtitle": "Gestisci i tuoi deck e inizia a studiare",
+    "create_new": "Crea Deck",
+    "card_count": "{{count}} carte",
+    "card_count_single": "{{count}} carta",
+    "study": "Studia",
+    "edit": "Modifica",
+    "empty": {
+      "title": "Nessun deck ancora",
+      "description": "Crea il tuo primo deck per iniziare a organizzare le tue flashcard e cominciare il tuo percorso di apprendimento.",
+      "create_button": "Crea il Tuo Primo Deck"
+    },
+    "modal": {
+      "create_title": "Crea Nuovo Deck",
+      "deck_title": "Titolo del Deck",
+      "title_placeholder": "Inserisci il titolo del deck...",
+      "creating": "Creazione...",
+      "create_button": "Crea Deck"
+    },
+    "errors": {
+      "title_required": "Inserisci un titolo per il deck",
+      "create_failed": "Impossibile creare il deck. Riprova."
+    }
   }
 }

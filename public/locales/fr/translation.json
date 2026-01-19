@@ -339,5 +339,35 @@
     "accept": "Tout accepter",
     "reject": "Tout refuser",
     "readMore": "En savoir plus"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "flashcards": "Cartes",
+    "settings": "Parametres"
+  },
+  "decks": {
+    "title": "Hub de Cartes",
+    "subtitle": "Gerez vos decks et commencez a etudier",
+    "create_new": "Creer un Deck",
+    "card_count": "{{count}} cartes",
+    "card_count_single": "{{count}} carte",
+    "study": "Etudier",
+    "edit": "Modifier",
+    "empty": {
+      "title": "Aucun deck pour le moment",
+      "description": "Creez votre premier deck pour commencer a organiser vos cartes et debuter votre apprentissage.",
+      "create_button": "Creer Votre Premier Deck"
+    },
+    "modal": {
+      "create_title": "Creer un Nouveau Deck",
+      "deck_title": "Titre du Deck",
+      "title_placeholder": "Entrez le titre du deck...",
+      "creating": "Creation...",
+      "create_button": "Creer le Deck"
+    },
+    "errors": {
+      "title_required": "Veuillez entrer un titre de deck",
+      "create_failed": "Echec de la creation du deck. Veuillez reessayer."
+    }
   }
 }
