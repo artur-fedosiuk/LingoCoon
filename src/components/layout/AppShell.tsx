@@ -15,7 +15,6 @@ import { Home, Library, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { signOut } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
-import LanguageSelector from '@/components/LanguageSelector';
 
 interface NavItem {
     key: string;
@@ -107,11 +106,8 @@ export default function AppShell({ children, userEmail }: AppShellProps) {
 
                 {/* Bottom Section - User & Logout */}
                 <div className="border-t border-black/10 p-4 dark:border-white/10">
-                    <div className="mb-3">
-                        <LanguageSelector />
-                    </div>
                     {userEmail && (
-                        <p className="mb-2 truncate text-xs text-black/50 dark:text-white/50">
+                        <p className="mb-3 truncate text-xs text-black/50 dark:text-white/50">
                             {userEmail}
                         </p>
                     )}
@@ -130,7 +126,7 @@ export default function AppShell({ children, userEmail }: AppShellProps) {
             </aside>
 
             {/* Mobile Header */}
-            <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-black/10 bg-white px-4 dark:border-white/10 dark:bg-black md:hidden">
+            <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center border-b border-black/10 bg-white px-4 dark:border-white/10 dark:bg-black md:hidden">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-black dark:bg-white">
                         <span className="text-xs font-bold text-white dark:text-black">LC</span>
@@ -139,7 +135,6 @@ export default function AppShell({ children, userEmail }: AppShellProps) {
                         LinguaCoon
                     </span>
                 </Link>
-                <LanguageSelector />
             </header>
 
             {/* Mobile Bottom Navigation */}

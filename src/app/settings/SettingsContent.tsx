@@ -6,8 +6,9 @@
 
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, User, Globe, Target } from 'lucide-react';
+import { Settings, User, Globe, Target, Languages } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface Profile {
     id: string;
@@ -34,9 +35,35 @@ export default function SettingsContent({ profile }: SettingsContentProps) {
                     {t('settings.title')}
                 </h1>
                 <p className="mt-1 text-sm text-black/60 dark:text-white/60">
-                    {t('settings.coming_soon')}
+                    Manage your preferences and profile settings
                 </p>
             </div>
+
+            {/* Language Preferences Card */}
+            <Card className="border-black/10 bg-white dark:border-white/10 dark:bg-black">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-black dark:text-white">
+                        <Languages className="h-5 w-5" />
+                        Language Preferences
+                    </CardTitle>
+                    <CardDescription className="text-black/60 dark:text-white/60">
+                        Choose your preferred language for the application interface
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col gap-3">
+                        <label className="text-sm font-medium text-black/70 dark:text-white/70">
+                            Application Language
+                        </label>
+                        <div className="max-w-xs">
+                            <LanguageSelector />
+                        </div>
+                        <p className="text-xs text-black/50 dark:text-white/50">
+                            This changes the language of menus, buttons, and interface text. Your learning content language is set separately in your profile.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Profile Card */}
             <Card className="border-black/10 bg-white dark:border-white/10 dark:bg-black">
@@ -46,7 +73,7 @@ export default function SettingsContent({ profile }: SettingsContentProps) {
                         {t('settings.your_profile')}
                     </CardTitle>
                     <CardDescription className="text-black/60 dark:text-white/60">
-                        {t('settings.under_construction')}
+                        Your learning profile and preferences
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
