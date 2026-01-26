@@ -81,12 +81,7 @@ export default function LanguageSelector() {
             </button>
 
             {isOpen && (
-                <div className="fixed bottom-auto left-auto bg-white rounded-lg shadow-lg border border-gray-900 p-2 min-w-[180px] z-[9999]"
-                    style={{
-                        top: dropdownRef.current ? `${dropdownRef.current.getBoundingClientRect().top - 8}px` : '0',
-                        right: dropdownRef.current ? `${window.innerWidth - dropdownRef.current.getBoundingClientRect().right}px` : '0',
-                        transform: 'translateY(-100%)'
-                    }}>
+                <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-900 p-2 min-w-[180px] z-[9999]">
                     {supportedLngs.map(code => (
                         <button
                             key={code}

@@ -200,6 +200,8 @@ export interface Card {
   front: string;
   /** Back side text (1-500 chars) */
   back: string;
+  /** Optional example sentence to provide context */
+  example_sentence?: string | null;
   /** Difficulty level: 1 (easy) to 5 (hard) */
   difficulty: number;
   /** When the card was created */
