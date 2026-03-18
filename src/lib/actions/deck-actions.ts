@@ -96,6 +96,26 @@ export async function createCardAction(
 }
 
 /**
+ * Get a single deck by ID
+ */
+export async function getDeck(deckId: string): Promise<{ deck?: Deck; error?: string }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('decks')
+    .select('*')
+    .eq('id', deckId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching deck:', error);
+    return { error: error.message };
+  }
+
+  return { deck: data };
+}
+
+/**
  * Get all decks for current user
  */
 export async function getDecks(): Promise<{ decks: Deck[] }> {

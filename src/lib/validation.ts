@@ -7,7 +7,7 @@ import type { ValidationResult } from './types';
 export type LanguageCode = 'en' | 'it' | 'fr' | 'uk';
 
 const profanity = new Profanity({
-  languages: ['en', 'it', 'fr', 'ru']
+  languages: ['en', 'it', 'fr']
 } as ProfanityOptions);
 
 /**

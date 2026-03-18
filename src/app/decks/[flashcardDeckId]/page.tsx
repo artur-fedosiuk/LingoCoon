@@ -78,6 +78,7 @@ export default async function DeckPage({
           <CreateCardForm 
             deckId={deck.id} 
             deckLanguage={deck.language_from}
+            languageTo={deck.language_to}
           />
         </div>
 
@@ -93,7 +94,7 @@ export default async function DeckPage({
           {!cards || cards.length === 0 ? (
             <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
               <p className="text-lg mb-2">No cards yet</p>
-              <p className="text-sm">Add one on the left! 👈</p>
+              <p className="text-sm">Add one on the left!</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">

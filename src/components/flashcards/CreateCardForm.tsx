@@ -9,9 +9,10 @@ import { AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 interface CreateCardFormProps {
   deckId: string;
   deckLanguage: string;
+  languageTo: string;
 }
 
-export default function CreateCardForm({ deckId, deckLanguage }: CreateCardFormProps) {
+export default function CreateCardForm({ deckId, deckLanguage, languageTo }: CreateCardFormProps) {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [frontWarning, setFrontWarning] = useState('');
@@ -60,12 +61,25 @@ export default function CreateCardForm({ deckId, deckLanguage }: CreateCardFormP
     return map[code] || 'en';
   };
 
+  const getFullLanguageName = (code: string): string => {
+    const map: Record<string, string> = {
+      en: 'English',
+      it: 'Italian',
+      fr: 'French',
+      uk: 'Ukrainian',
+      de: 'German',
+      es: 'Spanish',
+      pt: 'Portuguese'
+    };
+    return map[code] || code.toUpperCase();
+  };
+
   return (
     <div className="space-y-4">
       {/* Front Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Front ({deckLanguage.toUpperCase()})
+          Front - Word to learn ({getFullLanguageName(deckLanguage)})
         </label>
         <textarea
           value={front}
@@ -73,7 +87,7 @@ export default function CreateCardForm({ deckId, deckLanguage }: CreateCardFormP
           spellCheck={true}
           lang={getLangCode(deckLanguage)}
           rows={3}
-          className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none transition-colors ${
+          className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none transition-colors resize-none ${
             frontWarning 
               ? 'border-yellow-400 bg-yellow-50' 
               : 'border-gray-300'
@@ -99,14 +113,14 @@ export default function CreateCardForm({ deckId, deckLanguage }: CreateCardFormP
       {/* Back Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Back (Translation)
+          Back - Translation ({getFullLanguageName(languageTo)})
         </label>
         <textarea
           value={back}
           onChange={(e) => setBack(e.target.value)}
           spellCheck={true}
           rows={3}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none resize-none"
           placeholder="Enter translation..."
         />
       </div>

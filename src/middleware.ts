@@ -38,7 +38,25 @@ export async function middleware(request: NextRequest) {
     // supabase.auth.getUser(). A simple mistake could make it very hard to debug
     // issues with users being randomly logged out.
 
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Define explicitly public routes that unauthenticated users CAN access
+    const isPublicRoute = 
+        request.nextUrl.pathname === '/' ||
+        request.nextUrl.pathname.startsWith('/login') ||
+        request.nextUrl.pathname.startsWith('/signup') ||
+        request.nextUrl.pathname.startsWith('/auth/callback') ||
+        request.nextUrl.pathname.startsWith('/api/'); // Allow API routes (they handle their own auth)
+
+    // Se l'utente NON è loggato e la rotta NON è pubblica -> buttalo fuori al login
+    if (!user && !isPublicRoute) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Se l'utente E' loggato e sta cercando di andare su /login -> mandalo alla dashboard
+    if (user && request.nextUrl.pathname.startsWith('/login')) {
+         return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
 
     return supabaseResponse
 }
