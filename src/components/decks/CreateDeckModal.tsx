@@ -86,7 +86,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                From (Study Language)
+                From
               </label>
               <select 
                 value={languageFrom} 
@@ -102,7 +102,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                To (Your Language)
+                To
               </label>
               <select 
                 value={languageTo} 
