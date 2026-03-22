@@ -36,8 +36,6 @@ export interface LearningProfile {
   difficultyPreference?: 'easy' | 'medium' | 'hard' | 'adaptive';
   /** Whether user prefers spaced repetition */
   spacedRepetitionEnabled?: boolean;
-  /** Any additional custom preferences - allows flexibility for JSONB */
-  [key: string]: unknown;
 }
 
 /**
@@ -242,34 +240,81 @@ export interface Database {
   public: {
     Tables: {
       profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'> & {
+        Row: {
+          id: string;
+          email: string;
+          nickname: string | null;
+          native_language: string | null;
+          target_language: string | null;
+          current_level: string | null;
+          learning_purpose: string | null;
+          learning_purpose_details: string | null;
+          xp: number;
+          streak: number;
+          onboarding_completed: boolean;
+          onboarding_completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          nickname?: string | null;
+          native_language?: string | null;
+          target_language?: string | null;
+          current_level?: string | null;
+          learning_purpose?: string | null;
+          learning_purpose_details?: string | null;
+          xp?: number;
+          streak?: number;
+          onboarding_completed?: boolean;
+          onboarding_completed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
-        Update: ProfileUpdate;
+        Update: {
+          id?: string;
+          email?: string;
+          nickname?: string | null;
+          native_language?: string | null;
+          target_language?: string | null;
+          current_level?: string | null;
+          learning_purpose?: string | null;
+          learning_purpose_details?: string | null;
+          xp?: number;
+          streak?: number;
+          onboarding_completed?: boolean;
+          onboarding_completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       decks: {
         Row: Deck;
-        Insert: Omit<Deck, 'id' | 'created_at' | 'updated_at' | 'card_count'> & {
+        Insert: Omit<Deck, 'id' | 'created_at' | 'updated_at' | 'card_count' | 'description' | 'language_from' | 'language_to'> & {
           id?: string;
           created_at?: string;
           updated_at?: string;
           card_count?: number;
+          description?: string | null;
           language_from?: string; // defaults to 'en'
           language_to?: string;   // defaults to 'it'
         };
         Update: Partial<Omit<Deck, 'id' | 'created_at' | 'user_id'>>;
+        Relationships: [];
       };
       cards: {
         Row: Card;
-        Insert: Omit<Card, 'id' | 'created_at' | 'updated_at'> & {
+        Insert: Omit<Card, 'id' | 'created_at' | 'updated_at' | 'difficulty' | 'example_sentence'> & {
           id?: string;
           created_at?: string;
           updated_at?: string;
           difficulty?: number; // defaults to 3
+          example_sentence?: string | null;
         };
         Update: Partial<Omit<Card, 'id' | 'created_at' | 'deck_id'>>;
+        Relationships: [];
       };
       study_progress: {
         Row: StudyProgress;
@@ -279,6 +324,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Omit<StudyProgress, 'id' | 'created_at' | 'user_id' | 'card_id'>>;
+        Relationships: [];
       };
     };
     Functions: {
@@ -290,6 +336,15 @@ export interface Database {
         Args: { new_data: LearningProfile };
         Returns: UpdateLearningProfileResponse;
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }

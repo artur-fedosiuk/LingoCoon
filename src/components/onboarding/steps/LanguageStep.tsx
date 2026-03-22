@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/LanguageStep.tsx
- * Description: Reusable onboarding step component for selecting native or target languages.
- */
+// LanguageStep.tsx
+// This step lets the user pick a language (either their native language or the one they want to learn).
 'use client';
 
 import { cn } from '@/lib/utils';
@@ -9,24 +7,21 @@ import { useTranslation } from 'react-i18next';
 import { LANGUAGES, LANG_KEY_MAP } from '../types';
 
 interface LanguageStepProps {
-  /** Title to display */
+  // Text shown at the top of the step
   title: string;
-  /** Subtitle/description */
+  // Description shown below the title
   subtitle: string;
-  /** Currently selected language code */
+  // The currently selected language code
   value: string;
-  /** Callback when a language is selected */
+  // Called when the user clicks a language
   onChange: (code: string) => void;
-  /** Type of language selection */
+  // Whether this is for native or target language
   type: 'native' | 'target';
-  /** Language to exclude from options (e.g., native language when selecting target) */
+  // A language code to hide from the list (so the user can't pick the same language twice)
   excludeLanguage?: string;
 }
 
-/**
- * Language selection step - reusable for both native and target language.
- * Displays a grid of language cards with language names.
- */
+// Shows all available languages as clickable cards
 export function LanguageStep({
   title,
   subtitle,

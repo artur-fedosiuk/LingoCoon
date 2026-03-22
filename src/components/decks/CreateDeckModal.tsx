@@ -1,9 +1,13 @@
-// components/decks/CreateDeckModal.tsx
+// src/components/decks/CreateDeckModal.tsx
+// Modal dialog to create a new flashcard deck.
+// Shown from the dashboard when the user clicks "New Deck".
 'use client';
 
 import { useState } from 'react';
-import { createDeckAction } from '@/lib/actions/deck-actions';
+import { useRouter } from 'next/navigation';
+import { createDeck } from '@/lib/actions/deck-actions';
 import { X, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CreateDeckModalProps {
   isOpen: boolean;
@@ -11,11 +15,13 @@ interface CreateDeckModalProps {
 }
 
 export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProps) {
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [languageFrom, setLanguageFrom] = useState('en');
   const [languageTo, setLanguageTo] = useState('it');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -29,21 +35,22 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
       setError('Source and target languages must be different');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
-    const result = await createDeckAction(title, languageFrom, languageTo);
-    
+
+    const result = await createDeck(title, languageFrom, languageTo);
+
     setLoading(false);
-    
+
     if (result.error) {
       setError(result.error);
     } else {
       setTitle('');
       setError('');
       onClose();
-      window.location.reload();
+      // Refresh server-side data without reloading the whole page
+      router.refresh();
     }
   };
 
@@ -57,27 +64,27 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">Create New Deck</h2>
-          <button 
-            onClick={handleClose} 
+          <h2 className="text-xl font-bold text-gray-900">{t('decks.modal.create_title', 'Create New Deck')}</h2>
+          <button
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="p-6 space-y-4">
           {/* Title Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Deck Title
+              {t('decks.modal.deck_title', 'Deck Title')}
             </label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none"
-              placeholder="e.g. English Verbs"
+              placeholder={t('decks.modal.title_placeholder', 'e.g. English Verbs')}
               autoFocus
             />
           </div>
@@ -86,10 +93,10 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                From
+                {t('decks.modal.study_language', 'Study Language')}
               </label>
-              <select 
-                value={languageFrom} 
+              <select
+                value={languageFrom}
                 onChange={(e) => setLanguageFrom(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500"
               >
@@ -102,10 +109,10 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                To
+                {t('decks.modal.translate_language', 'Translate language')}
               </label>
-              <select 
-                value={languageTo} 
+              <select
+                value={languageTo}
                 onChange={(e) => setLanguageTo(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500"
               >
@@ -117,10 +124,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
             </div>
           </div>
 
-          {/* Info Text */}
-          <p className="text-xs text-gray-500">
-            The system will validate that you write in the correct language.
-          </p>
+
 
           {/* Error Message */}
           {error && (
@@ -132,25 +136,25 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
 
         {/* Footer Buttons */}
         <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">
-          <button 
-            onClick={handleClose} 
+          <button
+            onClick={handleClose}
             className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             disabled={loading}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
-          <button 
-            onClick={handleSubmit} 
+          <button
+            onClick={handleSubmit}
             disabled={!title.trim() || loading}
             className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating...
+                {t('decks.modal.creating', 'Creating...')}
               </>
             ) : (
-              'Create Deck'
+              t('decks.modal.create_button', 'Create Deck')
             )}
           </button>
         </div>

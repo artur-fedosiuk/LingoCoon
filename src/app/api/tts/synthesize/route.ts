@@ -1,12 +1,15 @@
 /**
  * Filename: src/app/api/tts/synthesize/route.ts
- * Description: API route handler usando Google Cloud TTS SDK con Service Account.
+ * Description: API route handler using Google Cloud TTS SDK with Service Account.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 
 const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
+
+// Token cache — persists in memory across requests during the server session
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 interface TTSRequest {
     text: string;
@@ -18,11 +21,16 @@ interface TTSRequest {
     volumeGainDb?: number;
 }
 
-// Genera un access token OAuth2 dal service account JSON usando JWT
+// Generate an OAuth2 access token from the JSON service account using JWT
 async function getAccessToken(): Promise<string> {
-  // Legge il JSON del service account
-  const credPath = process.env.GOOGLE_TTS_API_KEY;
-  if (!credPath) throw new Error('GOOGLE_TTS_API_KEY not set');
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedToken && now < cachedToken.expiresAt - 60) {
+    return cachedToken.value;
+  }
+
+  // Read the JSON service account file path from env
+  const credPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
+  if (!credPath) throw new Error('GOOGLE_SERVICE_ACCOUNT_PATH not set');
 
   const absolutePath = path.isAbsolute(credPath)
     ? credPath
@@ -30,7 +38,6 @@ async function getAccessToken(): Promise<string> {
 
   const creds = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
 
-  const now = Math.floor(Date.now() / 1000);
   const payload = {
     iss: creds.client_email,
     scope: 'https://www.googleapis.com/auth/cloud-platform',
@@ -39,7 +46,7 @@ async function getAccessToken(): Promise<string> {
     exp: now + 3600,
   };
 
-  // Crea JWT firmato con la private key (RS256)
+  // Create signed JWT with the private key (RS256)
   const header = { alg: 'RS256', typ: 'JWT' };
   const encodeBase64Url = (obj: object) =>
     Buffer.from(JSON.stringify(obj)).toString('base64url');
@@ -48,7 +55,7 @@ async function getAccessToken(): Promise<string> {
   const payloadB64 = encodeBase64Url(payload);
   const signingInput = `${headerB64}.${payloadB64}`;
 
-  // Importa la chiave privata PEM
+  // Import the PEM private key
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',
     pemToDer(creds.private_key),
@@ -66,7 +73,7 @@ async function getAccessToken(): Promise<string> {
   const signatureB64 = Buffer.from(signature).toString('base64url');
   const jwt = `${signingInput}.${signatureB64}`;
 
-  // Scambia il JWT per un access token
+  // Exchange the JWT for an access token
   const tokenRes = await fetch(creds.token_uri, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -82,10 +89,11 @@ async function getAccessToken(): Promise<string> {
   }
 
   const { access_token } = await tokenRes.json();
+  cachedToken = { value: access_token, expiresAt: now + 3600 };
   return access_token;
 }
 
-// Converte PEM → DER (ArrayBuffer) senza dipendenze esterne
+// Convert PEM → DER (ArrayBuffer) without external dependencies
 function pemToDer(pem: string): ArrayBuffer {
   const b64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, '')
@@ -113,7 +121,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Ottieni access token dal service account
+        // Get access token from service account
         const accessToken = await getAccessToken();
 
         const voiceConfig: Record<string, string> = {

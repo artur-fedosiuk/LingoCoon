@@ -1,14 +1,7 @@
-/**
- * Filename: src/components/onboarding/types.ts
- * Description: Type definitions and constants (Language, Level, Purpose) used across the onboarding components.
- */
-/**
- * Shared types and constants for the onboarding flow
- */
+// src/components/onboarding/types.ts
+// Types, constants, and lists used in the onboarding flow.
 
-/**
- * Form data collected during onboarding
- */
+// All the data collected from the user during onboarding
 export interface OnboardingFormData {
   native_language: string;
   target_language: string;
@@ -18,61 +11,43 @@ export interface OnboardingFormData {
   nickname: string;
 }
 
-/**
- * Language option for selection
- */
+// A language the user can select
 export interface Language {
-  /** ISO 639-1 language code (e.g., 'en', 'fr', 'it') */
-  code: string;
-  /** Display name of the language in English */
-  name: string;
+  code: string;  // short code used in the database: 'en', 'it', 'fr', 'uk'
+  name: string;  // display name in English
 }
 
-/**
- * Proficiency level option
- */
+// A proficiency level the user can select
 export interface Level {
-  /** Unique identifier for the level */
   value: string;
-  /** Display title for the level */
   title: string;
-  /** Descriptive text explaining what this level means */
   description: string;
 }
 
-/**
- * Learning purpose option
- */
+// A learning purpose the user can select
 export interface Purpose {
-  /** Unique identifier for the purpose */
   value: string;
-  /** Display title for the purpose */
   title: string;
 }
 
-/**
- * Available languages for selection
- */
+// Languages available to select during onboarding
+// code must match what gets saved in the database
 export const LANGUAGES: Language[] = [
   { code: 'it', name: 'Italian' },
-  { code: 'ua', name: 'Ukrainian' },
-  { code: 'gb', name: 'English' },
+  { code: 'uk', name: 'Ukrainian' },
+  { code: 'en', name: 'English' },
   { code: 'fr', name: 'French' },
 ];
 
-/**
- * Map language codes to translation keys
- */
+// Maps each language code to the key used in the translation JSON files
 export const LANG_KEY_MAP: Record<string, string> = {
   it: 'it-IT',
-  ua: 'ua-UA',
-  gb: 'en-US',
+  uk: 'uk-UA',
+  en: 'en-US',
   fr: 'fr-FR',
 };
 
-/**
- * Proficiency levels with descriptions
- */
+// Proficiency levels the user can choose from
 export const LEVELS: Level[] = [
   {
     value: 'absolute_beginner',
@@ -96,9 +71,7 @@ export const LEVELS: Level[] = [
   },
 ];
 
-/**
- * Learning purposes with icons
- */
+// Learning purposes the user can choose from
 export const PURPOSES: Purpose[] = [
   { value: 'work', title: 'Work' },
   { value: 'study', title: 'Study' },
@@ -106,27 +79,10 @@ export const PURPOSES: Purpose[] = [
   { value: 'hobby', title: 'Hobby' },
 ];
 
-/**
- * Total number of onboarding steps
- */
+// Total number of steps in the onboarding flow
 export const TOTAL_STEPS = 7;
 
-/**
- * Step labels for display
- */
-export const STEP_LABELS = [
-  'Welcome',
-  'Native Language',
-  'Target Language',
-  'Current Level',
-  'Learning Purpose',
-  'Nickname',
-  'Summary',
-];
-
-/**
- * Initial form data state
- */
+// Starting empty state for the form
 export const INITIAL_FORM_DATA: OnboardingFormData = {
   native_language: '',
   target_language: '',

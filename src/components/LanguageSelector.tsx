@@ -1,16 +1,15 @@
-/**
- * Filename: src/components/LanguageSelector.tsx
- * Description: UI component allowing users to select their preferred application language.
- */
+// LanguageSelector.tsx
+// This component shows a dropdown where the user can pick the app language.
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+// Maps short language codes to the keys used in the translation files
 const LANGUAGE_KEY_MAP: Record<string, string> = {
     en: 'en-US',
     it: 'it-IT',
-    uk: 'ua-UA',
+    uk: 'uk-UA',
     fr: 'fr-FR'
 };
 
@@ -26,12 +25,18 @@ export default function LanguageSelector() {
 
     const supportedLngs = (i18n.options.supportedLngs as string[])?.filter(l => l !== 'cimode') || ['en'];
 
+    // Get the display name for a language code.
+    // The browser sometimes sends full codes like 'it-IT' instead of 'it',
+    // so we take only the part before the dash to normalize it.
     const getLanguageLabel = (code: string) => {
-        const key = LANGUAGE_KEY_MAP[code] || code;
+        const shortCode = code.split('-')[0];
+        const key = LANGUAGE_KEY_MAP[shortCode] || 'en-US';
         return t(`languages.${key}`);
     };
 
-    const currentLangCode = i18n.language || 'en';
+    // Also normalize the current language code for comparison
+    const rawLangCode = i18n.language || 'en';
+    const currentLangCode = rawLangCode.split('-')[0];
     const currentLangLabel = getLanguageLabel(currentLangCode);
 
     useEffect(() => {
@@ -49,11 +54,7 @@ export default function LanguageSelector() {
         setIsOpen(false);
     }
 
-    /* 
-     * Missing Keys:
-     * common.language
-     */
-
+    // Show a simple placeholder before the client is ready
     if (!isClient) {
         return (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200">

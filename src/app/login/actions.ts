@@ -1,7 +1,5 @@
-/**
- * Filename: src/app/login/actions.ts
- * Description: Server actions for handling user authentication: login, signup, and logout.
- */
+// actions.ts
+// These are the server-side functions that handle login, signup, Google login, and logout.
 'use server'
 
 import { revalidatePath } from 'next/cache'

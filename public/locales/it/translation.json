@@ -21,6 +21,7 @@
     "continue_with_google": "Continua con Google"
   },
   "auth": {
+    "or_sign_in_with_email": "Oppure accedi con email",
     "login_title": "Accedi",
     "register_title": "Registrati",
     "reset_password_title": "Reimposta Password",
@@ -47,9 +48,10 @@
     "welcome": "Benvenuto!",
     "subtitle": "Iniziamo a configurare la tua esperienza",
     "welcome_title": "Benvenuto su LinguaCoon",
-    "welcome_subtitle": "Impara le lingue con la personalizzazione basata sull'IA",
+    "welcome_subtitle": "Impara le lingue con un apprendimento personalizzato",
     "get_started": "Inizia",
     "setup_time": "Ci vogliono meno di 2 minuti per configurare",
+    "create_account_to_save": "Crea un account per salvare le tue scelte e iniziare a imparare!",
     "creating_account": "Creazione del tuo account...",
     "saving": "Salvataggio...",
     "skip": "Salta",
@@ -59,8 +61,8 @@
     "progress_region": "Progresso onboarding",
     "progress_aria": "Step {{current}} di {{total}}",
     "welcome_benefits": {
-      "ai_title": "Personalizzazione basata sull'IA",
-      "ai_desc": "Le lezioni si adattano al tuo stile e ritmo di apprendimento",
+      "smart_title": "Apprendimento Personalizzato",
+      "smart_desc": "Le sessioni si adattano al tuo livello e ritmo",
       "tracking_title": "Monitoraggio Intelligente dei Progressi",
       "tracking_desc": "Traccia il tuo percorso con approfondimenti dettagliati",
       "faster_title": "Impara Più Velocemente",
@@ -229,8 +231,6 @@
       "study_session_desc": "Ripassa le flashcard programmate per oggi",
       "manage_flashcards": "Gestisci le mie Flashcard",
       "manage_flashcards_desc": "Crea, modifica ed elimina le tue flashcard",
-      "ai_chat": "Chat con l'AI",
-      "ai_chat_desc": "Pratica la lingua con il tutor virtuale",
       "progress": "Vedi i miei Progressi",
       "progress_desc": "Analizza le tue statistiche di apprendimento",
       "settings": "Impostazioni Profilo",
@@ -282,6 +282,9 @@
       "studied": "Hai studiato <strong>{{count}}</strong> flashcard",
       "no_cards": "Non ci sono flashcard da rivedere oggi.<br />Ottimo lavoro!",
       "back_to_dashboard": "Torna alla Dashboard",
+      "study_again": "Studia ancora",
+      "review_again": "Da ripassare",
+      "all_easy": "Perfetto, tutte facili!",
       "motivation": "La costanza è la chiave del successo!",
       "come_back": "Torna domani per continuare il tuo percorso di apprendimento."
     },
@@ -294,7 +297,8 @@
       "good": "Bene",
       "good_desc": "Senza problemi",
       "easy": "Facile",
-      "easy_desc": "Perfetto!"
+      "easy_desc": "Perfetto!",
+      "tap_to_reveal": "Tocca per scoprire"
     },
     "card_info": {
       "level": "Livello:",
@@ -310,7 +314,7 @@
     "it-IT": "Italiano",
     "en-US": "Inglese",
     "fr-FR": "Francese",
-    "ua-UA": "Ucraino"
+    "uk-UA": "Ucraino"
   },
   "settings": {
     "title": "Impostazioni",
@@ -320,7 +324,13 @@
     "native_language": "Lingua Madre:",
     "target_language": "Lingua Obiettivo:",
     "level": "Livello:",
-    "goals": "Obiettivi:"
+    "goals": "Obiettivi:",
+    "manage_desc": "Gestisci le tue preferenze e le impostazioni del profilo",
+    "language_preferences": "Preferenze della lingua",
+    "language_desc": "Scegli la lingua preferita per l'interfaccia dell'applicazione",
+    "application_language": "Lingua dell'applicazione",
+    "application_language_hint": "Questo cambia la lingua dei menu, dei pulsanti e del testo dell'interfaccia. La lingua dei contenuti di apprendimento è impostata separatamente nel tuo profilo.",
+    "profile_desc": "Il tuo profilo di apprendimento e le tue preferenze"
   },
   "statistics": {
     "title": "Statistiche e Progressi",
@@ -328,8 +338,8 @@
     "coming_soon": "Le statistiche dettagliate saranno disponibili presto!"
   },
   "landing": {
-    "hero_title": "Impara le lingue con l'IA",
-    "hero_subtitle": "Il tuo compagno di apprendimento linguistico basato sull'IA. Intelligente, adattivo e progettato per risultati reali.",
+    "hero_title": "Impara le lingue",
+    "hero_subtitle": "Il tuo compagno personale per imparare le lingue, progettato per risultati reali.",
     "cta_start": "Inizia a Imparare",
     "cta_login": "Ho già un account",
     "login_button": "Accedi"
@@ -364,11 +374,21 @@
       "deck_title": "Titolo del Deck",
       "title_placeholder": "Inserisci il titolo del deck...",
       "creating": "Creazione...",
-      "create_button": "Crea Deck"
+      "create_button": "Crea Deck",
+      "study_language": "Lingua da studiare",
+      "translate_language": "La tua lingua"
     },
+    "back_to_decks": "Torna ai Deck",
+    "start_study": "Inizia la Sessione",
+    "cards_in_deck": "Carte nel Deck",
     "errors": {
       "title_required": "Inserisci un titolo per il deck",
       "create_failed": "Impossibile creare il deck. Riprova."
-    }
+    },
+    "back_to_deck": "Torna al mazzo"
+  },
+  "tts": {
+    "languageCode": "it-IT",
+    "voiceName": "it-IT-Neural2-A"
   }
 }

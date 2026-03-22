@@ -1,9 +1,11 @@
+// src/components/flashcards/CardItem.tsx
+// Displays a single flashcard. Supports inline editing and deletion.
 'use client';
 
 import { useState } from 'react';
-import { deleteCardAction, updateCardAction } from '@/lib/actions/deck-actions';
+import { deleteCard, updateCard } from '@/lib/actions/deck-actions';
 import { Edit2, Trash2, Save, X } from 'lucide-react';
-import type { Card } from '@/lib/types';
+import type { Card } from '@/lib/supabase/types';
 
 interface CardItemProps {
   card: Card;
@@ -27,7 +29,7 @@ export default function CardItem({ card, deckId, deckLanguage }: CardItemProps) 
     setIsDeleting(true);
     setError('');
 
-    const result = await deleteCardAction(card.id, deckId);
+    const result = await deleteCard(card.id, deckId);
     
     if (result.error) {
       setError(result.error);
@@ -40,7 +42,7 @@ export default function CardItem({ card, deckId, deckLanguage }: CardItemProps) 
     setIsSaving(true);
     setError('');
 
-    const result = await updateCardAction(card.id, front, back, deckId, deckLanguage);
+    const result = await updateCard(card.id, front, back, deckId);
     
     if (result.error) {
       setError(result.error);

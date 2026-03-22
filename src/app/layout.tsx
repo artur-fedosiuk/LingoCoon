@@ -1,7 +1,6 @@
-/**
- * Filename: src/app/layout.tsx
- * Description: Root layout component that wraps the application with global styles, fonts, and the I18n provider.
- */
+// layout.tsx (root layout)
+// This is the main layout that wraps every page.
+// It sets up the fonts, global styles, and the translation provider.
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -18,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lingocoon - Learn Languages with AI",
-  description: "Your personal AI-powered language learning companion. Smart, adaptive, and designed for real results",
+  title: "Lingocoon - Learn Languages",
+  description: "Your personal language learning companion. Smart, adaptive, and designed for real results.",
 };
 
 export default function RootLayout({

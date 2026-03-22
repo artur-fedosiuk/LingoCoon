@@ -1,7 +1,5 @@
-/**
- * Filename: src/app/page.tsx
- * Description: The main landing page of the application, featuring the hero section and language selection.
- */
+// page.tsx (landing page)
+// This is the first page users see when they open the app.
 'use client';
 
 import Link from "next/link";
@@ -42,7 +40,7 @@ export default function Home() {
 
         {/* Subtitle */}
         <p className="max-w-2xl text-lg sm:text-xl text-gray-600 mb-12 leading-relaxed">
-          {mounted ? t('landing.hero_subtitle') : 'Your personal AI-powered language learning companion designed for real results.'}
+          {mounted ? t('landing.hero_subtitle') : 'Your personal language learning companion designed for real results.'}
         </p>
 
         {/* Start Button */}

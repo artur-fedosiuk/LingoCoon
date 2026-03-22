@@ -1,7 +1,6 @@
-/**
- * Filename: src/app/decks/DecksContent.tsx
- * Description: Client-side content for the Flashcard Hub with deck grid and create modal.
- */
+// src/app/decks/DecksContent.tsx
+// Client-side page for the Flashcard Hub.
+// Shows the list of decks, handles the "create deck" modal, navigates to study/edit.
 'use client';
 
 import * as React from 'react';
@@ -10,7 +9,8 @@ import { Plus, Play, Pencil, Library, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { createDeck, type Deck } from '@/lib/actions/decks';
+import { createDeck } from '@/lib/actions/deck-actions';
+import type { Deck } from '@/lib/supabase/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -23,6 +23,8 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
     const [decks, setDecks] = React.useState<Deck[]>(initialDecks);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [newDeckTitle, setNewDeckTitle] = React.useState('');
+    const [languageFrom, setLanguageFrom] = React.useState('en');
+    const [languageTo, setLanguageTo] = React.useState('it');
     const [isCreating, setIsCreating] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -37,16 +39,18 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
         setError(null);
 
         try {
-            const result = await createDeck({ title: newDeckTitle.trim() });
+            const result = await createDeck(newDeckTitle.trim(), languageFrom, languageTo);
 
-            if (result.success && result.data) {
-                setDecks((prev) => [result.data!, ...prev]);
+            if (result.deck) {
+                setDecks((prev) => [result.deck!, ...prev]);
                 setNewDeckTitle('');
+                setLanguageFrom('en');
+                setLanguageTo('it');
                 setIsModalOpen(false);
             } else {
                 setError(result.error || t('decks.errors.create_failed'));
             }
-        } catch (err) {
+        } catch {
             setError(t('decks.errors.create_failed'));
         } finally {
             setIsCreating(false);
@@ -117,6 +121,7 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
                         </div>
 
                         <form onSubmit={handleCreateDeck} className="space-y-4">
+                            {/* Deck title */}
                             <div>
                                 <label
                                     htmlFor="deck-title"
@@ -134,10 +139,47 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
                                     autoFocus
                                     disabled={isCreating}
                                 />
-                                {error && (
-                                    <p className="mt-2 text-sm text-red-500">{error}</p>
-                                )}
                             </div>
+
+                            {/* Language selectors */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                                        {t('decks.modal.study_language')}
+                                    </label>
+                                    <select
+                                        value={languageFrom}
+                                        onChange={(e) => setLanguageFrom(e.target.value)}
+                                        className="w-full rounded-lg border border-black/20 bg-transparent p-2 text-sm dark:border-white/20 dark:text-white"
+                                        disabled={isCreating}
+                                    >
+                                        <option value="en">🇬🇧 English</option>
+                                        <option value="it">🇮🇹 Italian</option>
+                                        <option value="fr">🇫🇷 French</option>
+                                        <option value="uk">🇺🇦 Ukrainian</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                                        {t('decks.modal.translate_language')}
+                                    </label>
+                                    <select
+                                        value={languageTo}
+                                        onChange={(e) => setLanguageTo(e.target.value)}
+                                        className="w-full rounded-lg border border-black/20 bg-transparent p-2 text-sm dark:border-white/20 dark:text-white"
+                                        disabled={isCreating}
+                                    >
+                                        <option value="en">🇬🇧 English</option>
+                                        <option value="it">🇮🇹 Italian</option>
+                                        <option value="fr">🇫🇷 French</option>
+                                        <option value="uk">🇺🇦 Ukrainian</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <p className="mt-2 text-sm text-red-500">{error}</p>
+                            )}
 
                             <div className="flex gap-3">
                                 <Button
@@ -172,9 +214,7 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
     );
 }
 
-/**
- * Empty state component when no decks exist
- */
+// Empty state shown when the user has no decks yet
 function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
     const { t } = useTranslation();
 
@@ -200,9 +240,7 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
     );
 }
 
-/**
- * Individual deck card component
- */
+// A single deck card with Study and Edit buttons
 function DeckCard({ deck }: { deck: Deck }) {
     const { t } = useTranslation();
     const cardCount = deck.card_count || 0;
@@ -224,8 +262,8 @@ function DeckCard({ deck }: { deck: Deck }) {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                    {/* Primary: Study Button */}
-                    <Link href={`/study/${deck.id}`} className="flex-1">
+                    {/* Study button — route is /decks/[id]/study */}
+                    <Link href={`/decks/${deck.id}/study`} className="flex-1">
                         <Button
                             className={cn(
                                 'w-full gap-2 bg-black text-white hover:bg-black/90',
@@ -238,7 +276,7 @@ function DeckCard({ deck }: { deck: Deck }) {
                         </Button>
                     </Link>
 
-                    {/* Secondary: Edit Button */}
+                    {/* Edit button */}
                     <Link href={`/decks/${deck.id}`}>
                         <Button
                             variant="outline"
@@ -252,7 +290,7 @@ function DeckCard({ deck }: { deck: Deck }) {
                 </div>
             </CardContent>
 
-            {/* Subtle accent line at top */}
+            {/* Subtle accent line at top on hover */}
             <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-black/20 via-black/40 to-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-white/20 dark:via-white/40 dark:to-white/20" />
         </Card>
     );

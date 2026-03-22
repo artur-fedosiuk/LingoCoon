@@ -1,7 +1,6 @@
-/**
- * Filename: src/components/onboarding/OnboardingFlow.tsx
- * Description: Orchestrator component for the multi-step user onboarding flow, managing state and navigation.
- */
+// OnboardingFlow.tsx
+// This is the main component that controls the onboarding steps.
+// It keeps track of which step the user is on and saves the form data.
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -9,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useProfile } from '@/hooks/useProfile';
+import { createClient } from '@/lib/supabase/client';
 import LanguageSelector from '@/components/LanguageSelector';
 import { ProgressBar } from './ProgressBar';
 import { StepNavigation } from './StepNavigation';
@@ -21,27 +21,21 @@ import { SummaryStep } from './steps/SummaryStep';
 import { TOTAL_STEPS, INITIAL_FORM_DATA } from './types';
 import type { OnboardingFormData } from './types';
 
-/**
- * Main onboarding flow orchestrator.
- * Manages step navigation, form state, validation, and final submission.
- */
 export function OnboardingFlow() {
   const router = useRouter();
   const { completeOnboarding } = useProfile();
   const { t } = useTranslation();
 
-  // Current step (0-based index)
+  // Which step we are on (starts at 0)
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Form data collected across all steps
+  // All the data the user fills in across the steps
   const [formData, setFormData] = useState<OnboardingFormData>(INITIAL_FORM_DATA);
 
-  // Loading state for final submission
+  // True while we are saving the data to the server
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /**
-   * Update a specific field in the form data
-   */
+  // Update one field in the form data
   const updateField = useCallback(
     <K extends keyof OnboardingFormData>(field: K, value: OnboardingFormData[K]) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -49,9 +43,7 @@ export function OnboardingFlow() {
     []
   );
 
-  /**
-   * Check if the current step is valid to proceed
-   */
+  // Check if the current step has all required info filled in
   const isStepValid = useCallback((): boolean => {
     switch (currentStep) {
       case 0: // Welcome - always valid
@@ -64,7 +56,7 @@ export function OnboardingFlow() {
         return formData.current_level !== '';
       case 4: // Purpose
         return formData.learning_purpose !== '';
-      case 5: // Nickname - always valid (optional)
+      case 5: // Nickname - always valid
         return true;
       case 6: // Summary - always valid if we got here
         return true;
@@ -73,36 +65,28 @@ export function OnboardingFlow() {
     }
   }, [currentStep, formData]);
 
-  /**
-   * Navigate to the next step
-   */
+  // Go to the next step if the current step is valid
   const goToNextStep = useCallback(() => {
     if (currentStep < TOTAL_STEPS - 1 && isStepValid()) {
       setCurrentStep((prev) => prev + 1);
     }
   }, [currentStep, isStepValid]);
 
-  /**
-   * Navigate to the previous step
-   */
+  // Go back to the previous step
   const goToPrevStep = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
     }
   }, [currentStep]);
 
-  /**
-   * Navigate to a specific step (for editing from summary)
-   */
+  // Jump directly to a specific step (used when editing from the summary screen)
   const goToStep = useCallback((step: number) => {
     if (step >= 0 && step < TOTAL_STEPS) {
       setCurrentStep(step);
     }
   }, []);
 
-  /**
-   * Handle final submission
-   */
+  // Called when the user finishes all steps and clicks submit
   const handleComplete = useCallback(async () => {
     if (!isStepValid()) {
       toast.error(t('onboarding.errors.invalid_data'));
@@ -112,14 +96,27 @@ export function OnboardingFlow() {
     setIsSubmitting(true);
 
     try {
-      await completeOnboarding({
+      const dataToSave = {
         nickname: formData.nickname || 'Learner',
         native_language: formData.native_language,
         target_language: formData.target_language,
         current_level: formData.current_level,
         learning_purpose: formData.learning_purpose,
         learning_purpose_details: formData.learning_purpose_details || undefined,
-      });
+      };
+
+      // Check if user is logged in
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        // User not logged in: save to localStorage and go to register
+        localStorage.setItem('pending_onboarding', JSON.stringify(dataToSave));
+        router.push('/login?message=onboarding_complete');
+        return;
+      }
+
+      await completeOnboarding(dataToSave);
 
       // Redirect to dashboard on success
       router.push('/dashboard');
@@ -132,9 +129,7 @@ export function OnboardingFlow() {
     }
   }, [formData, completeOnboarding, router, t, isStepValid]);
 
-  /**
-   * Render the current step component
-   */
+  // Decide which step component to show
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -207,15 +202,8 @@ export function OnboardingFlow() {
     }
   };
 
-  /*
-   * Missing Keys:
-   * onboarding.creating_account
-   * onboarding.errors.generic_save
-   * onboarding.step1.native_subtitle
-   * onboarding.step1.target_subtitle
-   */
 
-  // Don't show navigation on welcome or summary steps
+  // Do not show navigation buttons on the welcome screen or the summary screen
   const showNavigation = currentStep > 0 && currentStep < 6;
   const isLastStep = currentStep === TOTAL_STEPS - 1;
 

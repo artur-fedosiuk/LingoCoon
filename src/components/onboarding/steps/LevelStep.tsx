@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/LevelStep.tsx
- * Description: Onboarding step component for users to self-assess and select their current language proficiency level.
- */
+// LevelStep.tsx
+// This step lets the user choose their current proficiency level in the target language.
 'use client';
 
 import { cn } from '@/lib/utils';
@@ -9,16 +7,12 @@ import { LEVELS } from '../types';
 import { useTranslation } from 'react-i18next';
 
 interface LevelStepProps {
-  /** Currently selected level value */
+  // The currently selected level
   value: string;
-  /** Callback when a level is selected */
+  // Called when the user picks a level
   onChange: (value: string) => void;
 }
 
-/**
- * Level selection step - asks about current proficiency.
- * Displays 4 large cards with titles and descriptions.
- */
 export function LevelStep({ value, onChange }: LevelStepProps) {
   const { t } = useTranslation();
 

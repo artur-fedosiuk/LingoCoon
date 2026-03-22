@@ -35,7 +35,7 @@ export default function SettingsContent({ profile }: SettingsContentProps) {
                     {t('settings.title')}
                 </h1>
                 <p className="mt-1 text-sm text-black/60 dark:text-white/60">
-                    Manage your preferences and profile settings
+                    {t('settings.manage_desc', 'Manage your preferences and profile settings')}
                 </p>
             </div>
 
@@ -44,22 +44,22 @@ export default function SettingsContent({ profile }: SettingsContentProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-black dark:text-white">
                         <Languages className="h-5 w-5" />
-                        Language Preferences
+                        {t('settings.language_preferences', 'Language Preferences')}
                     </CardTitle>
                     <CardDescription className="text-black/60 dark:text-white/60">
-                        Choose your preferred language for the application interface
+                        {t('settings.language_desc', 'Choose your preferred language for the application interface')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-3">
                         <label className="text-sm font-medium text-black/70 dark:text-white/70">
-                            Application Language
+                            {t('settings.application_language', 'Application Language')}
                         </label>
                         <div className="max-w-xs">
                             <LanguageSelector />
                         </div>
                         <p className="text-xs text-black/50 dark:text-white/50">
-                            This changes the language of menus, buttons, and interface text. Your learning content language is set separately in your profile.
+                            {t('settings.application_language_hint', 'This changes the language of menus, buttons, and interface text. Your learning content language is set separately in your profile.')}
                         </p>
                     </div>
                 </CardContent>
@@ -73,7 +73,7 @@ export default function SettingsContent({ profile }: SettingsContentProps) {
                         {t('settings.your_profile')}
                     </CardTitle>
                     <CardDescription className="text-black/60 dark:text-white/60">
-                        Your learning profile and preferences
+                        {t('settings.profile_desc', 'Your learning profile and preferences')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

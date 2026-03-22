@@ -1,8 +1,10 @@
+// src/components/decks/DeckActionsMenu.tsx
+// Button to delete a deck. Shows a confirmation dialog before deleting.
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { deleteDeckAction } from '@/lib/actions/deck-actions';
+import { deleteDeck } from '@/lib/actions/deck-actions';
 import { Trash2 } from 'lucide-react';
 
 interface DeckActionsMenuProps {
@@ -25,7 +27,7 @@ export default function DeckActionsMenu({ deckId, deckTitle }: DeckActionsMenuPr
     setIsDeleting(true);
     setError('');
 
-    const result = await deleteDeckAction(deckId);
+    const result = await deleteDeck(deckId);
 
     if (result.error) {
       setError(result.error);

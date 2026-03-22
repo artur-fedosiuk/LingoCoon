@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/SummaryStep.tsx
- * Description: Final onboarding step that summarizes user choices and allows for editing before submission.
- */
+// SummaryStep.tsx
+// This is the last step. It shows a summary of all the user's choices before saving.
 'use client';
 
 import { useTranslation } from 'react-i18next';
@@ -11,20 +9,15 @@ import { LANGUAGES, LEVELS, PURPOSES, LANG_KEY_MAP } from '../types';
 import type { OnboardingFormData } from '../types';
 
 interface SummaryStepProps {
-  /** All collected form data */
+  // All the data the user filled in during onboarding
   data: OnboardingFormData;
-  /** Callback to edit a specific step */
+  // Called when the user clicks the edit button for a step
   onEdit: (step: number) => void;
-  /** Callback to complete onboarding */
+  // Called when the user clicks the finish button
   onComplete: () => void;
-  /** Whether save is in progress */
+  // True while we are saving the data
   isLoading: boolean;
 }
-
-/**
- * Summary step - displays all collected data with edit options.
- * Final step before completing onboarding.
- */
 
 export function SummaryStep({
   data,
@@ -34,7 +27,7 @@ export function SummaryStep({
 }: SummaryStepProps) {
   const { t } = useTranslation();
 
-  // Helper to get display names from codes
+  // Helper functions to turn codes into readable names
   const getLanguageName = (code: string) => {
     const key = LANG_KEY_MAP[code] || 'en-US';
     return t(`languages.${key}`);

@@ -22,6 +22,7 @@
     "continue_with_google": "Continue with Google"
   },
   "auth": {
+    "or_sign_in_with_email": "Or sign in with email",
     "login_title": "Login",
     "register_title": "Register",
     "reset_password_title": "Reset Password",
@@ -48,9 +49,10 @@
     "welcome": "Welcome!",
     "subtitle": "Let's set up your learning experience",
     "welcome_title": "Welcome to LinguaCoon",
-    "welcome_subtitle": "Learn languages with AI-powered personalization",
+    "welcome_subtitle": "Learn languages with personalized learning",
     "get_started": "Get Started",
     "setup_time": "Takes less than 2 minutes to set up",
+    "create_account_to_save": "Create an account to save your choices and begin learning!",
     "creating_account": "Creating your account...",
     "saving": "Saving...",
     "skip": "Skip",
@@ -60,8 +62,8 @@
     "progress_region": "Onboarding progress",
     "progress_aria": "Step {{current}} of {{total}}",
     "welcome_benefits": {
-      "ai_title": "AI-Powered Personalization",
-      "ai_desc": "Lessons adapt to your learning style and pace",
+      "smart_title": "Personalized Learning",
+      "smart_desc": "Study sessions adapt to your level and pace",
       "tracking_title": "Smart Progress Tracking",
       "tracking_desc": "Track your journey with detailed insights",
       "faster_title": "Learn Faster",
@@ -230,8 +232,6 @@
       "study_session_desc": "Review today's scheduled flashcards",
       "manage_flashcards": "Manage my Flashcards",
       "manage_flashcards_desc": "Create, edit and delete your flashcards",
-      "ai_chat": "Chat with AI",
-      "ai_chat_desc": "Practice the language with the virtual tutor",
       "progress": "View my Progress",
       "progress_desc": "Analyze your learning statistics",
       "settings": "Profile Settings",
@@ -283,6 +283,9 @@
       "studied": "You studied <strong>{{count}}</strong> flashcard",
       "no_cards": "No flashcards to review today.<br />Great job!",
       "back_to_dashboard": "Back to Dashboard",
+      "study_again": "Study Again",
+      "review_again": "Review again",
+      "all_easy": "Perfect, all easy!",
       "motivation": "Consistency is the key to success!",
       "come_back": "Come back tomorrow to continue your learning journey."
     },
@@ -295,7 +298,8 @@
       "good": "Good",
       "good_desc": "No problem",
       "easy": "Easy",
-      "easy_desc": "Perfect!"
+      "easy_desc": "Perfect!",
+      "tap_to_reveal": "Tap to reveal"
     },
     "card_info": {
       "level": "Level:",
@@ -310,7 +314,7 @@
   "languages": {
     "it-IT": "Italian",
     "en-US": "English",
-    "ua-UA": "Ukrainian",
+    "uk-UA": "Ukrainian",
     "fr-FR": "French"
   },
   "settings": {
@@ -321,7 +325,13 @@
     "native_language": "Native Language:",
     "target_language": "Target Language:",
     "level": "Level:",
-    "goals": "Goals:"
+    "goals": "Goals:",
+    "manage_desc": "Manage your preferences and profile settings",
+    "language_preferences": "Language Preferences",
+    "language_desc": "Choose your preferred language for the application interface",
+    "application_language": "Application Language",
+    "application_language_hint": "This changes the language of menus, buttons, and interface text. Your learning content language is set separately in your profile.",
+    "profile_desc": "Your learning profile and preferences"
   },
   "statistics": {
     "title": "Statistics and Progress",
@@ -329,8 +339,8 @@
     "coming_soon": "Detailed statistics will be available soon!"
   },
   "landing": {
-    "hero_title": "Master Languages with AI",
-    "hero_subtitle": "Your personal AI-powered language learning companion designed for real results.",
+    "hero_title": "Master Languages",
+    "hero_subtitle": "Your personal language learning companion designed for real results.",
     "cta_start": "Start Learning",
     "cta_login": "I Already Have an Account",
     "login_button": "Sign In"
@@ -365,11 +375,21 @@
       "deck_title": "Deck Title",
       "title_placeholder": "Enter deck title...",
       "creating": "Creating...",
-      "create_button": "Create Deck"
+      "create_button": "Create Deck",
+      "study_language": "Language to study",
+      "translate_language": "Your language"
     },
+    "back_to_decks": "Back to Decks",
+    "start_study": "Start Study Session",
+    "cards_in_deck": "Cards in Deck",
     "errors": {
       "title_required": "Please enter a deck title",
       "create_failed": "Failed to create deck. Please try again."
-    }
+    },
+    "back_to_deck": "Back to Deck"
+  },
+  "tts": {
+    "languageCode": "en-US",
+    "voiceName": "en-US-Neural2-F"
   }
 }

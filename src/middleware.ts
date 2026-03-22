@@ -1,7 +1,6 @@
-/**
- * Filename: src/middleware.ts
- * Description: Middleware to update the user's session with Supabase before navigating to protected routes.
- */
+// middleware.ts
+// This file runs before every page request.
+// It checks if the user is logged in and redirects them if needed.
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/supabase/types'
@@ -34,42 +33,36 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
-
+    // Important: do not add any code between createServerClient and getUser.
+    // If you do, users might get randomly logged out.
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Define explicitly public routes that unauthenticated users CAN access
-    const isPublicRoute = 
+    // These are the pages that anyone can visit, even without logging in
+    const isPublicRoute =
         request.nextUrl.pathname === '/' ||
+        request.nextUrl.pathname.startsWith('/onboarding') ||
         request.nextUrl.pathname.startsWith('/login') ||
         request.nextUrl.pathname.startsWith('/signup') ||
         request.nextUrl.pathname.startsWith('/auth/callback') ||
-        request.nextUrl.pathname.startsWith('/api/'); // Allow API routes (they handle their own auth)
+        request.nextUrl.pathname.startsWith('/api/');
 
-    // Se l'utente NON è loggato e la rotta NON è pubblica -> buttalo fuori al login
+    // If the user is not logged in and tries to visit a private page, send them to login
     if (!user && !isPublicRoute) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Se l'utente E' loggato e sta cercando di andare su /login -> mandalo alla dashboard
+    // If the user is already logged in and goes to /login, send them to the dashboard instead
     if (user && request.nextUrl.pathname.startsWith('/login')) {
-         return NextResponse.redirect(new URL('/dashboard', request.url))
+        return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     return supabaseResponse
 }
 
+// Tell Next.js which paths this middleware should run on.
+// We skip static files and images since they don't need auth checks.
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * Feel free to modify this pattern to include more paths.
-         */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

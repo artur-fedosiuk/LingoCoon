@@ -21,6 +21,7 @@
     "continue_with_google": "Continuer avec Google"
   },
   "auth": {
+    "or_sign_in_with_email": "Ou connectez-vous avec l'email",
     "login_title": "Connexion",
     "register_title": "S'inscrire",
     "reset_password_title": "Réinitialiser le mot de passe",
@@ -47,9 +48,10 @@
     "welcome": "Bienvenue!",
     "subtitle": "Configurons votre expérience d'apprentissage",
     "welcome_title": "Bienvenue sur LinguaCoon",
-    "welcome_subtitle": "Apprenez les langues avec une personnalisation basée sur l'IA",
+    "welcome_subtitle": "Apprenez les langues avec un apprentissage personnalisé",
     "get_started": "Commencer",
     "setup_time": "Moins de 2 minutes pour configurer",
+    "create_account_to_save": "Créez un compte pour enregistrer vos choix et commencer à apprendre !",
     "creating_account": "Création de votre compte...",
     "saving": "Enregistrement...",
     "skip": "Passer",
@@ -59,8 +61,8 @@
     "progress_region": "Progression de l'intégration",
     "progress_aria": "Étape {{current}} sur {{total}}",
     "welcome_benefits": {
-      "ai_title": "Personnalisation par IA",
-      "ai_desc": "Les leçons s'adaptent à votre style et rythme d'apprentissage",
+      "smart_title": "Apprentissage Personnalisé",
+      "smart_desc": "Les sessions s'adaptent à votre niveau et rythme",
       "tracking_title": "Suivi Intelligent des Progrès",
       "tracking_desc": "Suivez votre parcours avec des informations détaillées",
       "faster_title": "Apprenez Plus Vite",
@@ -229,8 +231,6 @@
       "study_session_desc": "Révisez les cartes programmées pour aujourd'hui",
       "manage_flashcards": "Gérer mes cartes",
       "manage_flashcards_desc": "Créer, modifier et supprimer vos cartes",
-      "ai_chat": "Discuter avec l'IA",
-      "ai_chat_desc": "Pratiquer la langue avec le tuteur virtuel",
       "progress": "Voir mes progrès",
       "progress_desc": "Analyser vos statistiques d'apprentissage",
       "settings": "Paramètres du profil",
@@ -278,10 +278,13 @@
     "loading": "Chargement des cartes...",
     "interrupt": "Interrompre la session",
     "completed": {
-      "title": "Session terminée!",
+      "title": "Session terminée !",
       "studied": "Vous avez étudié <strong>{{count}}</strong> carte",
       "no_cards": "Aucune carte à réviser aujourd'hui.<br />Excellent travail!",
       "back_to_dashboard": "Retour au tableau de bord",
+      "study_again": "Étudier encore",
+      "review_again": "À revoir",
+      "all_easy": "Parfait, tout facile !",
       "motivation": "La constance est la clé du succès!",
       "come_back": "Revenez demain pour continuer votre parcours d'apprentissage."
     },
@@ -294,7 +297,8 @@
       "good": "Bien",
       "good_desc": "Sans problème",
       "easy": "Facile",
-      "easy_desc": "Parfait!"
+      "easy_desc": "Parfait!",
+      "tap_to_reveal": "Touchez pour révéler"
     },
     "card_info": {
       "level": "Niveau:",
@@ -310,7 +314,7 @@
     "it-IT": "Italien",
     "en-US": "Anglais",
     "fr-FR": "Français",
-    "ua-UA": "Ukrainien"
+    "uk-UA": "Ukrainien"
   },
   "settings": {
     "title": "Paramètres",
@@ -320,7 +324,13 @@
     "native_language": "Langue maternelle:",
     "target_language": "Langue cible:",
     "level": "Niveau:",
-    "goals": "Objectifs:"
+    "goals": "Objectifs:",
+    "manage_desc": "Gérez vos préférences et paramètres de profil",
+    "language_preferences": "Préférences de langue",
+    "language_desc": "Choisissez votre langue préférée pour l'interface de l'application",
+    "application_language": "Langue de l'application",
+    "application_language_hint": "Cela modifie la langue des menus, des boutons et du texte de l'interface. La langue de votre contenu d'apprentissage est définie séparément dans votre profil.",
+    "profile_desc": "Votre profil d'apprentissage et vos préférences"
   },
   "statistics": {
     "title": "Statistiques et progrès",
@@ -328,8 +338,8 @@
     "coming_soon": "Les statistiques détaillées seront bientôt disponibles!"
   },
   "landing": {
-    "hero_title": "Maîtrisez les langues avec l'IA",
-    "hero_subtitle": "Votre compagnon d'apprentissage des langues alimenté par l'IA. Intelligent, adaptatif et conçu pour de vrais résultats.",
+    "hero_title": "Maîtrisez les langues",
+    "hero_subtitle": "Votre compagnon personnel pour apprendre les langues, conçu pour de vrais résultats.",
     "cta_start": "Commencer à Apprendre",
     "cta_login": "J'ai déjà un compte",
     "login_button": "Se connecter"
@@ -344,31 +354,41 @@
   "navigation": {
     "dashboard": "Tableau de bord",
     "flashcards": "Cartes",
-    "settings": "Parametres"
+    "settings": "Paramètres"
   },
   "decks": {
     "title": "Hub de Cartes",
-    "subtitle": "Gerez vos decks et commencez a etudier",
-    "create_new": "Creer un Deck",
+    "subtitle": "Gérez vos decks et commencez à étudier",
+    "create_new": "Créer un Deck",
     "card_count": "{{count}} cartes",
     "card_count_single": "{{count}} carte",
-    "study": "Etudier",
+    "study": "Étudier",
     "edit": "Modifier",
     "empty": {
       "title": "Aucun deck pour le moment",
-      "description": "Creez votre premier deck pour commencer a organiser vos cartes et debuter votre apprentissage.",
-      "create_button": "Creer Votre Premier Deck"
+      "description": "Créez votre premier deck pour commencer à organiser vos cartes et débuter votre apprentissage.",
+      "create_button": "Créer Votre Premier Deck"
     },
     "modal": {
-      "create_title": "Creer un Nouveau Deck",
+      "create_title": "Créer un Nouveau Deck",
       "deck_title": "Titre du Deck",
       "title_placeholder": "Entrez le titre du deck...",
-      "creating": "Creation...",
-      "create_button": "Creer le Deck"
+      "creating": "Création...",
+      "create_button": "Créer le Deck",
+      "study_language": "Langue à étudier",
+      "translate_language": "Votre langue"
     },
+    "back_to_decks": "Retour aux Decks",
+    "start_study": "Commencer la Session",
+    "cards_in_deck": "Cartes dans le Deck",
     "errors": {
       "title_required": "Veuillez entrer un titre de deck",
-      "create_failed": "Echec de la creation du deck. Veuillez reessayer."
-    }
+      "create_failed": "Échec de la création du deck. Veuillez réessayer."
+    },
+    "back_to_deck": "Retour au deck"
+  },
+  "tts": {
+    "languageCode": "fr-FR",
+    "voiceName": "fr-FR-Neural2-A"
   }
 }

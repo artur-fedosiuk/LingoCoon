@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/NicknameStep.tsx
- * Description: Optional onboarding step allowing users to set a custom nickname for their profile.
- */
+// NicknameStep.tsx
+// This step asks the user to choose a nickname. It is optional and can be skipped.
 'use client';
 
 import { useTranslation } from 'react-i18next';
@@ -10,18 +8,14 @@ import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 
 interface NicknameStepProps {
-  /** Current nickname value */
+  // The current nickname text
   value: string;
-  /** Callback when nickname changes */
+  // Called when the user types in the input
   onChange: (value: string) => void;
-  /** Callback to skip this step */
+  // Called when the user clicks Skip
   onSkip: () => void;
 }
 
-/**
- * Nickname step - allows user to set a display name.
- * This step is optional and can be skipped.
- */
 export function NicknameStep({ value, onChange, onSkip }: NicknameStepProps) {
   const { t } = useTranslation();
 

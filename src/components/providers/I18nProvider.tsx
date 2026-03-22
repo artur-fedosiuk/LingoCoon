@@ -1,8 +1,6 @@
-/**
- * Filename: src/components/providers/I18nProvider.tsx
- * Description: Provider component that initializes and makes i18n functionality available throughout the app.
- * Prevents Flash of Untranslated Content (FOUC) by blocking render until translations are loaded.
- */
+// I18nProvider.tsx
+// This component wraps the whole app and makes translations available everywhere.
+// It waits until the translations are loaded before showing anything.
 'use client';
 
 import { I18nextProvider } from 'react-i18next';
@@ -14,26 +12,26 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Check if i18n is already initialized
+    // Check if i18n is already loaded
     if (i18n.isInitialized) {
       setIsReady(true);
       return;
     }
 
-    // Listen for the initialized event
+    // Wait for i18n to finish loading
     const handleInitialized = () => {
       setIsReady(true);
     };
 
     i18n.on('initialized', handleInitialized);
 
-    // Cleanup listener on unmount
+    // Remove the listener when the component is unmounted
     return () => {
       i18n.off('initialized', handleInitialized);
     };
   }, []);
 
-  // Block rendering until i18n is fully initialized
+  // Show a loading screen while translations are being fetched
   if (!isReady) {
     return <LoadingScreen />;
   }

@@ -2,26 +2,15 @@
 'use client';
 
 import { useState, useEffect, useRef, use } from 'react';
-import { getCards, getDeck } from '@/lib/actions/deck-actions';
+import { getCards, getDeck, completeStudySession } from '@/lib/actions/deck-actions';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { ArrowLeft, RotateCcw, Volume2, Loader2 } from 'lucide-react';
-import type { Card, Deck } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
+import type { Card, Deck } from '@/lib/supabase/types';
 
-// Mappa lingua -> voce Neural2 (più naturale possibile)
-const VOICE_MAP: Record<string, { languageCode: string; voiceName: string }> = {
-  it: { languageCode: 'it-IT', voiceName: 'it-IT-Neural2-A' },
-  en: { languageCode: 'en-US', voiceName: 'en-US-Neural2-F' },
-  fr: { languageCode: 'fr-FR', voiceName: 'fr-FR-Neural2-A' },
-  uk: { languageCode: 'uk-UA', voiceName: 'uk-UA-Wavenet-A' },
-  de: { languageCode: 'de-DE', voiceName: 'de-DE-Neural2-A' },
-  es: { languageCode: 'es-ES', voiceName: 'es-ES-Neural2-A' },
-  pt: { languageCode: 'pt-BR', voiceName: 'pt-BR-Neural2-A' },
-};
-
-function getVoiceConfig(lang: string) {
-  const key = lang?.toLowerCase().slice(0, 2);
-  return VOICE_MAP[key] ?? { languageCode: 'en-US', voiceName: 'en-US-Neural2-F' };
-}
+// Removed VOICE_MAP, getVoiceConfig, UI_LABELS, and getUiLabels as they are now in translation.json
 
 export default function StudyPage({ 
   params 
@@ -29,36 +18,118 @@ export default function StudyPage({
   params: Promise<{ flashcardDeckId: string }> 
 }) {
   const { flashcardDeckId } = use(params);
+  const { t, i18n } = useTranslation();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
+  const [sessionStats, setSessionStats] = useState<{
+    xpGained: number;
+    newXp: number;
+    newStreak: number;
+    cardsStudied: number;
+    easyCount: number;
+    hardCount: number;
+    hardCards: Card[];
+  } | null>(null);
+  // Map cardId → 'easy' | 'hard', populated during the session
+  const [cardRatings, setCardRatings] = useState<Record<string, 'easy' | 'hard'>>({});
 
-  // Cache audio per non richiamare l'API per la stessa parola
+  // Audio cache to avoid calling the API for the same word
   const audioCache = useRef<Record<string, string>>({});
+
 
   useEffect(() => {
     loadData();
   }, [flashcardDeckId]);
 
+  // Pre-load audio in background without showing spinner or errors
+  const prefetchAudio = async (text: string, lang: string) => {
+    if (!text || !lang) return;
+    const cacheKey = `${lang}:${text}`;
+    if (audioCache.current[cacheKey]) return; // already in cache, nothing to do
+
+    try {
+      const languageCode = i18n.t('tts.languageCode', { lng: lang, fallbackLng: 'en' });
+      const voiceName = i18n.t('tts.voiceName', { lng: lang, fallbackLng: 'en' });
+
+      const res = await fetch('/api/tts/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          languageCode,
+          voiceName,
+          speakingRate: 0.9,
+        }),
+      });
+      if (!res.ok) return; // silent: it's just a pre-load
+      const { audioContent } = await res.json();
+      if (audioContent) {
+        audioCache.current[cacheKey] = `data:audio/mp3;base64,${audioContent}`;
+      }
+    } catch {
+      // Silent: if it fails it doesn't matter, the user will use the normal path
+    }
+  };
+
+  // Simple loop to pick one word at a time and avoid consecutive repeating words
+  const filterConsecutiveDuplicates = (cardsArray: Card[]) => {
+    const result: Card[] = [];
+    for (let i = 0; i < cardsArray.length; i++) {
+      if (result.length === 0 || result[result.length - 1].front.toLowerCase() !== cardsArray[i].front.toLowerCase()) {
+        result.push(cardsArray[i]);
+      }
+    }
+    return result;
+  };
+
   const loadData = async () => {
-    const [{ cards }, { deck }] = await Promise.all([
+    const [{ cards: newCards }, { deck: newDeck }] = await Promise.all([
       getCards(flashcardDeckId),
       getDeck(flashcardDeckId),
     ]);
-    setCards(cards);
-    setDeck(deck ?? null);
+
+    // Use our simple loop to ensure no word is given 3 times in a row
+    const cleanCards = filterConsecutiveDuplicates(newCards);
+
+    setCards(cleanCards);
+    setDeck(newDeck ?? null);
     setLoading(false);
+
+    // Pre-load the first 3 cards immediately upon page load
+    const initialCards = cleanCards.slice(0, 3);
+    const deckLangFrom = newDeck?.language_from ?? 'en';
+    const deckLangTo = newDeck?.language_to ?? 'it';
+    initialCards.forEach(card => {
+      prefetchAudio(card.front, deckLangFrom);
+      prefetchAudio(card.back, deckLangTo);
+    });
   };
 
-  const handleNext = () => {
+  const handleRate = (rating: 'easy' | 'hard') => {
+    const updatedRatings = { ...cardRatings, [currentCard.id]: rating };
+    setCardRatings(updatedRatings);
+
+    const isLastCard = currentIndex === cards.length - 1;
+
+    if (isLastCard) {
+      finishSession(updatedRatings);
+      return;
+    }
+
     setIsFlipped(false);
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCurrentIndex(0);
+    setCurrentIndex(prev => prev + 1);
+
+    // Pre-fetch look-ahead
+    const lookAheadIndex = currentIndex + 2 < cards.length ? currentIndex + 2 : 0;
+    const lookAheadCard = cards[lookAheadIndex];
+    if (lookAheadCard) {
+      prefetchAudio(lookAheadCard.front, langFront);
+      prefetchAudio(lookAheadCard.back, langBack);
     }
   };
 
@@ -71,25 +142,27 @@ export default function StudyPage({
 
   const handlePlayAudio = async (e: React.MouseEvent, text: string, lang: string) => {
     e.stopPropagation();
+    setAudioLoading(true); // immediate feedback
 
     const cacheKey = `${lang}:${text}`;
 
-    // Se in cache, riproduci subito
     if (audioCache.current[cacheKey]) {
       new Audio(audioCache.current[cacheKey]).play();
+      setAudioLoading(false); // immediate reset, it was already ready
       return;
     }
 
-    setAudioLoading(true);
     try {
-      const voice = getVoiceConfig(lang);
+      const languageCode = i18n.t('tts.languageCode', { lng: lang, fallbackLng: 'en' });
+      const voiceName = i18n.t('tts.voiceName', { lng: lang, fallbackLng: 'en' });
+
       const res = await fetch('/api/tts/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          languageCode: voice.languageCode,
-          voiceName: voice.voiceName,
+          languageCode,
+          voiceName,
           speakingRate: 0.9,
         }),
       });
@@ -104,6 +177,40 @@ export default function StudyPage({
       console.error('Audio error:', err);
     } finally {
       setAudioLoading(false);
+    }
+  };
+
+  const finishSession = async (finalRatings: Record<string, 'easy' | 'hard'>) => {
+    setSessionComplete(true);
+
+    // Calculate stats locally — do not depend on the server
+    const easyCount = Object.values(finalRatings).filter(r => r === 'easy').length;
+    const hardCount = Object.values(finalRatings).filter(r => r === 'hard').length;
+    const hardCards = cards.filter(c => finalRatings[c.id] === 'hard');
+
+    const result = await completeStudySession(cards.length);
+
+    if (!result.error) {
+      setSessionStats({
+        xpGained: result.xpGained ?? 0,
+        newXp: result.newXp ?? 0,
+        newStreak: result.newStreak ?? 0,
+        cardsStudied: cards.length,
+        easyCount,
+        hardCount,
+        hardCards,
+      });
+    } else {
+      // If the server fails, we still show the local data
+      setSessionStats({
+        xpGained: 0,
+        newXp: 0,
+        newStreak: 0,
+        cardsStudied: cards.length,
+        easyCount,
+        hardCount,
+        hardCards,
+      });
     }
   };
 
@@ -137,9 +244,105 @@ export default function StudyPage({
     );
   }
 
+  if (sessionComplete) {
+    const targetLng = deck?.language_to ?? 'en';
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="w-full max-w-sm"
+        >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+              className="text-6xl mb-4"
+            >
+              🎉
+            </motion.div>
+            <h1 className="text-2xl font-bold text-white">{i18n.t('study_session.completed.title', { lng: targetLng })}</h1>
+            <p className="text-zinc-500 text-sm mt-1">{deck?.title}</p>
+          </div>
+
+          {/* Content: Hard list or positive message */}
+          {sessionStats ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mb-6"
+            >
+              {sessionStats.hardCards.length > 0 ? (
+                <>
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
+                    {i18n.t('study_session.completed.review_again', { lng: targetLng })} — {sessionStats.hardCards.length}
+                  </p>
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {sessionStats.hardCards.map(card => (
+                      <div
+                        key={card.id}
+                        className="bg-zinc-900 border border-zinc-700/60 rounded-xl px-4 py-3"
+                      >
+                        <p className="text-sm font-semibold text-white">{card.front}</p>
+                        <p className="text-xs text-zinc-400 mt-1.5">{card.back}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="bg-zinc-900 border border-zinc-700/60 rounded-xl px-5 py-5 text-center">
+                  <p className="text-3xl mb-2">⭐</p>
+                  <p className="text-white font-semibold">{i18n.t('study_session.completed.all_easy', { lng: targetLng })}</p>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            /* Skeleton loading */
+            <div className="space-y-2 mb-6">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="bg-zinc-800 rounded-xl h-14 animate-pulse" />
+              ))}
+            </div>
+          )}
+
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col gap-2"
+          >
+            <button
+              onClick={() => {
+                setSessionComplete(false);
+                setSessionStats(null);
+                setCardRatings({});
+                setCurrentIndex(0);
+                setIsFlipped(false);
+              }}
+              className="w-full bg-white text-zinc-900 py-3 rounded-xl font-semibold hover:bg-zinc-100 transition-colors"
+            >
+              {i18n.t('study_session.completed.study_again', { lng: targetLng })}
+            </button>
+            <Link href={`/decks/${flashcardDeckId}`}>
+              <button className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 py-3 rounded-xl font-medium hover:bg-zinc-700 transition-colors">
+                {i18n.t('decks.back_to_deck', { lng: targetLng })}
+              </button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
+
+
   const currentCard = cards[currentIndex];
-  const langFront = deck?.language_from ?? 'en'; // La parola da imparare (es. Francese)
-  const langBack  = deck?.language_to ?? 'it';   // La traduzione madrelingua (es. Italiano)
+  const langFront = deck?.language_from ?? 'en'; // The word to learn (e.g. French)
+  const langBack  = deck?.language_to ?? 'it';   // The native translation (e.g. Italian)
 
   return (
     <div className="container mx-auto p-6 max-w-sm">
@@ -156,7 +359,10 @@ export default function StudyPage({
         <div className="flex justify-between text-sm text-gray-600 mb-2">
           <span>Card {currentIndex + 1} of {cards.length}</span>
           <button 
-            onClick={() => { setCurrentIndex(0); setIsFlipped(false); }} 
+            onClick={() => { 
+              setCurrentIndex(0); 
+              setIsFlipped(false); 
+            }} 
             className="flex items-center gap-1 hover:text-gray-900"
           >
             <RotateCcw className="w-4 h-4" />
@@ -216,21 +422,55 @@ export default function StudyPage({
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <button
-          onClick={handlePrevious}
-          disabled={currentIndex === 0}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNext}
-          className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-        >
-          {currentIndex === cards.length - 1 ? 'Restart' : 'Next'}
-        </button>
+      {/* Navigation — Easy/Hard only after flip, Previous when not on first one */}
+      <div className="space-y-3">
+
+        {/* Easy/Hard buttons: appear only when card is flipped */}
+        {isFlipped && (() => {
+          const easyLabel = i18n.t('study_session.evaluation.easy', { lng: langBack });
+          const hardLabel = i18n.t('study_session.evaluation.hard', { lng: langBack });
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-2 gap-3"
+            >
+              <button
+                onClick={() => handleRate('easy')}
+                className="py-3.5 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white font-semibold text-base border border-zinc-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <span className="text-emerald-400 text-lg">✓</span>
+                {easyLabel}
+              </button>
+              <button
+                onClick={() => handleRate('hard')}
+                className="py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-base border border-zinc-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <span className="text-red-400 text-lg">✗</span>
+                {hardLabel}
+              </button>
+            </motion.div>
+          );
+        })()}
+
+        {/* Previous: visible only when not on first card and card is not flipped */}
+        {currentIndex > 0 && !isFlipped && (
+          <button
+            onClick={handlePrevious}
+            className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors text-sm"
+          >
+            ← Previous
+          </button>
+        )}
+
+        {/* Hint when card is not yet flipped */}
+        {!isFlipped && (
+          <p className="text-center text-xs text-gray-400">
+            {i18n.t('study_session.evaluation.tap_to_reveal', { lng: langBack })}
+          </p>
+        )}
+
       </div>
     </div>
   );

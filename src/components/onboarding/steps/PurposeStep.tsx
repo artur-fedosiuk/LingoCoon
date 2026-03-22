@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/PurposeStep.tsx
- * Description: Onboarding step component for selecting the user's primary reason for learning a language.
- */
+// PurposeStep.tsx
+// This step lets the user pick their main reason for learning the language.
 'use client';
 
 import { useTranslation } from 'react-i18next';
@@ -9,20 +7,16 @@ import { cn } from '@/lib/utils';
 import { PURPOSES } from '../types';
 
 interface PurposeStepProps {
-  /** Currently selected purpose value */
+  // The currently selected purpose
   value: string;
-  /** Optional additional details */
+  // Any extra notes the user has typed
   details: string;
-  /** Callback when a purpose is selected */
+  // Called when the user selects a purpose
   onChange: (value: string) => void;
-  /** Callback when details text changes */
+  // Called when the user types in the details box
   onDetailsChange: (details: string) => void;
 }
 
-/**
- * Purpose selection step - asks why the user is learning.
- * Displays 5 cards with emojis and an optional details textarea.
- */
 export function PurposeStep({
   value,
   details,

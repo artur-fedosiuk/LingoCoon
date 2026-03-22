@@ -1,21 +1,18 @@
-/**
- * Filename: src/components/onboarding/ProgressBar.tsx
- * Description: Visual progress indicator component showing the current step in the onboarding flow.
- */
+// ProgressBar.tsx
+// Shows how far the user is through the onboarding steps.
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { Progress } from '@/components/ui/progress';
 
 interface ProgressBarProps {
-  /** Current step index (0-based) */
+  // Which step the user is on (0 = first step)
   currentStep: number;
-  /** Total number of steps */
+  // Total number of steps
   totalSteps: number;
 }
 
-// Map step index to translation label key suffix or full key
-// 0: Welcome, 1: Native, 2: Target, 3: Level, 4: Purpose, 5: Nickname, 6: Summary
+// The translation key for each step label (in order)
 const STEP_LABEL_KEYS = [
   'welcome',
   'native_label',
@@ -26,19 +23,13 @@ const STEP_LABEL_KEYS = [
   'summary_label'
 ];
 
-/**
- * Visual progress indicator for the onboarding flow.
- * Shows current step label and an animated progress bar.
- */
 export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const { t } = useTranslation();
-  // Calculate progress percentage (step 0 = 0%, last step = 100%)
+  // Calculate how far along the user is as a percentage
   const progressPercentage = (currentStep / (totalSteps - 1)) * 100;
 
-  // Derive label
+  // Get the label for the current step
   const key = STEP_LABEL_KEYS[currentStep] || 'steps';
-  // Use 'onboarding.step_labels.' + key
-  // Add missing keys: onboarding.step_labels.welcome, etc.
 
   return (
     <div className="w-full space-y-2" role="region" aria-label={t('onboarding.progress_region')}>

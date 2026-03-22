@@ -1,7 +1,5 @@
-/**
- * Filename: src/components/onboarding/steps/WelcomeStep.tsx
- * Description: Initial onboarding step displaying a welcome message and key benefits of the application.
- */
+// WelcomeStep.tsx
+// This is the first step of the onboarding. It shows a welcome message and a list of features.
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -9,22 +7,18 @@ import { Sparkles, Brain, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface WelcomeStepProps {
-  /** Callback when user clicks to start */
+  // Function called when the user clicks the start button
   onNext: () => void;
 }
 
-/**
- * Welcome step - introduces the app and its value proposition.
- * First step in the onboarding flow.
- */
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
   const { t } = useTranslation();
 
   const benefits = [
     {
       icon: Brain,
-      title: t('onboarding.welcome_benefits.ai_title'),
-      description: t('onboarding.welcome_benefits.ai_desc'),
+      title: t('onboarding.welcome_benefits.smart_title'),
+      description: t('onboarding.welcome_benefits.smart_desc'),
     },
     {
       icon: Sparkles,

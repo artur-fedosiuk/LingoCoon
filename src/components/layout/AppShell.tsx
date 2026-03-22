@@ -1,10 +1,6 @@
-/**
- * Filename: src/components/layout/AppShell.tsx
- * Description: Main application shell with responsive navigation.
- * Desktop: Fixed left sidebar with labels.
- * Mobile: Fixed bottom navigation bar.
- * Style: Pure Black & White, high contrast "Raccoon" theme.
- */
+// AppShell.tsx
+// This is the main layout of the app after the user logs in.
+// It shows the sidebar on desktop and the bottom navigation bar on mobile.
 'use client';
 
 import * as React from 'react';
@@ -44,6 +40,8 @@ const navItems: NavItem[] = [
     },
 ];
 
+import { useProfile } from '@/hooks/useProfile';
+
 interface AppShellProps {
     children: React.ReactNode;
     userEmail?: string;
@@ -51,7 +49,8 @@ interface AppShellProps {
 
 export default function AppShell({ children, userEmail }: AppShellProps) {
     const pathname = usePathname();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const { profile } = useProfile();
 
     const isActive = (href: string) => {
         if (href === '/dashboard') {

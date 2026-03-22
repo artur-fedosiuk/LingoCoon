@@ -1,19 +1,42 @@
-/**
- * Filename: src/app/login/page.tsx
- * Description: Login page component allowing users to sign in via email/password or Google (OAuth).
- */
-import Link from 'next/link'
-import { login, signup, loginWithGoogle } from './actions'
+// src/app/login/page.tsx
+'use client';
 
-export default function LoginPage() {
+import { Suspense } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { login, signup, loginWithGoogle } from './actions';
+
+function LoginContent() {
+    const searchParams = useSearchParams();
+    const error = searchParams.get('error') ?? undefined;
+    const rawMessage = searchParams.get('message') ?? undefined;
+    const { t } = useTranslation();
+
+    const message = rawMessage === 'onboarding_complete' || rawMessage?.includes('Create an account to save')
+        ? t('onboarding.create_account_to_save') 
+        : rawMessage;
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-                <h1 className="mb-8 text-center text-2xl font-bold text-gray-900">
-                    Accedi a Lingocoon
+                <h1 className="mb-4 text-center text-2xl font-bold text-gray-900">
+                    {t('auth.login_title')} — Lingocoon
                 </h1>
 
-                {/* Google Sign-in Button */}
+                {error && (
+                    <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600 border border-red-200">
+                        {error}
+                    </div>
+                )}
+
+                {message && (
+                    <div className="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-600 border border-green-200">
+                        {message}
+                    </div>
+                )}
+
+                {/* Google sign-in button */}
                 <form className="mb-6">
                     <button
                         formAction={loginWithGoogle}
@@ -25,28 +48,30 @@ export default function LoginPage() {
                             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                         </svg>
-                        Continua con Google
+                        {t('common.continue_with_google')}
                     </button>
                 </form>
 
-                {/* Separator */}
+                {/* Divider */}
                 <div className="relative mb-6">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-gray-300"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-4 text-gray-500">Oppure con email</span>
+                        <span className="bg-white px-4 text-gray-500">
+                            {t('auth.or_sign_in_with_email')}
+                        </span>
                     </div>
                 </div>
 
-                {/* Email/Password Form */}
+                {/* Email and password form */}
                 <form className="space-y-6">
                     <div>
                         <label
                             htmlFor="email"
                             className="block text-sm font-medium text-gray-700"
                         >
-                            Email
+                            {t('common.email')}
                         </label>
                         <input
                             id="email"
@@ -54,7 +79,7 @@ export default function LoginPage() {
                             type="email"
                             required
                             className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
-                            placeholder="tu@email.com"
+                            placeholder="you@email.com"
                         />
                     </div>
 
@@ -63,7 +88,7 @@ export default function LoginPage() {
                             htmlFor="password"
                             className="block text-sm font-medium text-gray-700"
                         >
-                            Password
+                            {t('common.password')}
                         </label>
                         <input
                             id="password"
@@ -80,13 +105,13 @@ export default function LoginPage() {
                             formAction={login}
                             className="w-full rounded-lg bg-black px-4 py-3 font-semibold text-white transition-colors hover:bg-gray-800"
                         >
-                            Accedi
+                            {t('auth.login_button')}
                         </button>
                         <button
                             formAction={signup}
                             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
                         >
-                            Registrati
+                            {t('common.register')}
                         </button>
                     </div>
                 </form>
@@ -96,10 +121,19 @@ export default function LoginPage() {
                         href="/"
                         className="text-sm text-gray-500 hover:text-gray-700"
                     >
-                        ← Torna alla Home
+                        ← {t('common.back')}
                     </Link>
                 </div>
             </div>
         </div>
-    )
+    );
+}
+
+// Wrap in Suspense because useSearchParams() on the boundary level complains otherwise
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"></div>}>
+            <LoginContent />
+        </Suspense>
+    );
 }

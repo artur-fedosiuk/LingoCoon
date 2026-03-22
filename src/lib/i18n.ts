@@ -1,42 +1,46 @@
-/**
- * Filename: src/lib/i18n.ts
- * Description: Configuration for i18next, initializing language detection, backend loading, and React integration.
- */
+// i18n.ts
+// This file sets up the translation system (i18next).
+// It loads language files directly to avoid network issues.
 'use client';
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import Backend from 'i18next-http-backend';
+
+import enTranslation from '../../public/locales/en/translation.json';
+import itTranslation from '../../public/locales/it/translation.json';
+import frTranslation from '../../public/locales/fr/translation.json';
+import ukTranslation from '../../public/locales/uk/translation.json';
+
+const resources = {
+  en: { translation: enTranslation },
+  it: { translation: itTranslation },
+  fr: { translation: frTranslation },
+  uk: { translation: ukTranslation },
+};
 
 if (!i18n.isInitialized) {
   i18n
-    .use(Backend)
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
+      resources,
       fallbackLng: 'en',
-      supportedLngs: ['it', 'en', 'uk', 'fr'],
+      supportedLngs: ['en', 'it', 'fr', 'uk'],
+      nonExplicitSupportedLngs: true,
+      load: 'languageOnly',
       debug: process.env.NODE_ENV === 'development',
       defaultNS: 'translation',
-      ns: ['translation'],
-
       interpolation: {
         escapeValue: false,
       },
-
       react: {
-        useSuspense: false
+        useSuspense: false,
       },
-
-      backend: {
-        loadPath: '/locales/{{lng}}/{{ns}}.json',
-      },
-
       detection: {
         order: ['localStorage', 'navigator'],
         caches: ['localStorage'],
-      }
+      },
     });
 }
 
