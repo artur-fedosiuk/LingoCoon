@@ -1,11 +1,11 @@
-// middleware.ts
+// proxy.ts
 // This file runs before every page request.
 // It checks if the user is logged in and redirects them if needed.
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/supabase/types'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
 }
 
-// Tell Next.js which paths this middleware should run on.
+// Tell Next.js which paths this proxy should run on.
 // We skip static files and images since they don't need auth checks.
 export const config = {
     matcher: [

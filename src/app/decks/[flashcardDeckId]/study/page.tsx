@@ -3,12 +3,17 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { getCards, getDeck, completeStudySession } from '@/lib/actions/deck-actions';
+import { askAIWithHistory, type ConversationTurn } from '@/lib/actions/ai-actions';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft, RotateCcw, Volume2, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '@/lib/i18n';
 import type { Card, Deck } from '@/lib/supabase/types';
+
+const LANG_NAMES: Record<string, string> = {
+  en: 'English', it: 'Italian', fr: 'French', uk: 'Ukrainian',
+};
 
 // Removed VOICE_MAP, getVoiceConfig, UI_LABELS, and getUiLabels as they are now in translation.json
 
@@ -35,8 +40,11 @@ export default function StudyPage({
     hardCount: number;
     hardCards: Card[];
   } | null>(null);
-  // Map cardId → 'easy' | 'hard', populated during the session
-  const [cardRatings, setCardRatings] = useState<Record<string, 'easy' | 'hard'>>({});
+  // Map cardId → fsrs rating, populated during the session
+  const [cardRatings, setCardRatings] = useState<Record<string, 'again' | 'hard' | 'good' | 'easy'>>({}); 
+  const [aiHistory, setAiHistory] = useState<ConversationTurn[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [userInput, setUserInput] = useState('');
 
   // Audio cache to avoid calling the API for the same word
   const audioCache = useRef<Record<string, string>>({});
@@ -110,19 +118,26 @@ export default function StudyPage({
     });
   };
 
-  const handleRate = (rating: 'easy' | 'hard') => {
+  const handleRate = (rating: 'again' | 'hard' | 'good' | 'easy') => {
     const updatedRatings = { ...cardRatings, [currentCard.id]: rating };
     setCardRatings(updatedRatings);
 
     const isLastCard = currentIndex === cards.length - 1;
 
     if (isLastCard) {
-      finishSession(updatedRatings);
+      // Map 4-rating scale down to 2 for completeStudySession: again+hard → hard, good+easy → easy
+      const mapped: Record<string, 'easy' | 'hard'> = {};
+      Object.entries(updatedRatings).forEach(([id, r]) => {
+        mapped[id] = (r === 'again' || r === 'hard') ? 'hard' : 'easy';
+      });
+      finishSession(mapped);
       return;
     }
 
     setIsFlipped(false);
     setCurrentIndex(prev => prev + 1);
+    setAiHistory([]);
+    setUserInput('');
 
     // Pre-fetch look-ahead
     const lookAheadIndex = currentIndex + 2 < cards.length ? currentIndex + 2 : 0;
@@ -130,6 +145,49 @@ export default function StudyPage({
     if (lookAheadCard) {
       prefetchAudio(lookAheadCard.front, langFront);
       prefetchAudio(lookAheadCard.back, langBack);
+    }
+  };
+
+  const buildSystemPrompt = () => {
+    const langStudying = LANG_NAMES[deck?.language_from ?? 'en'] ?? deck?.language_from ?? 'English';
+    const nativeLang   = LANG_NAMES[deck?.language_to   ?? 'it'] ?? deck?.language_to   ?? 'Italian';
+    return `Sei un tutor di lingue conciso. Lo studente sta imparando il ${langStudying} e la sua lingua madre è il ${nativeLang}. RISPONDI SEMPRE in ${nativeLang}, qualunque cosa scriva l'utente. Massimo 4 frasi. Concentrati sull'uso pratico, non sulla teoria grammaticale.`;
+  };
+
+  const handleExplain = async () => {
+    if (aiLoading || !currentCard) return;
+    const message = `Spiega la parola '${currentCard.front}' (traduzione: '${currentCard.back}'). Dai un esempio di frase.`;
+    const newTurn: ConversationTurn = { role: 'user', parts: [{ text: message }] };
+    const updatedHistory = [...aiHistory, newTurn];
+    setAiHistory(updatedHistory);
+    setAiLoading(true);
+    try {
+      const reply = await askAIWithHistory(buildSystemPrompt(), updatedHistory);
+      setAiHistory(prev => [...prev, { role: 'model', parts: [{ text: reply }] }]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Qualcosa è andato storto. Riprova.';
+      setAiHistory(prev => [...prev, { role: 'model', parts: [{ text: msg }] }]);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!userInput.trim() || aiLoading) return;
+    const message = userInput.trim();
+    const newTurn: ConversationTurn = { role: 'user', parts: [{ text: message }] };
+    const updatedHistory = [...aiHistory, newTurn];
+    setAiHistory(updatedHistory);
+    setUserInput('');
+    setAiLoading(true);
+    try {
+      const reply = await askAIWithHistory(buildSystemPrompt(), updatedHistory);
+      setAiHistory(prev => [...prev, { role: 'model', parts: [{ text: reply }] }]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Qualcosa è andato storto. Riprova.';
+      setAiHistory(prev => [...prev, { role: 'model', parts: [{ text: msg }] }]);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -188,7 +246,7 @@ export default function StudyPage({
     const hardCount = Object.values(finalRatings).filter(r => r === 'hard').length;
     const hardCards = cards.filter(c => finalRatings[c.id] === 'hard');
 
-    const result = await completeStudySession(cards.length);
+    const result = await completeStudySession(cards.length, finalRatings);
 
     if (!result.error) {
       setSessionStats({
@@ -427,30 +485,103 @@ export default function StudyPage({
 
         {/* Easy/Hard buttons: appear only when card is flipped */}
         {isFlipped && (() => {
-          const easyLabel = i18n.t('study_session.evaluation.easy', { lng: langBack });
-          const hardLabel = i18n.t('study_session.evaluation.hard', { lng: langBack });
+          const againLabel = i18n.t('study_session.evaluation.forgot', { lng: langBack });
+          const hardLabel  = i18n.t('study_session.evaluation.hard',   { lng: langBack });
+          const goodLabel  = i18n.t('study_session.evaluation.good',   { lng: langBack });
+          const easyLabel  = i18n.t('study_session.evaluation.easy',   { lng: langBack });
           return (
+            <>
+            {/* Rating: colored text only, no buttons, no emoji */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="grid grid-cols-2 gap-3"
+              className="flex justify-around items-center py-2"
             >
               <button
-                onClick={() => handleRate('easy')}
-                className="py-3.5 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white font-semibold text-base border border-zinc-600 transition-colors flex items-center justify-center gap-2"
+                onClick={() => handleRate('again')}
+                className="text-red-500 font-semibold text-sm hover:opacity-70 transition-opacity"
               >
-                <span className="text-emerald-400 text-lg">✓</span>
-                {easyLabel}
+                {againLabel}
               </button>
               <button
                 onClick={() => handleRate('hard')}
-                className="py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-base border border-zinc-700 transition-colors flex items-center justify-center gap-2"
+                className="text-yellow-500 font-semibold text-sm hover:opacity-70 transition-opacity"
               >
-                <span className="text-red-400 text-lg">✗</span>
                 {hardLabel}
               </button>
+              <button
+                onClick={() => handleRate('good')}
+                className="text-blue-500 font-semibold text-sm hover:opacity-70 transition-opacity"
+              >
+                {goodLabel}
+              </button>
+              <button
+                onClick={() => handleRate('easy')}
+                className="text-green-500 font-semibold text-sm hover:opacity-70 transition-opacity"
+              >
+                {easyLabel}
+              </button>
             </motion.div>
+
+            {/* AI Tutor Panel */}
+            <div className="mt-4 space-y-3">
+
+              {/* Conversation history */}
+              {aiHistory.length > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 max-h-64 overflow-y-auto">
+                  {aiHistory.map((turn, i) => (
+                    <div key={i} className={turn.role === 'user' ? 'text-right' : 'text-left'}>
+                      <span className={`inline-block px-3 py-2 rounded-xl text-sm ${
+                        turn.role === 'user'
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-white border border-gray-200 text-gray-700'
+                      }`}>
+                        {turn.parts[0].text}
+                      </span>
+                    </div>
+                  ))}
+                  {aiLoading && (
+                    <div className="text-left">
+                      <span className="inline-block px-3 py-2 rounded-xl text-sm bg-white border border-gray-200 text-gray-400">
+                        thinking...
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Explain button */}
+              <button
+                onClick={handleExplain}
+                disabled={aiLoading}
+                className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                Spiega questa parola
+              </button>
+
+              {/* Free question input */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={userInput}
+                  onChange={e => setUserInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSend()}
+                  placeholder="Ask anything..."
+                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  disabled={aiLoading}
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={aiLoading || !userInput.trim()}
+                  className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-sm hover:bg-gray-800 disabled:opacity-40"
+                >
+                  →
+                </button>
+              </div>
+
+            </div>
+            </>
           );
         })()}
 

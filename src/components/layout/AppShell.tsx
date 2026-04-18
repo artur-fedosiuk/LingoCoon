@@ -7,7 +7,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Home, Library, Settings, LogOut } from 'lucide-react';
+import { Home, Library, Settings, LogOut, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { signOut } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,12 @@ const navItems: NavItem[] = [
         href: '/dashboard',
         icon: Home,
         labelKey: 'navigation.dashboard',
+    },
+    {
+        key: 'ai',
+        href: '/ai',
+        icon: Bot,
+        labelKey: 'navigation.ai',
     },
     {
         key: 'decks',

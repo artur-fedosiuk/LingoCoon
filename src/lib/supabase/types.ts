@@ -225,7 +225,7 @@ export interface StudyProgress {
   /** Number of times reviewed */
   repetitions: number;
   /** When the card should next be reviewed */
-  next_review: string;
+  next_review_date: string;
   /** When the progress was created */
   created_at: string;
   /** When the progress was last updated */
