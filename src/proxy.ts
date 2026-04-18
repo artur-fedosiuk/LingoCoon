@@ -1,6 +1,6 @@
 // proxy.ts
 // This file runs before every page request.
-// It checks if the user is logged in and redirects them if needed.
+// It checks if the user is logged in and redirects them if needed
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/supabase/types'
