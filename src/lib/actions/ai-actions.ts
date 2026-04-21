@@ -23,11 +23,6 @@ export interface ConversationTurn {
 
 // ─── SHARED HELPER ────────────────────────────────────────────────────────────
 
-const client = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY,
-  baseURL: 'https://integrate.api.nvidia.com/v1',
-});
-
 /**
  * callAI — the single place that talks to the AI endpoint.
  *
@@ -48,6 +43,15 @@ async function callAI(
   if (!process.env.NVIDIA_API_KEY) {
     throw new Error('Critical Error: NVIDIA_API_KEY is missing from environment variables.');
   }
+
+  // Instantiate the client here (not at module level) so the OpenAI constructor
+  // never runs during Next.js build time — it only runs at request time when the
+  // env var is actually available. Instantiating at module level causes a build
+  // error on Vercel: "OpenAIError: The OPENAI_API_KEY environment variable is missing".
+  const client = new OpenAI({
+    apiKey: process.env.NVIDIA_API_KEY,
+    baseURL: 'https://integrate.api.nvidia.com/v1',
+  });
 
   // Step 2: Convert conversation turns to OpenAI messages format
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
