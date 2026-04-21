@@ -1,10 +1,12 @@
 /**
  * Filename: src/app/api/tts/synthesize/route.ts
- * Description: API route handler using Google Cloud TTS SDK with Service Account.
+ * Description: API route handler using Google Cloud TTS with Service Account JSON env var.
+ *
+ * On Vercel (and any serverless platform) you cannot read files from disk at runtime.
+ * Instead, store the full service-account JSON as a single env var:
+ *   GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
  */
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs';
 
 const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 
@@ -28,15 +30,13 @@ async function getAccessToken(): Promise<string> {
     return cachedToken.value;
   }
 
-  // Read the JSON service account file path from env
-  const credPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
-  if (!credPath) throw new Error('GOOGLE_SERVICE_ACCOUNT_PATH not set');
+  // Read the service account credentials from the env var (JSON string).
+  // On Vercel: set GOOGLE_SERVICE_ACCOUNT_JSON to the full contents of your
+  // service-account JSON file (wrap the value in single quotes in the Vercel dashboard).
+  const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!credJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON env var not set');
 
-  const absolutePath = path.isAbsolute(credPath)
-    ? credPath
-    : path.join(process.cwd(), credPath);
-
-  const creds = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
+  const creds = JSON.parse(credJson);
 
   const payload = {
     iss: creds.client_email,
