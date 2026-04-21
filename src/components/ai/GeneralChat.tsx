@@ -2,7 +2,7 @@
 // Created: 2024-01-01
 // Last-Updated: 2025-06-01
 // Author: Claude
-// Description: Free-form chat interface with the Gemini AI assistant ("Lingo").
+// Description: Free-form chat interface with the AI assistant ("Lingo").
 //              No deck required — the student can ask any language question.
 
 'use client';
@@ -18,7 +18,7 @@ import type { ChatMessage } from '@/types/chat';
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 
 /**
- * GENERAL_SYSTEM_PROMPT — tells Gemini who "Lingo" is and what it can do.
+ * GENERAL_SYSTEM_PROMPT — tells the AI who "Lingo" is and what it can do.
  *
  * This is sent with every API call so the AI always stays "in character".
  * It is a constant (never changes at runtime), so we define it outside the
@@ -54,9 +54,9 @@ export default function GeneralChat() {
   ]);
 
   /**
-   * history: the conversation in Gemini's required format (alternating user/model turns).
+   * history: the conversation in the API's required format (alternating user/model turns).
    * We must send this ENTIRE array with every API call so the AI remembers context.
-   * We initialise it with the AI's welcome message so Gemini knows what it already "said".
+   * We initialise it with the AI's welcome message so the AI knows what it already "said".
    */
   const [history, setHistory] = useState<ConversationTurn[]>([
     { role: 'model', parts: [{ text: t('chat.welcome') }] },
@@ -65,7 +65,7 @@ export default function GeneralChat() {
   // Current text in the input field.
   const [input, setInput] = useState('');
 
-  // True while waiting for Gemini to respond (prevents double-sending).
+  // True while waiting for the AI to respond (prevents double-sending).
   const [loading, setLoading] = useState(false);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ export default function GeneralChat() {
   // ── Send Handler ──────────────────────────────────────────────────────────
 
   /**
-   * handleSend — sends the student's message to Gemini and shows the reply.
+   * handleSend — sends the student's message to the AI and shows the reply.
    *
    * Steps:
    * 1. Add user message to the UI immediately (optimistic update).

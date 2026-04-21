@@ -2,7 +2,7 @@
 import { askAI } from '@/lib/actions/ai-actions';
 
 export default async function TestAIPage() {
-    let result = "In attesa dell'elaborazione di Gemini...";
+    let result = "In attesa dell'elaborazione dell'AI...";
     let error: string | null = null;
 
     try {
@@ -17,7 +17,7 @@ export default async function TestAIPage() {
 
     return (
         <div className="p-10 font-mono min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
-            <h1 className="text-2xl mb-4 font-bold border-b pb-2">Test Connessione API Gemini</h1>
+            <h1 className="text-2xl mb-4 font-bold border-b pb-2">Test Connessione API AI</h1>
             {error ? (
                 <div className="text-red-700 bg-red-100 p-4 rounded border-l-4 border-red-500">
                     ❌ Errore Rilevato: {error}

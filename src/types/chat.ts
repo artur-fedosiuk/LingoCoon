@@ -14,7 +14,7 @@
  * every component imports it from this single file.
  *
  * Fields:
- * - role: who wrote the message — 'user' (the student) or 'ai' (Gemini).
+ * - role: who wrote the message — 'user' (the student) or 'ai' (the AI).
  * - text: the message text content.
  */
 export interface ChatMessage {

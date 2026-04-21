@@ -1,5 +1,5 @@
 // src/app/ai/page.tsx
-// AI Mode — tabbed between Free Chat (Gemini) and Study with Decks.
+// AI Mode — tabbed between Free Chat (AI) and Study with Decks.
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getDecks } from '@/lib/actions/deck-actions';

@@ -215,7 +215,7 @@
     "welcome": "Bienvenue",
     "decks_desc": "Gérez vos paquets et démarrez des sessions d'étude classiques.",
     "create_desc": "Ajoutez un nouveau paquet pour la paire de langues que vous voulez pratiquer.",
-    "ai_desc": "Chattez librement avec Gemini ou étudiez vos paquets avec un tuteur IA carte par carte.",
+    "ai_desc": "Chattez librement avec l'IA ou étudiez vos paquets avec un tuteur IA carte par carte.",
     "open": "Ouvrir",
     "create": "Créer",
     "study_widget": {
@@ -330,7 +330,7 @@
   },
   "ai_page": {
     "title": "Mode IA",
-    "subtitle": "Propulsé par Gemini",
+    "subtitle": "Propulsé par NVIDIA NIM",
     "tab_chat": "Chat Libre",
     "tab_decks": "Étudier avec les Paquets",
     "no_decks": "Vous n'avez pas encore de paquets.",

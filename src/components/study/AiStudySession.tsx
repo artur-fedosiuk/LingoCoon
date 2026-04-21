@@ -35,7 +35,7 @@ interface AiStudySessionProps {
 /**
  * buildSystemPrompt — creates the AI's "instruction manual" for this quiz session.
  *
- * This tells Gemini:
+ * This tells the AI:
  * - What deck and cards to quiz the student on.
  * - How to conduct the quiz (one card at a time, wait for answer, give feedback).
  * - Which language to respond in.
@@ -43,7 +43,7 @@ interface AiStudySessionProps {
  * The system prompt is sent with EVERY API call so the AI always has context.
  */
 function buildSystemPrompt(cards: SessionCard[], deck: Deck, nativeLanguage: string): string {
-  // Format the card list as a numbered text list so Gemini can read it.
+  // Format the card list as a numbered text list so the AI can read it.
   const cardList = cards
     .map(
       (c, i) =>
@@ -95,7 +95,7 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
   // The text currently typed by the student.
   const [input, setInput] = useState('');
 
-  // True while waiting for Gemini to respond.
+  // True while waiting for the AI to respond.
   const [loading, setLoading] = useState(false);
 
   // True when the AI has confirmed the student finished all cards.
@@ -105,7 +105,7 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
   // Used to calculate the progress bar and detect when the quiz ends.
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  // The full conversation history in Gemini's format (alternating user/model turns).
+  // The full conversation history in the API's format (alternating user/model turns).
   // We send this entire array with every API call so the AI remembers context.
   const [history, setHistory] = useState<ConversationTurn[]>([]);
 
@@ -139,7 +139,7 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
   // ── Startup ───────────────────────────────────────────────────────────────
 
   /**
-   * On mount, send a hidden "start" message to Gemini to get the first card question.
+   * On mount, send a hidden "start" message to the AI to get the first card question.
    * We use a ref guard so this only ever runs once, even in React Strict Mode
    * (which intentionally mounts components twice in development).
    */
@@ -210,7 +210,7 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
    *
    * Steps:
    * 1. Add the student's message to the UI immediately.
-   * 2. Append it to the history and send the full history to Gemini.
+   * 2. Append it to the history and send the full history to the AI.
    * 3. Receive the AI's reply and add it to the UI.
    * 4. Detect if the AI moved to the next card → advance our index + rate the card.
    * 5. Detect if the quiz ended → show the completion screen.

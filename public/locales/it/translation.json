@@ -215,7 +215,7 @@
     "welcome": "Benvenuto",
     "decks_desc": "Gestisci i tuoi mazzi e inizia sessioni di studio classiche.",
     "create_desc": "Aggiungi un nuovo mazzo per la coppia di lingue che vuoi praticare.",
-    "ai_desc": "Chatta liberamente con Gemini o studia i tuoi mazzi con un tutor AI carta per carta.",
+    "ai_desc": "Chatta liberamente con l'IA o studia i tuoi mazzi con un tutor AI carta per carta.",
     "open": "Apri",
     "create": "Crea",
     "study_widget": {
@@ -330,7 +330,7 @@
   },
   "ai_page": {
     "title": "Modalità AI",
-    "subtitle": "Basato su Gemini",
+    "subtitle": "Basato su NVIDIA NIM",
     "tab_chat": "Chat Libera",
     "tab_decks": "Studia con i Mazzi",
     "no_decks": "Non hai ancora nessun mazzo.",

@@ -215,7 +215,7 @@
     "welcome": "Welcome",
     "decks_desc": "Manage your flashcard decks and start classic study sessions.",
     "create_desc": "Add a new deck for a language pair you want to practice.",
-    "ai_desc": "Chat freely with Gemini or study your decks with an AI tutor card-by-card.",
+    "ai_desc": "Chat freely with the AI or study your decks with an AI tutor card-by-card.",
     "open": "Open",
     "create": "Create",
     "study_widget": {
@@ -330,7 +330,7 @@
   },
   "ai_page": {
     "title": "AI Mode",
-    "subtitle": "Powered by Gemini",
+    "subtitle": "Powered by NVIDIA NIM",
     "tab_chat": "Free Chat",
     "tab_decks": "Study with Decks",
     "no_decks": "You don't have any decks yet.",
