@@ -1,7 +1,3 @@
-// File: src/components/study/AiStudySession.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: AI-driven study session. The AI conducts a quiz — it shows the front
 //              of each card and waits for the student to type the translation.
 //              The AI evaluates answers conversationally and advances through the deck.

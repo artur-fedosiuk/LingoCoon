@@ -330,7 +330,6 @@
   },
   "ai_page": {
     "title": "AI Mode",
-    "subtitle": "Powered by NVIDIA NIM",
     "tab_chat": "Free Chat",
     "tab_decks": "Study with Decks",
     "no_decks": "You don't have any decks yet.",
@@ -367,8 +366,11 @@
       "review_again": "Review again",
       "all_easy": "Perfect, all easy!",
       "motivation": "Consistency is the key to success!",
-      "come_back": "Come back tomorrow to continue your learning journey."
+      "come_back": "Come back tomorrow to continue your journey."
     },
+    "deck_not_found": "Deck not found.",
+    "no_cards_due": "No cards due today",
+    "all_caught_up": "You're all caught up with this deck.",
     "evaluation": {
       "question": "How well did you remember it?",
       "forgot": "Forgot",
@@ -389,7 +391,13 @@
       "original": "Original",
       "translation": "Translation",
       "click_to_flip": "Click to see answer"
-    }
+    },
+    "empty_deck": "No cards in this deck yet.",
+    "add_cards": "Add Cards",
+    "click_to_flip_back": "← click to flip back",
+    "explain_word": "Explain this word",
+    "ask_placeholder": "Ask anything about this card…",
+    "ai_thinking": "thinking…"
   },
   "languages": {
     "it-IT": "Italian",

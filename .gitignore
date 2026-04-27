@@ -74,5 +74,16 @@ next-env.d.ts
 
 # credentials files
 /credentials/
- 
 
+
+
+
+# git
+.git/
+.gitignore
+
+
+
+
+#TTS
+LingoCoonTTS.json

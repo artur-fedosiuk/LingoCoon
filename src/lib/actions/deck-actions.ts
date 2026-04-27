@@ -1,22 +1,41 @@
+// Description: Server Actions for all deck, card, and study session operations.
+//              "use server" means ALL of this code runs on the server only.
+//              The browser never sees this code — it calls it like a regular function.
+
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
 import { validateFlashcardText } from '@/lib/validation';
 import { revalidatePath } from 'next/cache';
 import type { Deck, Card, StudyProgress } from '@/lib/supabase/types';
-import { createEmptyCard, fsrs, generatorParameters, Rating, type Card as FSRSCard, type RecordLogItem } from 'ts-fsrs';
+import {
+  createEmptyCard,
+  fsrs,
+  generatorParameters,
+  Rating,
+  type Card as FSRSCard,
+  type RecordLogItem,
+} from 'ts-fsrs';
 import type { SessionCard } from '@/types/study';
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
+// ─── AUTH HELPER ──────────────────────────────────────────────────────────────
 
+/**
+ * getAuth — creates a Supabase client and reads the currently logged-in user.
+ * Called at the start of every action so we always know WHO is making the request.
+ */
 async function getAuth() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   return { supabase, user };
 }
 
-// ─── VALIDATION ───────────────────────────────────────────────────────────────
+// ─── VALIDATION HELPER ────────────────────────────────────────────────────────
 
+/**
+ * validateCard — checks that front and back text are not empty and not too long.
+ * Returns either { front, back } (clean text) or { error } (problem description).
+ */
 function validateCard(front: string, back: string) {
   const frontCheck = validateFlashcardText(front);
   if (!frontCheck.isValid) return { error: frontCheck.error };
@@ -27,15 +46,15 @@ function validateCard(front: string, back: string) {
   return { front: front.trim(), back: back.trim() };
 }
 
-// ─── DECK FUNCTIONS ───────────────────────────────────────────────────────────
+// ─── DECK ACTIONS ─────────────────────────────────────────────────────────────
 
+/** Creates a new flashcard deck for the logged-in user. */
 export async function createDeck(
   title: string,
   languageFrom: string,
   languageTo: string
 ): Promise<{ deck?: Deck; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
   if (!title.trim()) return { error: 'Title cannot be empty' };
   if (languageFrom === languageTo) return { error: 'Languages must be different' };
@@ -48,15 +67,15 @@ export async function createDeck(
 
   if (error) return { error: error.message };
 
+  // Tell Next.js to refresh the cached data for these pages.
   revalidatePath('/dashboard');
   revalidatePath('/decks');
-
   return { deck: data };
 }
 
+/** Returns all decks belonging to the logged-in user, with card counts. */
 export async function getDecks(): Promise<{ decks: Deck[] }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { decks: [] };
 
   const { data, error } = await supabase
@@ -71,13 +90,12 @@ export async function getDecks(): Promise<{ decks: Deck[] }> {
     ...deck,
     card_count: deck.cards?.[0]?.count ?? 0,
   }));
-
   return { decks };
 }
 
+/** Returns a single deck by ID (must belong to the logged-in user). */
 export async function getDeck(deckId: string): Promise<{ deck: Deck | null }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { deck: null };
 
   const { data, error } = await supabase
@@ -88,13 +106,12 @@ export async function getDeck(deckId: string): Promise<{ deck: Deck | null }> {
     .single();
 
   if (error) return { deck: null };
-
   return { deck: data };
 }
 
+/** Permanently deletes a deck and all its cards. */
 export async function deleteDeck(deckId: string): Promise<{ error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
   const { error } = await supabase
@@ -107,15 +124,14 @@ export async function deleteDeck(deckId: string): Promise<{ error?: string }> {
 
   revalidatePath('/dashboard');
   revalidatePath('/decks');
-
   return {};
 }
 
-// ─── CARD FUNCTIONS ───────────────────────────────────────────────────────────
+// ─── CARD ACTIONS ─────────────────────────────────────────────────────────────
 
+/** Returns ALL cards in a deck (no due-date filter). Used by the deck study page. */
 export async function getCards(deckId: string): Promise<{ cards: Card[]; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { cards: [] };
 
   const { data, error } = await supabase
@@ -125,17 +141,16 @@ export async function getCards(deckId: string): Promise<{ cards: Card[]; error?:
     .order('created_at');
 
   if (error) return { cards: [], error: error.message };
-
   return { cards: data ?? [] };
 }
 
+/** Creates a new flashcard in a deck. */
 export async function createCard(
   deckId: string,
   front: string,
   back: string
 ): Promise<{ card?: Card; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
   const validated = validateCard(front, back);
@@ -150,10 +165,10 @@ export async function createCard(
   if (error) return { error: error.message };
 
   revalidatePath(`/decks/${deckId}`);
-
   return { card: data };
 }
 
+/** Updates the front and back text of a flashcard. */
 export async function updateCard(
   cardId: string,
   deckId: string,
@@ -161,7 +176,6 @@ export async function updateCard(
   back: string
 ): Promise<{ card?: Card; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
   const validated = validateCard(front, back);
@@ -178,16 +192,15 @@ export async function updateCard(
   if (error) return { error: error.message };
 
   revalidatePath(`/decks/${deckId}`);
-
   return { card: data };
 }
 
+/** Permanently deletes a single flashcard. */
 export async function deleteCard(
   cardId: string,
   deckId: string
 ): Promise<{ error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
   const { error } = await supabase
@@ -199,21 +212,23 @@ export async function deleteCard(
   if (error) return { error: error.message };
 
   revalidatePath(`/decks/${deckId}`);
-
   return {};
 }
 
 // ─── STUDY SESSION ────────────────────────────────────────────────────────────
 
-// Fetch all cards due today for a deck, merged with FSRS progress
+/**
+ * getCardsForStudy — returns only the cards that are DUE for review today.
+ * Uses the FSRS next_review_date to filter.
+ * Cards never studied before are always included.
+ * Used by the /study routes (FSRS-scheduled review sessions).
+ */
 export async function getCardsForStudy(deckId: string): Promise<{ cards: SessionCard[]; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { cards: [], error: 'Unauthorized' };
 
   const now = new Date().toISOString();
 
-  // Load all cards for the deck with their study progress (left join via nested select)
   const { data, error } = await supabase
     .from('cards')
     .select(`
@@ -237,9 +252,8 @@ export async function getCardsForStudy(deckId: string): Promise<{ cards: Session
   const cards: SessionCard[] = (data ?? [])
     .filter((card: any) => {
       const progress = card.study_progress?.[0];
-      // Include card if: never studied OR due today/past
-      if (!progress) return true;
-      return progress.next_review_date <= now;
+      if (!progress) return true; // Never studied → always include
+      return progress.next_review_date <= now; // Due today or overdue
     })
     .map((card: any) => {
       const progress = card.study_progress?.[0] ?? null;
@@ -261,15 +275,27 @@ export async function getCardsForStudy(deckId: string): Promise<{ cards: Session
   return { cards };
 }
 
-// Rate a card and update FSRS state in Supabase
+/**
+ * rateCard — saves the student's rating for a card and computes the next review date.
+ *
+ * This uses the FSRS (Free Spaced Repetition Scheduler) algorithm.
+ * FSRS decides HOW MANY DAYS until the card should be shown again,
+ * based on how well the student remembered it and how many times they've seen it.
+ *
+ * The rating scale:
+ *   Rating.Again (1) = forgot completely → show again very soon
+ *   Rating.Hard  (2) = remembered with difficulty → show in a few days
+ *   Rating.Good  (3) = remembered correctly → show in ~1-2 weeks
+ *   Rating.Easy  (4) = too easy → show in a month or more
+ */
 export async function rateCard(
   cardId: string,
   rating: Rating
 ): Promise<{ error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
+  // Load the existing study progress for this card (if any).
   const { data: raw } = await supabase
     .from('study_progress')
     .select('*')
@@ -279,60 +305,80 @@ export async function rateCard(
 
   const existing = raw as StudyProgress | null;
 
+  // Create the FSRS scheduler with default parameters.
   const f = fsrs(generatorParameters());
   const now = new Date();
 
+  // Reconstruct the FSRS card state from our database values.
+  // If the card has never been studied, createEmptyCard gives a fresh starting state.
   const baseCard: FSRSCard = existing
     ? {
-        ...createEmptyCard(now),
+        ...createEmptyCard(now),          // Start with valid defaults for all fields
         due: new Date(existing.next_review_date),
-        stability: existing.ease_factor,
-        difficulty: 0,
+        stability: existing.ease_factor,  // ease_factor stores the FSRS stability value
+        // ─── FIX ─────────────────────────────────────────────────────────────
+        // difficulty: 0 was causing "Invalid memory state" crash.
+        // The FSRS difficulty scale is 1–10 (5 = average).
+        // We don't store difficulty yet, so we use 5.0 as a safe neutral default.
+        // The algorithm will recalculate the correct difficulty after this rating.
+        difficulty: 5.0,
+        // ─────────────────────────────────────────────────────────────────────
         elapsed_days: existing.interval,
         scheduled_days: existing.interval,
         reps: existing.repetitions,
         lapses: 0,
-        state: existing.repetitions === 0 ? 0 : 2,
+        state: existing.repetitions === 0 ? 0 : 2, // 0=New, 2=Review
         last_review: now,
       }
-    : createEmptyCard(now);
+    : createEmptyCard(now); // First time seeing this card — use fresh state
 
+  // Ask FSRS: "if the student rates this card X, when should it appear next?"
+  // f.repeat() returns a schedule for ALL four possible ratings at once.
   const scheduled = f.repeat(baseCard, now);
+
+  // Clamp the rating to a valid value (default to Good if something unexpected arrives).
   const safeRating = ([Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as Rating[]).includes(rating)
     ? rating
     : Rating.Good;
+
+  // Pick the result for the actual rating the student gave.
   const entry = scheduled[safeRating as keyof typeof scheduled] as RecordLogItem;
   const result = entry.card;
 
+  // Save the new FSRS state back to the database.
+  // upsert = "insert if not exists, update if exists" — one operation handles both cases.
   const { error } = await supabase
     .from('study_progress')
     .upsert(
       {
         user_id: user.id,
         card_id: cardId,
-        ease_factor: result.stability,
-        interval: result.scheduled_days,
-        repetitions: result.reps,
-        next_review_date: result.due.toISOString(),
+        ease_factor: result.stability,        // How well the student knows this card
+        interval: result.scheduled_days,      // Days until next review
+        repetitions: result.reps,             // Total number of times reviewed
+        next_review_date: result.due.toISOString(), // Exact date/time of next review
       } as never,
       { onConflict: 'user_id,card_id' }
     );
 
   if (error) return { error: error.message };
-
   return {};
 }
 
 // ─── SESSION COMPLETION ───────────────────────────────────────────────────────
 
+/**
+ * completeStudySession — called when the student finishes all cards.
+ * Awards XP and increments the daily streak in the user's profile.
+ */
 export async function completeStudySession(
   cardsStudied: number,
   ratings: Record<string, 'easy' | 'hard'>
 ): Promise<{ xpGained?: number; newXp?: number; newStreak?: number; error?: string }> {
   const { supabase, user } = await getAuth();
-
   if (!user) return { error: 'Unauthorized' };
 
+  // Calculate XP: easy cards = 10 points, hard cards = 5 points.
   const easyCount = Object.values(ratings).filter(r => r === 'easy').length;
   const xpGained = easyCount * 10 + (cardsStudied - easyCount) * 5;
 
@@ -356,6 +402,5 @@ export async function completeStudySession(
   if (updateError) return { error: updateError.message };
 
   revalidatePath('/dashboard');
-
   return { xpGained, newXp, newStreak };
 }

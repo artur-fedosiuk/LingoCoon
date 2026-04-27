@@ -1,7 +1,3 @@
-// File: src/app/decks/[flashcardDeckId]/DeckPageContent.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Client component for the individual deck page.
 //              Left column: "Add New Card" form. Right column: existing cards list.
 //              Header: study buttons (Classic + AI) and delete button.

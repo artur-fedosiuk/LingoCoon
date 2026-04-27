@@ -132,11 +132,6 @@ body {
   }
 }
 
-/* app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* 3D Flashcard Utilities - REQUIRED for study mode */
 @layer utilities {
   .perspective-1000 {
@@ -151,9 +146,4 @@ body {
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
-}
-
-/* Optional: Smooth transitions */
-* {
-  @apply transition-colors;
 }

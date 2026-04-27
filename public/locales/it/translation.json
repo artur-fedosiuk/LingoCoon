@@ -330,7 +330,6 @@
   },
   "ai_page": {
     "title": "Modalità AI",
-    "subtitle": "Basato su NVIDIA NIM",
     "tab_chat": "Chat Libera",
     "tab_decks": "Studia con i Mazzi",
     "no_decks": "Non hai ancora nessun mazzo.",
@@ -369,6 +368,9 @@
       "motivation": "La costanza è la chiave del successo!",
       "come_back": "Torna domani per continuare il tuo percorso."
     },
+    "deck_not_found": "Mazzo non trovato.",
+    "no_cards_due": "Nessuna carta per oggi",
+    "all_caught_up": "Hai completato lo studio di questo mazzo per oggi.",
     "evaluation": {
       "question": "Quanto bene lo ricordavi?",
       "forgot": "Dimenticato",
@@ -389,7 +391,13 @@
       "original": "Originale",
       "translation": "Traduzione",
       "click_to_flip": "Clicca per vedere la risposta"
-    }
+    },
+    "empty_deck": "Nessuna carta in questo mazzo.",
+    "add_cards": "Aggiungi Carte",
+    "click_to_flip_back": "← clicca per girare",
+    "explain_word": "Spiega questa parola",
+    "ask_placeholder": "Chiedi qualcosa su questa carta…",
+    "ai_thinking": "sto pensando…"
   },
   "languages": {
     "it-IT": "Italiano",

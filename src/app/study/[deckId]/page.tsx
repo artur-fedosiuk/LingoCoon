@@ -1,7 +1,3 @@
-// File: src/app/study/[deckId]/page.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Server page for the classic (non-AI) flashcard study session.
 //              Loads cards due today, the deck metadata, and the user's native
 //              language from Supabase, then renders the StudySession component.
@@ -10,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCardsForStudy, getDeck } from '@/lib/actions/deck-actions';
 import StudySession from '@/components/study/StudySession';
+import { DeckNotFound, NoCardsDue } from '@/components/study/StudyFeedback';
 import type { Deck } from '@/lib/supabase/types';
 
 export default async function StudyPage({
@@ -50,20 +47,12 @@ export default async function StudyPage({
 
   // Step 5: Handle error states gracefully.
   if (error || !deck) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-500 text-base">{error ?? 'Deck not found'}</p>
-      </div>
-    );
+    return <DeckNotFound error={error ?? undefined} />;
   }
 
   // Step 6: If no cards are due for review today, tell the user.
   if (cards.length === 0) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-lg text-gray-500">No cards due today</p>
-      </div>
-    );
+    return <NoCardsDue deckId={deck.id} />;
   }
 
   // Step 7: Render the study session.

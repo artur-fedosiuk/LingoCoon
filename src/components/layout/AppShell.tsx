@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
     },
 ];
 
-import { useProfile } from '@/hooks/useProfile';
+
 
 interface AppShellProps {
     children: React.ReactNode;
@@ -55,8 +55,7 @@ interface AppShellProps {
 
 export default function AppShell({ children, userEmail }: AppShellProps) {
     const pathname = usePathname();
-    const { t, i18n } = useTranslation();
-    const { profile } = useProfile();
+    const { t } = useTranslation();
 
     const isActive = (href: string) => {
         if (href === '/dashboard') {

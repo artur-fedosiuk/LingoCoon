@@ -1,16 +1,15 @@
 /**
  * Filename: src/app/api/tts/synthesize/route.ts
- * Description: API route handler using Google Cloud TTS with Service Account JSON env var.
- *
- * On Vercel (and any serverless platform) you cannot read files from disk at runtime.
- * Instead, store the full service-account JSON as a single env var:
- *   GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
+ * Description: API route handler using Google Cloud TTS.
+ * Reads the Service Account JSON from the local file system.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 
-// Token cache — persists in memory across requests during the server session
+// Cache in RAM per evitare di richiedere un nuovo token a ogni singola parola
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 interface TTSRequest {
@@ -23,20 +22,23 @@ interface TTSRequest {
     volumeGainDb?: number;
 }
 
-// Generate an OAuth2 access token from the JSON service account using JWT
+// Generazione del token OAuth2 (JSON Web Token)
 async function getAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
+  
   if (cachedToken && now < cachedToken.expiresAt - 60) {
     return cachedToken.value;
   }
 
-  // Read the service account credentials from the env var (JSON string).
-  // On Vercel: set GOOGLE_SERVICE_ACCOUNT_JSON to the full contents of your
-  // service-account JSON file (wrap the value in single quotes in the Vercel dashboard).
-  const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!credJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON env var not set');
+  const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!keyPath) {
+      throw new Error('GOOGLE_APPLICATION_CREDENTIALS env var not set in .env.local');
+  }
 
-  const creds = JSON.parse(credJson);
+  // LETTURA FISICA DAL DISCO (Risolve l'Errore 500)
+  const absolutePath = path.resolve(process.cwd(), keyPath);
+  const fileContent = fs.readFileSync(absolutePath, 'utf8');
+  const creds = JSON.parse(fileContent);
 
   const payload = {
     iss: creds.client_email,
@@ -46,7 +48,6 @@ async function getAccessToken(): Promise<string> {
     exp: now + 3600,
   };
 
-  // Create signed JWT with the private key (RS256)
   const header = { alg: 'RS256', typ: 'JWT' };
   const encodeBase64Url = (obj: object) =>
     Buffer.from(JSON.stringify(obj)).toString('base64url');
@@ -55,7 +56,7 @@ async function getAccessToken(): Promise<string> {
   const payloadB64 = encodeBase64Url(payload);
   const signingInput = `${headerB64}.${payloadB64}`;
 
-  // Import the PEM private key
+  // Importazione della chiave crittografica
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',
     pemToDer(creds.private_key),
@@ -73,7 +74,7 @@ async function getAccessToken(): Promise<string> {
   const signatureB64 = Buffer.from(signature).toString('base64url');
   const jwt = `${signingInput}.${signatureB64}`;
 
-  // Exchange the JWT for an access token
+  // Scambio del JWT con il Token di Accesso
   const tokenRes = await fetch(creds.token_uri, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -93,7 +94,7 @@ async function getAccessToken(): Promise<string> {
   return access_token;
 }
 
-// Convert PEM → DER (ArrayBuffer) without external dependencies
+// Utilità per la conversione del formato della chiave
 function pemToDer(pem: string): ArrayBuffer {
   const b64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, '')
@@ -103,6 +104,7 @@ function pemToDer(pem: string): ArrayBuffer {
   return binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength);
 }
 
+// Endpoint principale POST
 export async function POST(request: NextRequest) {
     try {
         const body: TTSRequest = await request.json();
@@ -121,12 +123,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get access token from service account
         const accessToken = await getAccessToken();
 
         const voiceConfig: Record<string, string> = {
             languageCode: body.languageCode,
         };
+        
         if (body.voiceName) {
             voiceConfig.name = body.voiceName;
         } else {

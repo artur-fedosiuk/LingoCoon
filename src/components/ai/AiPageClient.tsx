@@ -1,7 +1,3 @@
-// File: src/components/ai/AiPageClient.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: The main AI Mode page — a tabbed layout with "Free Chat" and
 //              "Study with Decks" tabs. Fully translated via i18n.
 
@@ -56,7 +52,6 @@ export default function AiPageClient({ decks, userEmail }: AiPageClientProps) {
               <h1 className="text-xl font-bold text-gray-900 leading-tight">
                 {t('ai_page.title')}
               </h1>
-              <p className="text-xs text-gray-500">{t('ai_page.subtitle')}</p>
             </div>
           </div>
 

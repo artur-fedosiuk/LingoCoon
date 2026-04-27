@@ -330,7 +330,6 @@
   },
   "ai_page": {
     "title": "Mode IA",
-    "subtitle": "Propulsé par NVIDIA NIM",
     "tab_chat": "Chat Libre",
     "tab_decks": "Étudier avec les Paquets",
     "no_decks": "Vous n'avez pas encore de paquets.",
@@ -369,6 +368,9 @@
       "motivation": "La constance est la clé du succès !",
       "come_back": "Revenez demain pour continuer votre parcours."
     },
+    "deck_not_found": "Paquet introuvable.",
+    "no_cards_due": "Aucune carte pour aujourd'hui",
+    "all_caught_up": "Vous avez terminé l'étude de ce paquet pour aujourd'hui.",
     "evaluation": {
       "question": "Vous en souveniez-vous ?",
       "forgot": "Oublié",
@@ -389,7 +391,13 @@
       "original": "Original",
       "translation": "Traduction",
       "click_to_flip": "Cliquez pour voir la réponse"
-    }
+    },
+    "empty_deck": "Aucune carte dans ce paquet.",
+    "add_cards": "Ajouter des Cartes",
+    "click_to_flip_back": "← cliquez pour retourner",
+    "explain_word": "Expliquer ce mot",
+    "ask_placeholder": "Posez une question sur cette carte…",
+    "ai_thinking": "je réfléchis…"
   },
   "languages": {
     "it-IT": "Italien",

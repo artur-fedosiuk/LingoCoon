@@ -1,7 +1,3 @@
-// File: src/app/dashboard/page.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Dashboard — the first page the user sees after logging in.
 //              Shows three quick-access cards: Flashcard Hub, Create Deck, and AI Mode.
 //              All visible text comes from the translation file (i18n).

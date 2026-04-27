@@ -1,7 +1,3 @@
-// File: src/components/flashcards/CardItem.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Displays a single flashcard in the deck management view.
 //              Supports inline editing (click edit icon → save/cancel)
 //              and one-click deletion with a confirmation dialog.

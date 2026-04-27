@@ -1,7 +1,3 @@
-// File: src/components/study/AiPanel.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Sidebar chat panel that appears next to the classic flashcard study session.
 //              The student can ask the AI tutor questions about the current card.
 

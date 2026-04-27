@@ -1,6 +1,4 @@
-// File: src/lib/actions/ai-actions.ts
 // Created: 2024-01-01
-// Last-Updated: 2025-06-01
 // Description: Server Actions that communicate with the NVIDIA NIM AI API.
 
 // "use server" tells Next.js: this whole file runs on the SERVER only.

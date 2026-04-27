@@ -1,7 +1,3 @@
-// File: src/components/ai/GeneralChat.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Free-form chat interface with the AI assistant ("Lingo").
 //              No deck required — the student can ask any language question.
 

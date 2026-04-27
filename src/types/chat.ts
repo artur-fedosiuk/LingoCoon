@@ -1,7 +1,3 @@
-// File: src/types/chat.ts
-// Created: 2025-06-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Shared TypeScript type for a single chat message used in all chat interfaces.
 
 /**

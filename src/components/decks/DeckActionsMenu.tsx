@@ -1,7 +1,3 @@
-// File: src/components/decks/DeckActionsMenu.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Delete button for a flashcard deck. Shows a confirmation dialog
 //              before permanently removing the deck and all its cards.
 

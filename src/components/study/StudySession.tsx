@@ -1,7 +1,3 @@
-// File: src/components/study/StudySession.tsx
-// Created: 2024-01-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Classic (non-AI) flashcard study session. Shows cards one at a time,
 //              lets the student flip them and rate how well they remembered.
 //              After rating, the FSRS algorithm decides when to show the card next.

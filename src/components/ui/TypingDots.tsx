@@ -1,7 +1,3 @@
-// File: src/components/ui/TypingDots.tsx
-// Created: 2025-06-01
-// Last-Updated: 2025-06-01
-// Author: Claude
 // Description: Animated three-dot loading indicator shown while the AI is generating a reply.
 
 // "use client" marks this as a Client Component — it runs in the browser,
