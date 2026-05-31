@@ -1,15 +1,25 @@
 /**
  * Filename: src/app/api/tts/synthesize/route.ts
  * Description: API route handler using Google Cloud TTS.
- * Reads the Service Account JSON from the local file system.
+ *
+ * Credentials strategy:
+ * Instead of reading a JSON key file from disk (which requires fs/path and
+ * creates a path-traversal attack surface), we store the entire service-account
+ * JSON as a single environment variable: GOOGLE_SERVICE_ACCOUNT_JSON.
+ *
+ * How to set it in .env.local:
+ *   GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"...","private_key":"-----BEGIN...","client_email":"...@....iam.gserviceaccount.com",...}'
+ *
+ * On Vercel / Railway / Render: paste the same one-line JSON in the env var UI.
+ * The private_key newlines must be literal \n inside the JSON string (standard JSON format).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 
-// Cache in RAM per evitare di richiedere un nuovo token a ogni singola parola
+// Cache the OAuth2 access token in RAM to avoid a round-trip on every request.
+// The token is valid for 1 hour; we refresh it 60 seconds early to avoid edge-case
+// expiry during a long request.
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 interface TTSRequest {
@@ -23,23 +33,53 @@ interface TTSRequest {
     volumeGainDb?: number;
 }
 
-// Generazione del token OAuth2 (JSON Web Token)
+// ─── CREDENTIALS LOADER ───────────────────────────────────────────────────────
+
+/**
+ * loadCredentials — reads the Google service-account JSON from the environment.
+ *
+ * Why an env var instead of a file?
+ * Files on disk introduce a path-traversal surface: if GOOGLE_APPLICATION_CREDENTIALS
+ * is compromised in CI/CD, an attacker can redirect it to any file on the system.
+ * An env var containing the JSON directly has no file-system dependency at all.
+ *
+ * @throws if GOOGLE_SERVICE_ACCOUNT_JSON is missing or not valid JSON.
+ */
+function loadCredentials(): {
+  client_email: string;
+  private_key: string;
+  token_uri: string;
+} {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!raw) {
+    throw new Error(
+      'GOOGLE_SERVICE_ACCOUNT_JSON env var is not set. ' +
+      'Paste the service-account JSON as a single-line string in .env.local.'
+    );
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error(
+      'GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON. ' +
+      'Make sure the value is a single-line JSON string with no trailing newline.'
+    );
+  }
+}
+
+// ─── TOKEN GENERATION ─────────────────────────────────────────────────────────
+
 async function getAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  
+
+  // Return the cached token if it's still valid (with a 60-second buffer).
   if (cachedToken && now < cachedToken.expiresAt - 60) {
     return cachedToken.value;
   }
 
-  const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (!keyPath) {
-      throw new Error('GOOGLE_APPLICATION_CREDENTIALS env var not set in .env.local');
-  }
-
-  // LETTURA FISICA DAL DISCO (Risolve l'Errore 500)
-  const absolutePath = path.resolve(process.cwd(), keyPath);
-  const fileContent = fs.readFileSync(absolutePath, 'utf8');
-  const creds = JSON.parse(fileContent);
+  // Load credentials from the environment — no file I/O.
+  const creds = loadCredentials();
 
   const payload = {
     iss: creds.client_email,
@@ -57,7 +97,7 @@ async function getAccessToken(): Promise<string> {
   const payloadB64 = encodeBase64Url(payload);
   const signingInput = `${headerB64}.${payloadB64}`;
 
-  // Importazione della chiave crittografica
+  // Import the RSA private key for JWT signing.
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',
     pemToDer(creds.private_key),
@@ -75,7 +115,7 @@ async function getAccessToken(): Promise<string> {
   const signatureB64 = Buffer.from(signature).toString('base64url');
   const jwt = `${signingInput}.${signatureB64}`;
 
-  // Scambio del JWT con il Token di Accesso
+  // Exchange the JWT for a short-lived OAuth2 access token.
   const tokenRes = await fetch(creds.token_uri, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -94,6 +134,7 @@ async function getAccessToken(): Promise<string> {
   cachedToken = { value: access_token, expiresAt: now + 3600 };
   return access_token;
 }
+
 
 // Utilità per la conversione del formato della chiave
 function pemToDer(pem: string): ArrayBuffer {

@@ -14,6 +14,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import {
   Sparkles,
   Loader2,
@@ -103,6 +104,7 @@ export default function AiDeckGenerator({
   targetLanguage,
 }: AiDeckGeneratorProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // ── Core wizard state ──────────────────────────────────────────────────────
   const [phase, setPhase] = useState<Phase>('prompt');
@@ -157,6 +159,9 @@ export default function AiDeckGenerator({
     value: string,
   ) => {
     if (!deck) return;
+    // Safe: `key` is a TypeScript union literal ('language_from' | 'language_to'),
+    // not a free string from user input. TypeScript prevents any other value from
+    // being passed here, so __proto__ injection is impossible at the type level.
     setDeck({ ...deck, [key]: value });
   };
 
@@ -264,9 +269,9 @@ export default function AiDeckGenerator({
           <Sparkles className="w-7 h-7 text-white animate-pulse" />
         </div>
         <div className="text-center">
-          <p className="text-gray-800 font-semibold">Generating your deck…</p>
+          <p className="text-gray-800 font-semibold">{t('ai_deck.generating_title')}</p>
           <p className="text-gray-400 text-sm mt-1 max-w-xs">
-            Selecting vocabulary, writing translations, and adding example sentences.
+            {t('ai_deck.generating_subtitle')}
           </p>
         </div>
         <Loader2 className="w-5 h-5 text-violet-400 animate-spin" />
@@ -281,13 +286,13 @@ export default function AiDeckGenerator({
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
         <div className="text-center">
           <p className="text-red-500 font-medium text-sm">{errorMsg}</p>
-          <p className="text-gray-400 text-xs mt-1">Check the console for technical details.</p>
+          <p className="text-gray-400 text-xs mt-1">{t('ai_deck.error_console')}</p>
         </div>
         <button
           onClick={() => setPhase(deck ? 'review' : 'prompt')}
           className="text-sm text-gray-600 underline underline-offset-4 hover:text-gray-900 transition-colors"
         >
-          ← Go back
+          {t('ai_deck.error_back')}
         </button>
       </div>
     );
@@ -312,11 +317,11 @@ export default function AiDeckGenerator({
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">Review your deck</h1>
-            <p className="text-xs text-gray-400">Edit, add, or delete cards before saving.</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('ai_deck.review_title')}</h1>
+            <p className="text-xs text-gray-400">{t('ai_deck.review_subtitle')}</p>
           </div>
           <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
-            {deck.cards.length} cards
+            {t('ai_deck.cards_count', { count: deck.cards.length })}
           </span>
         </div>
 
@@ -324,7 +329,7 @@ export default function AiDeckGenerator({
         <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">
-              Deck title
+              {t('ai_deck.deck_title_label')}
             </label>
             <input
               type="text"
@@ -339,7 +344,7 @@ export default function AiDeckGenerator({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Front language
+                {t('ai_deck.front_language_label')}
               </label>
               <select
                 value={deck.language_from}
@@ -357,7 +362,7 @@ export default function AiDeckGenerator({
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Back language
+                {t('ai_deck.back_language_label')}
               </label>
               <select
                 value={deck.language_to}
@@ -418,7 +423,7 @@ export default function AiDeckGenerator({
                        flex items-center justify-center gap-2 disabled:opacity-40"
           >
             <Plus className="w-4 h-4" />
-            Add card
+            {t('ai_deck.add_card_button')}
           </button>
         )}
 
@@ -433,12 +438,12 @@ export default function AiDeckGenerator({
           {isSaving ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Saving…
+              {t('ai_deck.saving_button')}
             </>
           ) : (
             <>
               <Check className="w-4 h-4" />
-              Save deck ({deck.cards.length} cards)
+              {t('ai_deck.save_button', { count: deck.cards.length })}
             </>
           )}
         </button>
@@ -458,17 +463,17 @@ export default function AiDeckGenerator({
                           flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Generate deck with AI</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('ai_deck.page_title')}</h1>
         </div>
         <p className="text-sm text-gray-500 ml-11">
-          Describe what you want to learn. The AI will generate flashcards for you to review.
+          {t('ai_deck.page_subtitle')}
         </p>
       </div>
 
       {/* ── Prompt input ───────────────────────────────────────────────────── */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
-          What do you want to learn?
+          {t('ai_deck.prompt_label')}
         </label>
         <textarea
           value={prompt}
@@ -480,14 +485,14 @@ export default function AiDeckGenerator({
               handleGenerate();
             }
           }}
-          placeholder="e.g. Give me 20 Italian words about food and cooking, with English translations"
+          placeholder={t('ai_deck.prompt_placeholder')}
           rows={4}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm
                      placeholder-gray-400 focus:outline-none focus:border-violet-400
                      focus:ring-1 focus:ring-violet-200 resize-none bg-white"
         />
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-400">⌘+Enter to generate</p>
+          <p className="text-xs text-gray-400">{t('ai_deck.shortcut_hint')}</p>
           <p className="text-xs text-gray-400">
             {prompt.length}/{MAX_PROMPT_LENGTH}
           </p>
@@ -503,12 +508,12 @@ export default function AiDeckGenerator({
                    disabled:opacity-40 flex items-center justify-center gap-2 text-sm"
       >
         <Sparkles className="w-4 h-4" />
-        Generate deck
+        {t('ai_deck.generate_button')}
       </button>
 
       {/* ── Suggestion chips ────────────────────────────────────────────────── */}
       <div className="space-y-2">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Examples</p>
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('ai_deck.examples_label')}</p>
         <div className="flex flex-wrap gap-2">
           {buildSuggestions(targetLanguage, nativeLanguage).map((suggestion) => (
             <button
@@ -555,6 +560,8 @@ function CardRow({
   onCancelEdit,
   onDelete,
 }: CardRowProps) {
+  const { t } = useTranslation();
+
   // ── Editing mode ────────────────────────────────────────────────────────
 
   if (isEditing) {
@@ -566,7 +573,7 @@ function CardRow({
             type="text"
             value={editDraft.front}
             onChange={(e) => onDraftChange({ ...editDraft, front: e.target.value })}
-            placeholder="Front"
+            placeholder={t('ai_deck.front_placeholder')}
             className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                        focus:border-violet-400 bg-white"
           />
@@ -574,7 +581,7 @@ function CardRow({
             type="text"
             value={editDraft.back}
             onChange={(e) => onDraftChange({ ...editDraft, back: e.target.value })}
-            placeholder="Back"
+            placeholder={t('ai_deck.back_placeholder')}
             className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                        focus:border-violet-400 bg-white"
           />
@@ -585,7 +592,7 @@ function CardRow({
           onChange={(e) =>
             onDraftChange({ ...editDraft, example_sentence: e.target.value })
           }
-          placeholder="Example sentence (optional)"
+          placeholder={t('ai_deck.example_placeholder')}
           className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                      focus:border-violet-400 bg-white text-gray-500"
         />
@@ -596,7 +603,7 @@ function CardRow({
                        px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
           >
             <X className="w-3 h-3" />
-            Cancel
+            {t('ai_deck.cancel')}
           </button>
           <button
             onClick={onSaveEdit}
@@ -604,7 +611,7 @@ function CardRow({
                        gap-1 px-2 py-1 rounded-md hover:bg-violet-100 transition-colors"
           >
             <Check className="w-3 h-3" />
-            Save
+            {t('ai_deck.save_card')}
           </button>
         </div>
       </div>
@@ -673,18 +680,19 @@ interface AddCardFormProps {
 }
 
 function AddCardForm({ draft, onDraftChange, onSave, onCancel }: AddCardFormProps) {
+  const { t } = useTranslation();
   const canSave = draft.front.trim().length > 0 && draft.back.trim().length > 0;
 
   return (
     <div className="border-2 border-violet-200 rounded-xl p-4 space-y-2.5 bg-violet-50/20">
-      <p className="text-xs font-semibold text-violet-600">New card</p>
+      <p className="text-xs font-semibold text-violet-600">{t('ai_deck.new_card_label')}</p>
       <div className="grid grid-cols-2 gap-2">
         <input
           autoFocus
           type="text"
           value={draft.front}
           onChange={(e) => onDraftChange({ ...draft, front: e.target.value })}
-          placeholder="Front"
+          placeholder={t('ai_deck.front_placeholder')}
           className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                      focus:border-violet-400 bg-white"
         />
@@ -692,7 +700,7 @@ function AddCardForm({ draft, onDraftChange, onSave, onCancel }: AddCardFormProp
           type="text"
           value={draft.back}
           onChange={(e) => onDraftChange({ ...draft, back: e.target.value })}
-          placeholder="Back"
+          placeholder={t('ai_deck.back_placeholder')}
           className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                      focus:border-violet-400 bg-white"
         />
@@ -701,7 +709,7 @@ function AddCardForm({ draft, onDraftChange, onSave, onCancel }: AddCardFormProp
         type="text"
         value={draft.example_sentence}
         onChange={(e) => onDraftChange({ ...draft, example_sentence: e.target.value })}
-        placeholder="Example sentence (optional)"
+        placeholder={t('ai_deck.example_placeholder')}
         className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
                    focus:border-violet-400 bg-white text-gray-500"
       />
@@ -712,7 +720,7 @@ function AddCardForm({ draft, onDraftChange, onSave, onCancel }: AddCardFormProp
                      px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
         >
           <X className="w-3 h-3" />
-          Cancel
+          {t('ai_deck.cancel')}
         </button>
         <button
           onClick={onSave}
@@ -721,7 +729,7 @@ function AddCardForm({ draft, onDraftChange, onSave, onCancel }: AddCardFormProp
                      gap-1 px-2 py-1 rounded-md hover:bg-violet-100 transition-colors disabled:opacity-40"
         >
           <Check className="w-3 h-3" />
-          Add
+          {t('ai_deck.add_card')}
         </button>
       </div>
     </div>

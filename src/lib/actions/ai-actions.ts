@@ -7,6 +7,7 @@
 
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
 import type { GeneratedDeck } from '@/types/ai-deck';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -37,7 +38,7 @@ export interface ConversationTurn {
 async function callAI(
   systemPrompt: string,
   history: ConversationTurn[],
-  options: { maxTokens?: number } = {},
+  options: { maxTokens?: number; userId?: string } = {},
 ): Promise<string> {
 
   // Step 1: Check if the key is missing, stop immediately with a clear error message.
@@ -63,7 +64,11 @@ async function callAI(
     }) as OpenAI.Chat.Completions.ChatCompletionMessageParam),
   ];
 
-  // Step 3: Call the OpenAI-compatible API
+  // Step 3: Call the OpenAI-compatible API.
+  // The `user` field is forwarded to NVIDIA NIM and enables per-user rate limiting.
+  // This prevents a single abusive user from exhausting the API quota for everyone
+  // ("Denial of Wallet" attack). The value is always the server-verified user ID,
+  // never a value from the client, so it cannot be spoofed.
   const response = await client.chat.completions.create({
     model: 'meta/llama-3.3-70b-instruct',
     messages: messages,
@@ -74,7 +79,10 @@ async function callAI(
     // Llama 3.3 70B generates ~35 tok/s on NVIDIA NIM free tier:
     //   400 tokens ≈ 11s  (was 1024 = ~29s — a 60% latency reduction).
     max_tokens: options.maxTokens ?? 400,
-    stream: false
+    // Pass the authenticated user ID for provider-side rate limiting.
+    // Undefined if called from an unauthenticated context (deck generation).
+    ...(options.userId ? { user: options.userId } : {}),
+    stream: false,
   });
 
   // Step 4: Extract the text from the response
@@ -109,12 +117,16 @@ export async function askAI(
   userMessage: string
 ): Promise<string> {
   try {
-    // Wrap the single message into the ConversationTurn format expected.
+    // Read the authenticated user so we can pass their ID for rate limiting.
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Wrap the single message into the ConversationTurn format expected by callAI.
     const singleTurnHistory: ConversationTurn[] = [
       { role: 'user', parts: [{ text: userMessage }] },
     ];
 
-    return await callAI(systemPrompt, singleTurnHistory);
+    return await callAI(systemPrompt, singleTurnHistory, { userId: user?.id });
   } catch (error) {
     // Convert any error to a plain string message and re-throw so the component
     // can display it to the user in a friendly way.
@@ -148,7 +160,11 @@ export async function askAIWithHistory(
   history: ConversationTurn[]
 ): Promise<string> {
   try {
-    return await callAI(systemPrompt, history);
+    // Read the authenticated user so we can pass their ID for rate limiting.
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    return await callAI(systemPrompt, history, { userId: user?.id });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error('[askAIWithHistory Error]:', message);
