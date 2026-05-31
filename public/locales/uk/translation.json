@@ -1,6 +1,6 @@
 {
   "common": {
-    "app_name": "LinguaCoon",
+    "app_name": "LingoCoon",
     "loading": "Завантаження...",
     "error": "Помилка",
     "success": "Успіх",
@@ -48,7 +48,7 @@
   "onboarding": {
     "welcome": "Ласкаво просимо!",
     "subtitle": "Налаштуємо ваш досвід навчання",
-    "welcome_title": "Ласкаво просимо до LinguaCoon",
+    "welcome_title": "Ласкаво просимо до LingoCoon",
     "welcome_subtitle": "Вивчайте мови з персоналізованим навчанням",
     "get_started": "Розпочати",
     "setup_time": "Займе менше 2 хвилин",
@@ -371,6 +371,7 @@
     "deck_not_found": "Колоду не знайдено.",
     "no_cards_due": "Немає карток на сьогодні",
     "all_caught_up": "Ви закінчили вивчення цієї колоди на сьогодні.",
+    "study_all_cards": "Вчитися далі (всі картки)",
     "evaluation": {
       "question": "Як добре ви пам'ятали?",
       "forgot": "Забув",

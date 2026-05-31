@@ -75,7 +75,7 @@ export default function AppShell({ children, userEmail }: AppShellProps) {
                             <span className="text-sm font-bold text-white dark:text-black">LC</span>
                         </div>
                         <span className="text-lg font-bold tracking-tight text-black dark:text-white">
-                            LinguaCoon
+                            LingoCoon
                         </span>
                     </Link>
                 </div>
@@ -136,7 +136,7 @@ export default function AppShell({ children, userEmail }: AppShellProps) {
                         <span className="text-xs font-bold text-white dark:text-black">LC</span>
                     </div>
                     <span className="text-base font-bold tracking-tight text-black dark:text-white">
-                        LinguaCoon
+                        LingoCoon
                     </span>
                 </Link>
             </header>

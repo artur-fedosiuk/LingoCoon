@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Rating } from 'ts-fsrs';
 import { rateCard, completeStudySession } from '@/lib/actions/deck-actions';
 import { askAIWithHistory, type ConversationTurn } from '@/lib/actions/ai-actions';
+import { isoToBcp47, getRecommendedVoice, PREFERRED_GENDER } from '@/lib/tts-utils';
 import type { Card, Deck } from '@/lib/supabase/types';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -90,9 +91,20 @@ export default function DeckStudySession({
   // The card the student is currently looking at.
   const currentCard = cards[currentIndex];
 
-  // Language codes for front/back sides — used to pick the correct TTS voice.
+  // Language codes for front/back sides.
   const langFront = deck.language_from ?? 'en';
   const langBack  = deck.language_to   ?? 'en';
+
+  /**
+   * Orientation guard: the study card always shows the TARGET language first.
+   * If language_from equals nativeLanguage, the deck was authored with the
+   * native word on the front. We swap the displayed sides WITHOUT touching the DB.
+   */
+  const isNativeOnFront = langFront === nativeLanguage && langFront !== langBack;
+  const displayFront     = isNativeOnFront ? currentCard?.back  : currentCard?.front;
+  const displayBack      = isNativeOnFront ? currentCard?.front : currentCard?.back;
+  const displayLangFront = isNativeOnFront ? langBack   : langFront;
+  const displayLangBack  = isNativeOnFront ? langFront  : langBack;
 
   // ── AI system prompt ──────────────────────────────────────────────────────
 
@@ -129,12 +141,10 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
    * e.stopPropagation() prevents the click from also flipping the card.
    */
   const handlePlayAudio = async (e: React.MouseEvent, text: string, lang: string) => {
-    e.stopPropagation(); // Don't flip the card when clicking the audio button.
+    e.stopPropagation();
     setAudioLoading(true);
 
     const cacheKey = `${lang}:${text}`;
-
-    // If we already have this audio, play it immediately from memory.
     if (audioCache.current[cacheKey]) {
       new Audio(audioCache.current[cacheKey]).play();
       setAudioLoading(false);
@@ -142,30 +152,30 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
     }
 
     try {
-      // Look up the correct Google TTS voice for this language.
-      // The voice configs are stored in the i18n translation files (tts.languageCode, tts.voiceName).
-      const languageCode = i18n.t('tts.languageCode', { lng: lang, fallbackLng: 'en' });
-      const voiceName    = i18n.t('tts.voiceName',    { lng: lang, fallbackLng: 'en' });
+      // Use tts-utils to get voice config — same source of truth as GeneralChat.
+      // This ensures DeckStudySession always uses PREFERRED_GENDER consistently.
+      const bcp47     = isoToBcp47(lang);
+      const voiceName = getRecommendedVoice(bcp47);
 
-      // Call our API route which securely contacts Google Cloud.
-      // The Google credentials never leave the server.
       const res = await fetch('/api/tts/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, languageCode, voiceName, speakingRate: 0.9 }),
+        body: JSON.stringify({
+          text,
+          languageCode: bcp47,
+          ...(voiceName ? { voiceName } : { ssmlGender: PREFERRED_GENDER }),
+          speakingRate: 0.9,
+        }),
       });
 
       if (!res.ok) throw new Error(`TTS request failed: ${res.status}`);
 
-      // audioContent is a base64-encoded MP3 string from Google Cloud.
       const { audioContent } = await res.json();
       const src = `data:audio/mp3;base64,${audioContent}`;
-
-      audioCache.current[cacheKey] = src; // Save to cache for next time.
+      audioCache.current[cacheKey] = src;
       new Audio(src).play();
     } catch (err) {
       console.error('Audio playback error:', err);
-      // Silent fail — audio is a bonus feature, not critical.
     } finally {
       setAudioLoading(false);
     }
@@ -458,7 +468,7 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
           >
             {/* Audio button for the front (the word to learn) */}
             <button
-              onClick={(e) => handlePlayAudio(e, currentCard.front, langFront)}
+              onClick={(e) => handlePlayAudio(e, displayFront ?? '', displayLangFront)}
               disabled={audioLoading}
               className="w-10 h-10 rounded-full border border-gray-300 flex items-center
                          justify-center hover:bg-gray-100 transition-colors disabled:opacity-50"
@@ -472,7 +482,7 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
 
             {/* The word/phrase to learn */}
             <p className="text-3xl font-bold text-gray-900 text-center">
-              {currentCard.front}
+              {displayFront}
             </p>
 
             {/* Hint: click the card to reveal the answer */}
@@ -498,7 +508,7 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
           >
             {/* Audio button for the back (the translation) */}
             <button
-              onClick={(e) => handlePlayAudio(e, currentCard.back, langBack)}
+              onClick={(e) => handlePlayAudio(e, displayBack ?? '', displayLangBack)}
               disabled={audioLoading}
               className="w-10 h-10 rounded-full border border-white/30 flex items-center
                          justify-center hover:bg-white/10 transition-colors disabled:opacity-50"
@@ -512,8 +522,15 @@ Current card — Front: "${currentCard?.front ?? ''}", Back: "${currentCard?.bac
 
             {/* The translation/answer */}
             <p className="text-3xl font-bold text-center">
-              {currentCard.back}
+              {displayBack}
             </p>
+
+            {/* Example sentence — shown only when present, helps retention */}
+            {currentCard?.example_sentence && (
+              <p className="text-sm text-white/50 italic text-center px-2 leading-relaxed">
+                {currentCard.example_sentence}
+              </p>
+            )}
 
             <p className="text-sm text-gray-400">{t('study_session.click_to_flip_back')}</p>
           </div>

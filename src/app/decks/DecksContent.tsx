@@ -5,7 +5,7 @@
 
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Play, Pencil, Library, X, Loader2 } from 'lucide-react';
+import { Plus, Play, Pencil, Library, X, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,13 +75,24 @@ export default function DecksContent({ initialDecks }: DecksContentProps) {
                         {t('decks.subtitle')}
                     </p>
                 </div>
-                <Button
-                    onClick={() => setIsModalOpen(true)}
-                    className="gap-2 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('decks.create_new')}
-                </Button>
+                <div className="flex gap-2">
+                    <Link href="/decks/generate">
+                        <Button
+                            variant="outline"
+                            className="gap-2 border-violet-200 text-violet-600 hover:bg-violet-50 hover:border-violet-300 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950"
+                        >
+                            <Sparkles className="h-4 w-4" />
+                            Generate with AI
+                        </Button>
+                    </Link>
+                    <Button
+                        onClick={() => setIsModalOpen(true)}
+                        className="gap-2 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {t('decks.create_new')}
+                    </Button>
+                </div>
             </div>
 
             {/* Decks Grid or Empty State */}

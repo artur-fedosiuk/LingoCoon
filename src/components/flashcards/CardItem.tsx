@@ -191,6 +191,13 @@ export default function CardItem({ card, deckId, deckLanguage }: CardItemProps) 
         {card.back}
       </div>
 
+      {/* EXAMPLE SENTENCE — only shown if present */}
+      {card.example_sentence && (
+        <p className="text-xs text-gray-400 italic mt-2 pt-2 border-t border-gray-100 line-clamp-2">
+          {card.example_sentence}
+        </p>
+      )}
+
       {/* ACTION BUTTONS — hidden until the card is hovered */}
       <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 

@@ -1,6 +1,6 @@
 {
   "common": {
-    "app_name": "LinguaCoon",
+    "app_name": "LingoCoon",
     "loading": "Chargement...",
     "error": "Erreur",
     "success": "Succès",
@@ -48,7 +48,7 @@
   "onboarding": {
     "welcome": "Bienvenue !",
     "subtitle": "Configurons votre expérience d'apprentissage",
-    "welcome_title": "Bienvenue sur LinguaCoon",
+    "welcome_title": "Bienvenue sur LingoCoon",
     "welcome_subtitle": "Apprenez les langues avec un apprentissage personnalisé",
     "get_started": "Commencer",
     "setup_time": "Moins de 2 minutes pour configurer",
@@ -371,6 +371,7 @@
     "deck_not_found": "Paquet introuvable.",
     "no_cards_due": "Aucune carte pour aujourd'hui",
     "all_caught_up": "Vous avez terminé l'étude de ce paquet pour aujourd'hui.",
+    "study_all_cards": "Continuer à étudier (toutes les cartes)",
     "evaluation": {
       "question": "Vous en souveniez-vous ?",
       "forgot": "Oublié",

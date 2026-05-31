@@ -20,6 +20,14 @@ import type { Database } from '@/lib/supabase/types';
  * 5. Otherwise → let the request through normally.
  */
 export async function proxy(request: NextRequest) {
+  // Early return for API routes — they implement their own auth internally.
+  // Without this, every /api/tts/synthesize and /api/tts/voices call would
+  // pay a ~400ms Supabase getUser() round-trip before even reaching the handler.
+  // On a busy session (auto-play enabled), this adds seconds of invisible overhead.
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next({ request });
+  }
+
   // Start with a "pass through" response.
   // We only change this if we need to redirect.
   let supabaseResponse = NextResponse.next({ request });

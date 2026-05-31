@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lexicon — Dizionario Avanzato</title>
+<title>Lexicon — Advanced Multilingual Dictionary</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -138,7 +138,7 @@
   /* Language badges */
   .lang-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 1rem;
     margin-bottom: 2rem;
   }
@@ -163,6 +163,7 @@
   .lang-card.it::before { background: var(--rust); }
   .lang-card.en::before { background: var(--sage); }
   .lang-card.fr::before { background: var(--gold); }
+  .lang-card.uk::before { background: #3a6bbf; }
 
   .lang-label {
     font-size: 0.65rem;
@@ -331,15 +332,15 @@
 
 <header>
   <div class="logo">Lexi<span>con</span></div>
-  <div class="tagline">Dizionario Avanzato Multilingue</div>
+  <div class="tagline">Advanced Multilingual Dictionary</div>
 </header>
 
 <div class="search-zone">
   <div class="search-wrapper">
-    <input type="text" id="wordInput" placeholder="Inserisci una parola o frase…" autocomplete="off" />
-    <button id="searchBtn" onclick="search()">Cerca</button>
+    <input type="text" id="wordInput" placeholder="Enter a word or phrase…" autocomplete="off" />
+    <button id="searchBtn" onclick="search()">Search</button>
   </div>
-  <div class="hint">Premi Invio o clicca Cerca — funziona con parole singole, frasi e termini tecnici</div>
+  <div class="hint">Press Enter or click Search — works with single words, phrases and technical terms</div>
 </div>
 
 <div id="result-container"></div>
@@ -360,32 +361,34 @@ async function search() {
   container.innerHTML = `
     <div class="loading">
       <div class="spinner"></div>
-      <div class="loading-text">Consultando le fonti…</div>
+      <div class="loading-text">Looking it up…</div>
     </div>`;
   setTimeout(() => container.classList.add('visible'), 10);
 
-  const prompt = `Sei un dizionario avanzato multilingue. L'utente ha inserito: "${word}"
+  const prompt = `You are an advanced multilingual dictionary. The user entered: "${word}"
 
-Rispondi SOLO con un oggetto JSON valido (nessun testo prima o dopo), con questa struttura esatta:
+Respond ONLY with a single valid JSON object (no text before or after), with this exact structure:
 
 {
-  "italiano": { "parola": "...", "fonetica": "..." },
-  "inglese": { "parola": "...", "fonetica": "..." },
-  "francese": { "parola": "...", "fonetica": "..." },
-  "categoria": "es. sostantivo, verbo, espressione idiomatica, termine tecnico, ecc.",
-  "essenza": "Una frase brillante e densa che cattura il cuore del significato — non una definizione scolastica, ma qualcosa che illumina. Max 2 righe.",
-  "spiegazione": "Spiegazione fluida, intelligente e non didattica. Spiega il concetto come farebbe qualcuno di molto colto parlando a un amico curioso. Evita elenchi puntati. 3-5 frasi.",
-  "sfumature": ["sfumatura 1", "sfumatura 2", "sfumatura 3"],
-  "usi": "Dove e quando si usa: contesti formali, informali, scritto, parlato, gergale, ecc. Senza elenchi.",
-  "curiosita": "Un fatto interessante, un'etimologia sorprendente, una connessione inaspettata — qualcosa che vale la pena sapere. Opzionale ma preferibile.",
-  "esempi": [
-    { "lingua": "it", "bandiera": "🇮🇹", "testo": "Frase esempio in italiano naturale e contestualizzata." },
-    { "lingua": "en", "bandiera": "🇬🇧", "testo": "Example sentence in natural English." },
-    { "lingua": "fr", "bandiera": "🇫🇷", "testo": "Phrase exemple en français naturel." }
+  "italian": { "word": "...", "phonetic": "..." },
+  "english": { "word": "...", "phonetic": "..." },
+  "french": { "word": "...", "phonetic": "..." },
+  "ukrainian": { "word": "...", "phonetic": "..." },
+  "category": "e.g. noun, verb, idiomatic expression, technical term, etc.",
+  "essence": "A brilliant, dense sentence that captures the heart of the meaning — not a textbook definition, but something illuminating. Max 2 lines.",
+  "explanation": "A fluid, intelligent, non-didactic explanation. Explain the concept as a very cultured person speaking to a curious friend. No bullet points. 3–5 sentences.",
+  "nuances": ["nuance 1", "nuance 2", "nuance 3"],
+  "usage": "Where and when it is used: formal, informal, written, spoken, slang, etc. No lists.",
+  "curiosity": "An interesting fact, surprising etymology, or unexpected connection — something worth knowing. Optional but preferred.",
+  "examples": [
+    { "lang": "it", "flag": "🇮🇹", "text": "Example sentence in natural Italian, contextualised." },
+    { "lang": "en", "flag": "🇬🇧", "text": "Example sentence in natural English." },
+    { "lang": "fr", "flag": "🇫🇷", "text": "Phrase exemple en fran\u00e7ais naturel." },
+    { "lang": "uk", "flag": "🇺🇦", "text": "\u041f\u0440\u0438\u043a\u043b\u0430\u0434 \u0440\u0435\u0447\u0435\u043d\u043d\u044f \u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u043e\u044e \u043c\u043e\u0432\u043e\u044e." }
   ]
 }
 
-Regole: risposte vivaci, non pedanti. Niente ripetizioni tra le sezioni. JSON valido, nessun markdown.`;
+Rules: lively answers, not pedantic. No repetition between sections. Valid JSON, no markdown.`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -404,7 +407,7 @@ Regole: risposte vivaci, non pedanti. Niente ripetizioni tra le sezioni. JSON va
     const d = JSON.parse(clean);
     render(d, word);
   } catch(e) {
-    container.innerHTML = `<div class="error-box">Errore nel recupero dei dati. Riprova tra qualche secondo.</div>`;
+    container.innerHTML = `<div class="error-box">Error fetching data. Please try again in a few seconds.</div>`;
   }
   btn.disabled = false;
 }
@@ -415,50 +418,55 @@ function render(d, query) {
 
     <div class="lang-row">
       <div class="lang-card it">
-        <div class="lang-label">🇮🇹 Italiano</div>
-        <div class="lang-word">${d.italiano.parola}</div>
-        <div class="lang-phonetic">${d.italiano.fonetica}</div>
+        <div class="lang-label">🇮🇹 Italian</div>
+        <div class="lang-word">${d.italian.word}</div>
+        <div class="lang-phonetic">${d.italian.phonetic}</div>
       </div>
       <div class="lang-card en">
-        <div class="lang-label">🇬🇧 Inglese</div>
-        <div class="lang-word">${d.inglese.parola}</div>
-        <div class="lang-phonetic">${d.inglese.fonetica}</div>
+        <div class="lang-label">🇬🇧 English</div>
+        <div class="lang-word">${d.english.word}</div>
+        <div class="lang-phonetic">${d.english.phonetic}</div>
       </div>
       <div class="lang-card fr">
-        <div class="lang-label">🇫🇷 Francese</div>
-        <div class="lang-word">${d.francese.parola}</div>
-        <div class="lang-phonetic">${d.francese.fonetica}</div>
+        <div class="lang-label">🇫🇷 French</div>
+        <div class="lang-word">${d.french.word}</div>
+        <div class="lang-phonetic">${d.french.phonetic}</div>
+      </div>
+      <div class="lang-card uk">
+        <div class="lang-label">🇺🇦 Ukrainian</div>
+        <div class="lang-word">${d.ukrainian.word}</div>
+        <div class="lang-phonetic">${d.ukrainian.phonetic}</div>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">
         <span class="section-icon">✦</span>
-        <span class="section-title">In sostanza</span>
+        <span class="section-title">In essence</span>
       </div>
       <div class="section-body">
-        <p><em>${d.essenza}</em></p>
-        <p style="margin-top:0.6rem; font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;">${d.categoria}</p>
+        <p><em>${d.essence}</em></p>
+        <p style="margin-top:0.6rem; font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;">${d.category}</p>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">
         <span class="section-icon">◎</span>
-        <span class="section-title">Spiegazione</span>
+        <span class="section-title">Explanation</span>
       </div>
-      <div class="section-body">${d.spiegazione}</div>
+      <div class="section-body">${d.explanation}</div>
     </div>
 
-    ${d.sfumature && d.sfumature.length ? `
+    ${d.nuances && d.nuances.length ? `
     <div class="section">
       <div class="section-header">
         <span class="section-icon">◈</span>
-        <span class="section-title">Sfumature</span>
+        <span class="section-title">Nuances</span>
       </div>
       <div class="section-body">
         <div class="nuance-pills">
-          ${d.sfumature.map(s => `<span class="pill">${s}</span>`).join('')}
+          ${d.nuances.map(s => `<span class="pill">${s}</span>`).join('')}
         </div>
       </div>
     </div>` : ''}
@@ -466,33 +474,33 @@ function render(d, query) {
     <div class="section">
       <div class="section-header">
         <span class="section-icon">◇</span>
-        <span class="section-title">Quando si usa</span>
+        <span class="section-title">When to use it</span>
       </div>
-      <div class="section-body">${d.usi}</div>
+      <div class="section-body">${d.usage}</div>
     </div>
 
-    ${d.curiosita ? `
+    ${d.curiosity ? `
     <div class="section">
       <div class="section-header">
         <span class="section-icon">◉</span>
-        <span class="section-title">Vale la pena sapere</span>
+        <span class="section-title">Worth knowing</span>
       </div>
-      <div class="section-body">${d.curiosita}</div>
+      <div class="section-body">${d.curiosity}</div>
     </div>` : ''}
 
     <div class="section">
       <div class="section-header">
         <span class="section-icon">▷</span>
-        <span class="section-title">Esempi in contesto</span>
+        <span class="section-title">Examples in context</span>
       </div>
       <div class="section-body">
         <div class="examples-list">
-          ${d.esempi.map(ex => `
+          ${d.examples.map(ex => `
             <div class="example-item">
-              <span class="ex-flag">${ex.bandiera}</span>
+              <span class="ex-flag">${ex.flag}</span>
               <div>
-                <div class="ex-label">${ex.lingua === 'it' ? 'Italiano' : ex.lingua === 'en' ? 'English' : 'Français'}</div>
-                <div class="ex-text">${ex.testo}</div>
+                <div class="ex-label">${ex.lang === 'it' ? 'Italian' : ex.lang === 'en' ? 'English' : ex.lang === 'fr' ? 'Fran\u00e7ais' : 'Ukrainian'}</div>
+                <div class="ex-text">${ex.text}</div>
               </div>
             </div>
           `).join('')}

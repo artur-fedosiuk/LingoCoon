@@ -1,6 +1,6 @@
 {
   "common": {
-    "app_name": "LinguaCoon",
+    "app_name": "LingoCoon",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -48,7 +48,7 @@
   "onboarding": {
     "welcome": "Welcome!",
     "subtitle": "Let's set up your learning experience",
-    "welcome_title": "Welcome to LinguaCoon",
+    "welcome_title": "Welcome to LingoCoon",
     "welcome_subtitle": "Learn languages with personalized learning",
     "get_started": "Get Started",
     "setup_time": "Takes less than 2 minutes to set up",
@@ -371,6 +371,7 @@
     "deck_not_found": "Deck not found.",
     "no_cards_due": "No cards due today",
     "all_caught_up": "You're all caught up with this deck.",
+    "study_all_cards": "Keep studying (all cards)",
     "evaluation": {
       "question": "How well did you remember it?",
       "forgot": "Forgot",

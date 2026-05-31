@@ -276,6 +276,55 @@ export async function getCardsForStudy(deckId: string): Promise<{ cards: Session
 }
 
 /**
+ * getCardsForStudyAll — returns ALL cards in a deck as SessionCard[], regardless of due date.
+ * Used when the user explicitly chooses to study beyond their scheduled cards for the day.
+ */
+export async function getCardsForStudyAll(deckId: string): Promise<{ cards: SessionCard[]; error?: string }> {
+  const { supabase, user } = await getAuth();
+  if (!user) return { cards: [], error: 'Unauthorized' };
+
+  const { data, error } = await supabase
+    .from('cards')
+    .select(`
+      id,
+      deck_id,
+      front,
+      back,
+      example_sentence,
+      pronunciation,
+      study_progress (
+        ease_factor,
+        interval,
+        repetitions,
+        next_review_date
+      )
+    `)
+    .eq('deck_id', deckId)
+    .order('created_at');
+
+  if (error) return { cards: [], error: error.message };
+
+  const cards: SessionCard[] = (data ?? []).map((card: any) => {
+    const progress = card.study_progress?.[0] ?? null;
+    return {
+      id: card.id,
+      deckId: card.deck_id,
+      front: card.front,
+      back: card.back,
+      exampleSentence: card.example_sentence ?? null,
+      pronunciation: card.pronunciation ?? null,
+      easeFactor: progress?.ease_factor ?? null,
+      interval: progress?.interval ?? null,
+      repetitions: progress?.repetitions ?? null,
+      nextReviewDate: progress?.next_review_date ?? null,
+      isFlipped: false,
+    };
+  });
+
+  return { cards };
+}
+
+/**
  * rateCard — saves the student's rating for a card and computes the next review date.
  *
  * This uses the FSRS (Free Spaced Repetition Scheduler) algorithm.
@@ -363,6 +412,91 @@ export async function rateCard(
 
   if (error) return { error: error.message };
   return {};
+}
+
+// ─── BULK DECK + CARDS CREATION ─────────────────────────────────────────────
+
+/**
+ * createDeckWithCards — atomically creates a deck and bulk-inserts all its cards.
+ *
+ * Used by the AI deck generator after the user approves the generated content.
+ *
+ * Atomicity note:
+ *   Supabase JS does not expose transactions directly. If the card insert fails
+ *   after the deck is created, we do a best-effort DELETE of the deck.
+ *   This is NOT a true atomic transaction — for full atomicity, move this logic
+ *   to a Postgres function (RPC) and call it via supabase.rpc().
+ *   Accepted trade-off for now: failure rate is low and the UX recovers gracefully.
+ *
+ * Why bulk insert over N createCard() calls?
+ *   N sequential round-trips to the DB = N × network latency.
+ *   One INSERT with N rows = 1 round-trip regardless of deck size.
+ *   On a 50-card deck this is the difference between ~2 500 ms and ~50 ms.
+ */
+export async function createDeckWithCards(
+  title: string,
+  languageFrom: string,
+  languageTo: string,
+  cards: ReadonlyArray<{ front: string; back: string; example_sentence?: string | null }>,
+): Promise<{ deck?: Deck; error?: string }> {
+  const { supabase, user } = await getAuth();
+  if (!user) return { error: 'Unauthorized' };
+
+  if (!title.trim()) return { error: 'Title cannot be empty.' };
+  if (languageFrom === languageTo) return { error: 'Languages must be different.' };
+  if (cards.length === 0) return { error: 'At least one card is required.' };
+  if (cards.length > 100) return { error: 'Maximum 100 cards per deck.' };
+
+  // Validate ALL cards before touching the database.
+  // Fail-fast: if any card is invalid, abort before creating anything.
+  // This prevents partial state (deck exists, some cards missing).
+  for (const card of cards) {
+    const frontCheck = validateFlashcardText(card.front);
+    if (!frontCheck.isValid) return { error: `Card validation failed: ${frontCheck.error}` };
+    const backCheck = validateFlashcardText(card.back);
+    if (!backCheck.isValid) return { error: `Card validation failed: ${backCheck.error}` };
+  }
+
+  // Step 1: Create the deck.
+  const { data: deckData, error: deckError } = await supabase
+    .from('decks')
+    .insert({
+      title: title.trim(),
+      language_from: languageFrom,
+      language_to: languageTo,
+      user_id: user.id,
+    } as never)
+    .select()
+    .single();
+
+  if (deckError || !deckData) {
+    return { error: deckError?.message ?? 'Failed to create deck.' };
+  }
+
+  const deck = deckData as Deck;
+
+  // Step 2: Bulk-insert all cards in a single query.
+  const rows = cards.map((card) => ({
+    deck_id: deck.id,
+    front: card.front.trim(),
+    back: card.back.trim(),
+    example_sentence: card.example_sentence?.trim() ?? null,
+  }));
+
+  const { error: cardsError } = await supabase
+    .from('cards')
+    .insert(rows as never);
+
+  if (cardsError) {
+    // Best-effort rollback: clean up the orphaned deck.
+    await supabase.from('decks').delete().eq('id', deck.id);
+    return { error: cardsError.message };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/decks');
+
+  return { deck: { ...deck, card_count: rows.length } };
 }
 
 // ─── SESSION COMPLETION ───────────────────────────────────────────────────────

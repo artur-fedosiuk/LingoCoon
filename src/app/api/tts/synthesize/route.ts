@@ -13,7 +13,8 @@ const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthes
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 interface TTSRequest {
-    text: string;
+    text?: string;   // Plain text input (existing — used by DeckStudySession).
+    ssml?: string;   // SSML markup input (new — used by GeneralChat for multilingual audio).
     languageCode: string;
     voiceName?: string;
     ssmlGender?: string;
@@ -109,14 +110,17 @@ export async function POST(request: NextRequest) {
     try {
         const body: TTSRequest = await request.json();
 
-        if (!body.text || !body.languageCode) {
+        if ((!body.text && !body.ssml) || !body.languageCode) {
             return NextResponse.json(
-                { error: 'Missing required fields: text and languageCode' },
+                { error: 'Missing required fields: (text or ssml) and languageCode' },
                 { status: 400 }
             );
         }
 
-        if (body.text.length > 5000) {
+        // Enforce length limits on whichever input format is used.
+        // SSML includes markup, so its raw length is higher than plain text.
+        const inputLength = body.ssml?.length ?? body.text?.length ?? 0;
+        if (inputLength > 5000) {
             return NextResponse.json(
                 { error: 'Text too long (max 5000 characters)' },
                 { status: 400 }
@@ -136,7 +140,9 @@ export async function POST(request: NextRequest) {
         }
 
         const requestBody = {
-            input: { text: body.text },
+            // Use SSML input when provided (multilingual), plain text otherwise.
+            // SSML enables <lang> tags for per-segment phoneme switching.
+            input: body.ssml ? { ssml: body.ssml } : { text: body.text! },
             voice: voiceConfig,
             audioConfig: {
                 audioEncoding: 'MP3',

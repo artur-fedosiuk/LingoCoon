@@ -74,8 +74,24 @@ ${cardList}
 - Keep messages brief and focused — this is a quiz, not a lecture.
 - Clear format for questions: state the card number and the word/phrase to translate.
 
+## MANDATORY OUTPUT FORMAT:
+You MUST respond with a single valid JSON object. No text outside the JSON. No markdown fences.
+
+{
+  "message": "Your visible message to the student here",
+  "cardAdvance": true | false,
+  "sessionComplete": true | false
+}
+
+Set "cardAdvance": true ONLY when you are moving to the next card (after evaluating the student's answer).
+Set "sessionComplete": true ONLY when ALL ${cards.length} cards have been completed and you are congratulating the student.
+Set both to false in all other cases (first card presentation, hints, corrections mid-card).
+
+Example of a correct response when advancing to card 2:
+{"message": "Correct! 'Grazie' means 'Thank you'. Let's move on. Card 2 of ${cards.length}: how do you translate the next word?", "cardAdvance": true, "sessionComplete": false}
+
 ## Start:
-Begin immediately by presenting the first card.`;
+Begin immediately by presenting the first card. Respond only with the JSON object.`;
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -153,18 +169,31 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
         };
         const initialHistory = [startTurn];
 
-        const response = await askAIWithHistory(systemPromptRef.current, initialHistory);
+        const rawResponse = await askAIWithHistory(systemPromptRef.current, initialHistory);
 
         const aiTurn: ConversationTurn = {
           role: 'model',
-          parts: [{ text: response }],
+          parts: [{ text: rawResponse }],
         };
 
         // Save the full history so future messages have context.
         setHistory([...initialHistory, aiTurn]);
 
+        // Parse the structured JSON to extract the visible message.
+        // The AI's first response is the card 1 presentation — cardAdvance and
+        // sessionComplete should both be false here, we only need message.
+        let firstMessage: string;
+        try {
+          const clean = rawResponse.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+          const parsed = JSON.parse(clean) as { message?: string };
+          firstMessage = parsed.message ?? rawResponse;
+        } catch {
+          // If the model doesn't follow JSON format on the first message, show raw.
+          firstMessage = rawResponse;
+        }
+
         // Show only the AI's opening message (not the hidden trigger).
-        setMessages([{ role: 'ai', text: response }]);
+        setMessages([{ role: 'ai', text: firstMessage }]);
       } catch {
         setMessages([{ role: 'ai', text: t('study.ai_mode.start_error') }]);
       } finally {
@@ -176,28 +205,6 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
     startSession();
   }, []); // Empty array = run only once on mount.
 
-  // ── Session Complete Detection ─────────────────────────────────────────────
-
-  /**
-   * Checks whether the AI's response indicates the quiz is finished.
-   *
-   * This is a heuristic (educated guess) — we look for common completion phrases
-   * AND check that we're on the last card to avoid false positives.
-   */
-  const isSessionDone = useCallback((aiText: string): boolean => {
-    const lower = aiText.toLowerCase();
-    const completionPhrases = [
-      'all cards', 'session complete', 'well done', 'congratulation',
-      'finished', 'great job', 'session is over', "you've completed",
-      'you have completed', 'ottimo lavoro', 'hai completato', 'bravo',
-      'toutes les cartes', 'session terminée', 'félicitations',
-      'всі картки', 'сесію завершено', 'молодець',
-    ];
-    return (
-      currentCardIndex >= initialCards.length - 1 &&
-      completionPhrases.some((phrase) => lower.includes(phrase))
-    );
-  }, [currentCardIndex, initialCards.length]);
 
   // ── Send Handler ──────────────────────────────────────────────────────────
 
@@ -215,6 +222,16 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
     const text = input.trim();
     if (!text || loading) return;
 
+    // Guard: cap input length to prevent API abuse.
+    const MAX_INPUT_LENGTH = 500;
+    if (text.length > MAX_INPUT_LENGTH) {
+      setMessages((prev) => [...prev, {
+        role: 'ai',
+        text: `Message too long (max ${MAX_INPUT_LENGTH} characters). Please shorten your answer.`,
+      }]);
+      return;
+    }
+
     // Immediately show the student's message.
     setMessages((prev) => [...prev, { role: 'user', text }]);
     setInput('');
@@ -225,45 +242,57 @@ export default function AiStudySession({ cards: initialCards, deck, nativeLangua
     const newHistory = [...history, userTurn];
 
     try {
-      const response = await askAIWithHistory(systemPromptRef.current, newHistory);
-      const aiTurn: ConversationTurn = { role: 'model', parts: [{ text: response }] };
+      const rawResponse = await askAIWithHistory(systemPromptRef.current, newHistory);
 
-      // Save updated history for the next round.
+      // ── Parse structured JSON response ───────────────────────────────────
+      // The system prompt instructs the AI to always return a JSON object.
+      // We parse it here to extract the display message and state signals.
+      // If parsing fails (e.g. model ignores instructions), we fall back to
+      // treating the raw text as the message with no state change.
+      let parsed: { message: string; cardAdvance: boolean; sessionComplete: boolean };
+      try {
+        // Strip accidental markdown fences some models add (```json ... ```).
+        const clean = rawResponse.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+        parsed = JSON.parse(clean);
+      } catch {
+        // Graceful fallback: show raw response, do not advance card state.
+        // This prevents a broken session if the model produces non-JSON output.
+        console.warn('[AiStudySession] AI returned non-JSON response, using fallback:', rawResponse);
+        parsed = { message: rawResponse, cardAdvance: false, sessionComplete: false };
+      }
+
+      // Store the raw response in history (the model "said" the full JSON).
+      const aiTurn: ConversationTurn = { role: 'model', parts: [{ text: rawResponse }] };
       setHistory([...newHistory, aiTurn]);
 
-      // Show the AI's reply.
-      setMessages((prev) => [...prev, { role: 'ai', text: response }]);
+      // Show only the human-readable message field to the student.
+      setMessages((prev) => [...prev, { role: 'ai', text: parsed.message }]);
 
-      // ── Card Advance Heuristic ────────────────────────────────────────
-      // Check if the AI mentioned moving to the next card number.
-      const lowerResp = response.toLowerCase();
-      const nextCardPhrases = ['card 2', 'card 3', 'card 4', 'card 5', 'card 6',
-        'carta 2', 'carta 3', 'carte 2', 'carte 3', '#2', '#3', '#4',
-        'next card', 'prossima', 'suivante', 'наступна'];
-      const isMovingToNextCard =
-        nextCardPhrases.some((p) => lowerResp.includes(p)) ||
-        (lowerResp.includes('card') && lowerResp.includes(' of ')) ||
-        (lowerResp.includes('carte') && lowerResp.includes(' sur '));
-
-      if (isMovingToNextCard && currentCardIndex < initialCards.length - 1) {
+      // ── Card Advance (structured signal) ─────────────────────────────────
+      // We now rely on the AI's explicit cardAdvance flag instead of fragile
+      // keyword matching. This is deterministic and language-agnostic.
+      if (parsed.cardAdvance && currentCardIndex < initialCards.length - 1) {
         const cardToRate = initialCards[currentCardIndex];
-        // Only rate this card once, even if this block runs again.
         if (!ratedCardIds.has(cardToRate.id)) {
           setRatedCardIds((prev) => new Set(prev).add(cardToRate.id));
-          // Rate as "Good" — the AI session doesn't have explicit rating buttons.
-          rateCard(cardToRate.id, Rating.Good).catch(() => {/* silent fail */});
+          // Log the error visibly — a silent failure here means the student's
+          // FSRS progress is lost, which is a real correctness bug.
+          rateCard(cardToRate.id, Rating.Good).catch((err) =>
+            console.error('[AiStudySession] rateCard failed for card', cardToRate.id, err)
+          );
           setCurrentCardIndex((prev) => prev + 1);
         }
       }
 
-      // ── Session End Detection ─────────────────────────────────────────
-      if (isSessionDone(response)) {
+      // ── Session Complete (structured signal) ──────────────────────────────
+      if (parsed.sessionComplete) {
         const lastCard = initialCards[initialCards.length - 1];
         if (!ratedCardIds.has(lastCard.id)) {
-          rateCard(lastCard.id, Rating.Good).catch(() => {/* silent fail */});
+          rateCard(lastCard.id, Rating.Good).catch((err) =>
+            console.error('[AiStudySession] rateCard failed for last card', lastCard.id, err)
+          );
         }
-        // Wait 2 seconds before showing the completion screen so the student
-        // can read the AI's congratulations message.
+        // Brief delay so the student can read the congratulations message.
         setTimeout(() => setSessionComplete(true), 2000);
       }
     } catch {

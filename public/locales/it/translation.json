@@ -1,6 +1,6 @@
 {
   "common": {
-    "app_name": "LinguaCoon",
+    "app_name": "LingoCoon",
     "loading": "Caricamento...",
     "error": "Errore",
     "success": "Successo",
@@ -48,7 +48,7 @@
   "onboarding": {
     "welcome": "Benvenuto!",
     "subtitle": "Configuriamo la tua esperienza di apprendimento",
-    "welcome_title": "Benvenuto su LinguaCoon",
+    "welcome_title": "Benvenuto su LingoCoon",
     "welcome_subtitle": "Impara le lingue con l'apprendimento personalizzato",
     "get_started": "Inizia",
     "setup_time": "Richiede meno di 2 minuti",
@@ -371,6 +371,7 @@
     "deck_not_found": "Mazzo non trovato.",
     "no_cards_due": "Nessuna carta per oggi",
     "all_caught_up": "Hai completato lo studio di questo mazzo per oggi.",
+    "study_all_cards": "Continua a studiare (tutte le carte)",
     "evaluation": {
       "question": "Quanto bene lo ricordavi?",
       "forgot": "Dimenticato",
@@ -395,7 +396,7 @@
     "empty_deck": "Nessuna carta in questo mazzo.",
     "add_cards": "Aggiungi Carte",
     "click_to_flip_back": "← clicca per girare",
-    "explain_word": "Spiega questa parola",
+    "explain_word": "Chiedi di spiegare",
     "ask_placeholder": "Chiedi qualcosa su questa carta…",
     "ai_thinking": "sto pensando…"
   },

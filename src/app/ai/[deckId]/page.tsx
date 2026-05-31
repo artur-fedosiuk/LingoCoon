@@ -23,7 +23,7 @@ export default async function AiDeckPage({
     supabase.from('profiles').select('native_language').eq('id', user.id).single(),
   ]);
 
-  const nativeLanguage = (profileRes.data as { native_language: string | null } | null)?.native_language ?? 'italiano';
+  const nativeLanguage = (profileRes.data as { native_language: string | null } | null)?.native_language ?? 'English';
 
   if (error || !deck) {
     return (
@@ -37,13 +37,13 @@ export default async function AiDeckPage({
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center space-y-4">
-          <h1 className="text-xl font-semibold text-gray-900">Nessuna carta da ripassare oggi</h1>
-          <p className="text-gray-500 text-sm">Sei in pari con questo mazzo.</p>
+          <h1 className="text-xl font-semibold text-gray-900">No cards to review today</h1>
+          <p className="text-gray-500 text-sm">You're all caught up with this deck.</p>
           <a
             href={`/decks/${deck.id}`}
             className="inline-block mt-2 border border-gray-300 text-gray-600 px-5 py-2 rounded-xl text-sm hover:border-gray-400 hover:text-gray-900 transition-colors"
           >
-            Torna al mazzo
+            Back to deck
           </a>
         </div>
       </div>

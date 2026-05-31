@@ -1,35 +1,35 @@
 // Description: Server page for the classic (non-AI) flashcard study session.
-//              Loads cards due today, the deck metadata, and the user's native
-//              language from Supabase, then renders the StudySession component.
+//              Loads cards due today (or ALL cards if ?mode=all), the deck metadata,
+//              and the user's native language from Supabase, then renders StudySession.
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getCardsForStudy, getDeck } from '@/lib/actions/deck-actions';
+import { getCardsForStudy, getCardsForStudyAll, getDeck } from '@/lib/actions/deck-actions';
 import StudySession from '@/components/study/StudySession';
 import { DeckNotFound, NoCardsDue } from '@/components/study/StudyFeedback';
 import type { Deck } from '@/lib/supabase/types';
 
 export default async function StudyPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ deckId: string }>;
+  searchParams: Promise<{ mode?: string }>;
 }) {
   const { deckId } = await params;
+  const { mode } = await searchParams;
+  const studyAll = mode === 'all';
 
   // Step 1: Connect to Supabase using the server-side client.
-  // The server client reads the session from cookies — the browser never
-  // sends the API key because this code runs only on the server.
   const supabase = await createClient();
 
-  // Step 2: Verify authentication. getUser() checks the JWT token
-  // cryptographically, so this cannot be bypassed.
+  // Step 2: Verify authentication.
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   // Step 3: Fetch all data in parallel for speed.
-  // Promise.all starts all three queries at the same time.
   const [{ cards, error }, { deck }, profileResult] = await Promise.all([
-    getCardsForStudy(deckId),
+    studyAll ? getCardsForStudyAll(deckId) : getCardsForStudy(deckId),
     getDeck(deckId),
     supabase
       .from('profiles')
@@ -39,8 +39,6 @@ export default async function StudyPage({
   ]);
 
   // Step 4: Extract native language with a safe fallback.
-  // We define the fallback BEFORE the query result so that even if the
-  // database is unavailable or the profile is incomplete, the app still works.
   const nativeLanguage =
     (profileResult.data as { native_language: string | null } | null)
       ?.native_language ?? 'en';
@@ -50,13 +48,12 @@ export default async function StudyPage({
     return <DeckNotFound error={error ?? undefined} />;
   }
 
-  // Step 6: If no cards are due for review today, tell the user.
+  // Step 6: If no cards are due for review today (and not in free-study mode), tell the user.
   if (cards.length === 0) {
-    return <NoCardsDue deckId={deck.id} />;
+    return <NoCardsDue deckId={deck.id} mode="classic" />;
   }
 
   // Step 7: Render the study session.
-  // nativeLanguage is read from the user's profile — never hardcoded.
   return (
     <StudySession
       cards={cards}

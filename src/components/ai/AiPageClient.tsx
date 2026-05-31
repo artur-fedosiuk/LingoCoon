@@ -21,11 +21,15 @@ interface AiPageClientProps {
   decks: Deck[];
   /** The user's email — passed down to AppShell for display. */
   userEmail?: string;
+  /** The user's native language code from their profile (e.g. 'it', 'en'). */
+  nativeLanguage: string | null;
+  /** The language the user is currently learning (e.g. 'fr', 'en'). */
+  targetLanguage: string | null;
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
-export default function AiPageClient({ decks, userEmail }: AiPageClientProps) {
+export default function AiPageClient({ decks, userEmail, nativeLanguage, targetLanguage }: AiPageClientProps) {
   const { t } = useTranslation();
 
   // Track which tab is currently active.
@@ -97,7 +101,13 @@ export default function AiPageClient({ decks, userEmail }: AiPageClientProps) {
         <div className="flex-1 overflow-hidden border border-gray-100 rounded-2xl mx-4 mb-4 bg-white">
 
           {/* FREE CHAT PANEL: rendered directly from the GeneralChat component */}
-          {activeTab === 'chat' && <GeneralChat />}
+          {/* We pass the profile data so GeneralChat can build a personalised system prompt. */}
+          {activeTab === 'chat' && (
+            <GeneralChat
+              nativeLanguage={nativeLanguage}
+              targetLanguage={targetLanguage}
+            />
+          )}
 
           {/* STUDY WITH DECKS PANEL */}
           {activeTab === 'decks' && (
