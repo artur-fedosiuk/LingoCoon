@@ -1,46 +1,24 @@
-// src/app/decks/[flashcardDeckId]/page.tsx
-// Server component: loads deck and its cards, then renders the deck detail page.
-import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
-import DeckPageContent from './DeckPageContent';
+import { notFound } from 'next/navigation';
+import DeckPageContent from '@/app/decks/[flashcardDeckId]/DeckPageContent';
+import { loadOwnedDeckWithCards } from '@/lib/server/deck-data';
+import { requireAuthenticatedPageUser } from '@/lib/supabase/page-auth';
 
-export default async function DeckPage({ 
-  params 
-}: { 
-  params: Promise<{ flashcardDeckId: string }> 
+export default async function DeckPage({
+  params,
+}: {
+  params: Promise<{ flashcardDeckId: string }>;
 }) {
   const { flashcardDeckId } = await params;
-  const supabase = await createClient();
+  const { supabase, user } = await requireAuthenticatedPageUser();
+  const { deck, cards, error } = await loadOwnedDeckWithCards(supabase, user.id, flashcardDeckId);
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  // Get deck details
-  const { data: deck, error: deckError } = await supabase
-    .from('decks')
-    .select('*')
-    .eq('id', flashcardDeckId)
-    .eq('user_id', user.id)
-    .single();
-
-  if (deckError || !deck) {
-    console.error(deckError);
-    return notFound();
+  if (!deck) {
+    notFound();
   }
 
-  // Get existing cards
-  const { data: cards } = await supabase
-    .from('cards')
-    .select('*')
-    .eq('deck_id', flashcardDeckId)
-    .order('created_at', { ascending: false });
+  if (error) {
+    throw new Error(`Failed to load cards: ${error}`);
+  }
 
-  return (
-    <DeckPageContent 
-      deck={deck} 
-      cards={cards || []} 
-      userEmail={user.email} 
-    />
-  );
+  return <DeckPageContent deck={deck} cards={cards} userEmail={user.email} />;
 }

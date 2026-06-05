@@ -1,27 +1,18 @@
-// LanguageStep.tsx
-// This step lets the user pick a language (either their native language or the one they want to learn).
 'use client';
 
 import { cn } from '@/lib/utils';
+import { APP_LANGUAGES } from '@/lib/languages';
+import { getTranslatedLanguageName } from '@/lib/translated-language';
 import { useTranslation } from 'react-i18next';
-import { LANGUAGES, LANG_KEY_MAP } from '../types';
 
 interface LanguageStepProps {
-  // Text shown at the top of the step
   title: string;
-  // Description shown below the title
   subtitle: string;
-  // The currently selected language code
   value: string;
-  // Called when the user clicks a language
   onChange: (code: string) => void;
-  // Whether this is for native or target language
   type: 'native' | 'target';
-  // A language code to hide from the list (so the user can't pick the same language twice)
   excludeLanguage?: string;
 }
-
-// Shows all available languages as clickable cards
 export function LanguageStep({
   title,
   subtitle,
@@ -31,21 +22,16 @@ export function LanguageStep({
   excludeLanguage,
 }: LanguageStepProps) {
   const { t } = useTranslation();
-
-  // Filter out excluded language if provided
   const availableLanguages = excludeLanguage
-    ? LANGUAGES.filter((lang) => lang.code !== excludeLanguage)
-    : LANGUAGES;
+    ? APP_LANGUAGES.filter((lang) => lang.code !== excludeLanguage)
+    : APP_LANGUAGES;
 
   return (
     <div className="space-y-6 py-4">
-      {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">{title}</h2>
         <p className="text-muted-foreground">{subtitle}</p>
       </div>
-
-      {/* Language Grid */}
       <div
         className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         role="radiogroup"
@@ -57,7 +43,6 @@ export function LanguageStep({
       >
         {availableLanguages.map((language) => {
           const isSelected = value === language.code;
-          const nameKey = LANG_KEY_MAP[language.code] || 'en-US';
 
           return (
             <button
@@ -81,7 +66,7 @@ export function LanguageStep({
                   isSelected ? 'text-primary' : 'text-foreground'
                 )}
               >
-                {t(`languages.${nameKey}`)}
+                {getTranslatedLanguageName(t, language.code)}
               </span>
             </button>
           );

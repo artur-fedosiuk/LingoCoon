@@ -1,107 +1,74 @@
-// LanguageSelector.tsx
-// This component shows a dropdown where the user can pick the app language.
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-// Maps short language codes to the keys used in the translation files
-const LANGUAGE_KEY_MAP: Record<string, string> = {
-    en: 'en-US',
-    it: 'it-IT',
-    uk: 'uk-UA',
-    fr: 'fr-FR'
-};
+import {
+  APP_LANGUAGES,
+  normalizeLanguageCode,
+} from '@/lib/languages';
+import { getTranslatedLanguageName } from '@/lib/translated-language';
 
 export default function LanguageSelector() {
-    const { t, i18n } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [isClient, setIsClient] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t, i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage ?? i18n.language ?? 'en');
 
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    const supportedLngs = (i18n.options.supportedLngs as string[])?.filter(l => l !== 'cimode') || ['en'];
-
-    // Get the display name for a language code.
-    // The browser sometimes sends full codes like 'it-IT' instead of 'it',
-    // so we take only the part before the dash to normalize it.
-    const getLanguageLabel = (code: string) => {
-        const shortCode = code.split('-')[0];
-        const key = LANGUAGE_KEY_MAP[shortCode] || 'en-US';
-        return t(`languages.${key}`);
-    };
-
-    // Also normalize the current language code for comparison
-    const rawLangCode = i18n.language || 'en';
-    const currentLangCode = rawLangCode.split('-')[0];
-    const currentLangLabel = getLanguageLabel(currentLangCode);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    function selectLanguage(code: string) {
-        i18n.changeLanguage(code);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+      }
     }
 
-    // Show a simple placeholder before the client is ready
-    if (!isClient) {
-        return (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200">
-                <span className="text-sm font-medium">Language</span>
-            </div>
-        );
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-    return (
-        <div className="relative" ref={dropdownRef}>
-            <button
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white border border-gray-900 hover:bg-gray-100 transition-colors duration-200"
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label="Select language"
-            >
-                <span className="text-sm font-medium text-gray-900">{currentLangLabel}</span>
-                <svg
-                    className={`w-4 h-4 text-gray-900 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
+  function selectLanguage(language: string) {
+    void i18n.changeLanguage(language);
+    setIsOpen(false);
+  }
 
-            {isOpen && (
-                <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-900 p-2 min-w-[180px] z-[9999]">
-                    {supportedLngs.map(code => (
-                        <button
-                            key={code}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 ${code === currentLangCode
-                                ? 'bg-black text-white'
-                                : 'hover:bg-gray-100 text-gray-900'
-                                }`}
-                            onClick={() => selectLanguage(code)}
-                        >
-                            <span className="text-sm font-semibold">{getLanguageLabel(code)}</span>
-                            {code === currentLangCode && (
-                                <svg className="w-4 h-4 ml-auto" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            )}
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen((open) => !open)}
+        aria-expanded={isOpen}
+        aria-label="Select language"
+        className="flex items-center gap-2 rounded-lg border border-gray-900 bg-white px-4 py-2.5 transition-colors duration-200 hover:bg-gray-100"
+      >
+        <span className="text-sm font-medium text-gray-900">
+          {getTranslatedLanguageName(t, currentLanguage)}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-gray-900 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full z-[9999] mt-2 min-w-[180px] rounded-lg border border-gray-900 bg-white p-2 shadow-lg">
+          {APP_LANGUAGES.map((language) => {
+            const selected = language.code === currentLanguage;
+
+            return (
+              <button
+                key={language.code}
+                onClick={() => selectLanguage(language.code)}
+                className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-150 ${
+                  selected ? 'bg-black text-white' : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {getTranslatedLanguageName(t, language.code)}
+                {selected && <Check className="ml-auto h-4 w-4" />}
+              </button>
+            );
+          })}
         </div>
-    );
+      )}
+    </div>
+  );
 }

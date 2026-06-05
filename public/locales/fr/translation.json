@@ -263,8 +263,10 @@
       "category_placeholder": "Ex. : voyage, travail, quotidien",
       "notes": "Notes (optionnel)",
       "notes_placeholder": "Ajoutez du contexte ou des exemples d'utilisation",
-      "translate_auto": "Traduire automatiquement",
-      "translating": "Traduction en cours...",
+      "translate_auto": "Suggérer des traductions",
+      "translating": "Recherche des significations...",
+      "suggestions_title": "Choisissez le sens voulu",
+      "suggestions_hint": "Sélectionnez une suggestion, puis modifiez la traduction si nécessaire.",
       "save_card": "Sauvegarder la Flashcard",
       "saving": "Sauvegarde...",
       "creating": "Création en cours...",
@@ -288,7 +290,8 @@
       "original_required": "Le texte original est obligatoire",
       "translation_required": "La traduction est obligatoire",
       "enter_text_to_translate": "Entrez un texte à traduire",
-      "translation_error": "Erreur de traduction. Entrez manuellement."
+      "translation_error": "Impossible de suggérer des traductions. Saisissez-en une manuellement ou réessayez.",
+      "create_error": "Impossible de créer la carte. Réessayez."
     },
     "success": {
       "card_saved": "Flashcard sauvegardée avec succès !"
@@ -303,6 +306,8 @@
     "ai_tutor_label": "Tuteur IA",
     "progress": "{{current}} / {{total}}",
     "ai_error": "Quelque chose s'est mal passé. Réessayez.",
+    "rating_save_error": "Impossible d'enregistrer votre note. Réessayez.",
+    "restart": "Recommencer",
     "responds_in": "Répond en {{language}}",
     "ask_about_card": "Posez une question sur cette carte.",
     "thinking": "Je réfléchis…",
@@ -325,7 +330,9 @@
       "input_thinking": "L'IA réfléchit…",
       "input_placeholder": "Écrivez votre réponse…",
       "start_error": "Une erreur s'est produite au démarrage. Réessayez.",
-      "ai_error": "Quelque chose s'est mal passé. Réessayez."
+      "ai_error": "Quelque chose s'est mal passé. Réessayez.",
+      "rating_save_error": "Votre réponse n'a pas pu être enregistrée. Réessayez ou continuez sans enregistrer cette note.",
+      "continue_without_saving": "Continuer"
     }
   },
   "ai_page": {
@@ -445,6 +452,7 @@
     "dashboard": "Tableau de Bord",
     "ai": "Mode IA",
     "flashcards": "Flashcards",
+    "lexicoon": "LexiCoon",
     "settings": "Paramètres"
   },
   "decks": {
@@ -455,6 +463,7 @@
     "card_count_single": "{{count}} carte",
     "study": "Étudier",
     "edit": "Modifier",
+    "generate_with_ai": "Générer avec l'IA",
     "study_with_ai": "Étudier avec l'IA",
     "empty": {
       "title": "Aucun paquet pour l'instant",
@@ -483,14 +492,31 @@
     "page_title": "Générer un paquet avec l'IA",
     "page_subtitle": "Décrivez ce que vous voulez apprendre. L'IA générera des flashcards pour vous.",
     "prompt_label": "Que voulez-vous apprendre ?",
-    "prompt_placeholder": "Ex. Donnez-moi 20 mots italiens sur la nourriture, avec des traductions en français",
+    "prompt_placeholder": "Ex. Créez un paquet de {{target}} de niveau {{level}} pour {{purpose}}, avec des traductions en {{native}}",
     "generate_button": "Générer le paquet",
     "shortcut_hint": "⌘+Entrée pour générer",
     "examples_label": "Exemples",
+    "fallback_target_language": "la langue que vous voulez apprendre",
+    "fallback_native_language": "votre langue",
+    "fallback_level": "votre niveau actuel",
+    "fallback_purpose": "votre objectif d'apprentissage",
+    "suggestions": {
+      "personal_goal": "Créez un paquet de {{target}} de niveau {{level}} pour mon objectif : {{details}}. Ajoutez des traductions en {{native}}",
+      "purpose": "20 mots pratiques en {{target}} pour {{purpose}}, niveau {{level}}, avec des traductions en {{native}}",
+      "conversation": "Phrases courantes en {{target}} pour des conversations liées à {{purpose}}, avec leur sens en {{native}}",
+      "verbs": "Verbes essentiels en {{target}} pour un élève de niveau {{level}}, avec traductions en {{native}} et exemples",
+      "food": "Mots utiles en {{target}} sur la nourriture et la vie quotidienne, niveau {{level}}, avec traductions en {{native}}"
+    },
     "generating_title": "Génération de votre paquet…",
     "generating_subtitle": "Sélection du vocabulaire, traduction et ajout de phrases d'exemple.",
-    "error_console": "Vérifiez la console pour les détails techniques.",
+    "error_console": "Revenez en arrière et réessayez. Votre demande n'a pas été enregistrée.",
     "error_back": "← Retour",
+    "errors": {
+      "invalid_prompt": "Décrivez ce que vous voulez apprendre en utilisant jusqu'à 1000 caractères.",
+      "unexpected_format": "L'IA n'a pas pu créer un paquet valide. Réessayez.",
+      "service_unavailable": "Le service d'IA est temporairement indisponible. Réessayez.",
+      "save_failed": "Le paquet n'a pas pu être enregistré. Réessayez."
+    },
     "review_title": "Vérifiez votre paquet",
     "review_subtitle": "Modifiez, ajoutez ou supprimez des cartes avant de sauvegarder.",
     "cards_count": "{{count}} cartes",
@@ -500,6 +526,8 @@
     "save_button": "Sauvegarder ({{count}} cartes)",
     "saving_button": "Sauvegarde…",
     "add_card_button": "Ajouter une carte",
+    "edit_card_label": "Modifier la carte {{number}}",
+    "delete_card_label": "Supprimer la carte {{number}}",
     "new_card_label": "Nouvelle carte",
     "front_placeholder": "Recto",
     "back_placeholder": "Verso",
@@ -508,8 +536,55 @@
     "add_card": "Ajouter",
     "cancel": "Annuler"
   },
+  "lexicoon": {
+    "subtitle": "Un dictionnaire avancé personnalisé pour les langues que vous étudiez.",
+    "search_label": "Quel mot voulez-vous comprendre ?",
+    "search_placeholder": "Écrivez un mot ou une courte expression…",
+    "search_button": "Rechercher",
+    "search_hint": "Vous recevrez les significations dans votre langue maternelle et des exemples dans la langue que vous apprenez.",
+    "empty_title": "Recherchez un mot",
+    "empty_description": "LexiCoon expliquera son sens, son usage, des exemples, des synonymes et des antonymes.",
+    "corrected_from": "Correction de « {{from}} » en « {{to}} ». Les exemples utilisent la forme corrigée.",
+    "translations": "Traductions",
+    "usage_note": "Note d'usage",
+    "essence": "En substance",
+    "explanation": "Explication",
+    "contrast": "Contraste",
+    "meaning_synonyms": "Synonymes pour ce sens",
+    "examples": "Exemples",
+    "synonyms": "Synonymes",
+    "antonyms": "Antonymes",
+    "usage": "Usage écrit et oral",
+    "written": "Écrit",
+    "spoken": "Oral",
+    "collocations": "S'utilise souvent avec",
+    "curiosity": "À savoir",
+    "errors": {
+      "invalid_query": "Entrez un mot ou une courte expression de 100 caractères maximum.",
+      "invalid_response": "LexiCoon n'a pas pu créer une entrée valide. Réessayez.",
+      "service_unavailable": "LexiCoon est temporairement indisponible. Réessayez."
+    }
+  },
+  "stt": {
+    "start_recording": "Parler",
+    "stop_recording": "Arrêter l'enregistrement",
+    "transcribing": "Transcription…",
+    "transcribing_hint": "Transcription de votre voix…",
+    "errors": {
+      "unsupported": "Ce navigateur ne peut pas enregistrer d'audio.",
+      "microphone_denied": "L'accès au microphone a été refusé. Autorisez-le et réessayez.",
+      "transcription_failed": "La voix n'a pas pu être reconnue. Réessayez."
+    }
+  },
   "tts": {
-    "languageCode": "fr-FR",
-    "voiceName": "fr-FR-Neural2-A"
+    "voice": "Voix",
+    "play_audio": "Lire l'audio",
+    "play_pronunciation": "Lire la prononciation",
+    "enable_auto_play": "Activer la lecture automatique",
+    "disable_auto_play": "Désactiver la lecture automatique",
+    "voices": {
+      "male": "Masculine",
+      "female": "Féminine"
+    }
   }
 }

@@ -1,232 +1,156 @@
-/**
- * Filename: src/app/api/tts/synthesize/route.ts
- * Description: API route handler using Google Cloud TTS.
- *
- * Credentials strategy:
- * Instead of reading a JSON key file from disk (which requires fs/path and
- * creates a path-traversal attack surface), we store the entire service-account
- * JSON as a single environment variable: GOOGLE_SERVICE_ACCOUNT_JSON.
- *
- * How to set it in .env.local:
- *   GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"...","private_key":"-----BEGIN...","client_email":"...@....iam.gserviceaccount.com",...}'
- *
- * On Vercel / Railway / Render: paste the same one-line JSON in the env var UI.
- * The private_key newlines must be literal \n inside the JSON string (standard JSON format).
- */
 import { NextRequest, NextResponse } from 'next/server';
+import { getElevenLabsConfig } from '@/lib/server/tts-config';
+import { isTtsVoicePreset } from '@/lib/tts';
+import type { TtsVoicePreset } from '@/lib/tts';
+import {
+  AuthenticationRequiredError,
+  requireAuthenticatedClaims,
+} from '@/lib/supabase/auth';
+import { normalizeLanguageCode } from '@/lib/languages';
+import { prepareTtsText } from '@/lib/tts-utils';
 
-const GOOGLE_TTS_ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
-
-// Cache the OAuth2 access token in RAM to avoid a round-trip on every request.
-// The token is valid for 1 hour; we refresh it 60 seconds early to avoid edge-case
-// expiry during a long request.
-let cachedToken: { value: string; expiresAt: number } | null = null;
+const ELEVENLABS_TTS_ENDPOINT = 'https://api.elevenlabs.io/v1/text-to-speech';
+const MAX_TEXT_LENGTH = 5000;
 
 interface TTSRequest {
-    text?: string;   // Plain text input (existing — used by DeckStudySession).
-    ssml?: string;   // SSML markup input (new — used by GeneralChat for multilingual audio).
-    languageCode: string;
-    voiceName?: string;
-    ssmlGender?: string;
-    pitch?: number;
-    speakingRate?: number;
-    volumeGainDb?: number;
+  text: string;
+  /** Omit for mixed-language text so ElevenLabs can detect each language naturally. */
+  languageCode?: string;
+  speed?: number;
+  voice: TtsVoicePreset;
 }
 
-// ─── CREDENTIALS LOADER ───────────────────────────────────────────────────────
-
-/**
- * loadCredentials — reads the Google service-account JSON from the environment.
- *
- * Why an env var instead of a file?
- * Files on disk introduce a path-traversal surface: if GOOGLE_APPLICATION_CREDENTIALS
- * is compromised in CI/CD, an attacker can redirect it to any file on the system.
- * An env var containing the JSON directly has no file-system dependency at all.
- *
- * @throws if GOOGLE_SERVICE_ACCOUNT_JSON is missing or not valid JSON.
- */
-function loadCredentials(): {
-  client_email: string;
-  private_key: string;
-  token_uri: string;
-} {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!raw) {
-    throw new Error(
-      'GOOGLE_SERVICE_ACCOUNT_JSON env var is not set. ' +
-      'Paste the service-account JSON as a single-line string in .env.local.'
-    );
-  }
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    throw new Error(
-      'GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON. ' +
-      'Make sure the value is a single-line JSON string with no trailing newline.'
-    );
+class InvalidTtsRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidTtsRequestError';
   }
 }
 
-// ─── TOKEN GENERATION ─────────────────────────────────────────────────────────
-
-async function getAccessToken(): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-
-  // Return the cached token if it's still valid (with a 60-second buffer).
-  if (cachedToken && now < cachedToken.expiresAt - 60) {
-    return cachedToken.value;
+function parseTtsRequest(value: unknown): TTSRequest {
+  if (!value || typeof value !== 'object') {
+    throw new InvalidTtsRequestError('Request body must be a JSON object.');
   }
 
-  // Load credentials from the environment — no file I/O.
-  const creds = loadCredentials();
+  const body = value as Record<string, unknown>;
+  if (typeof body.text !== 'string') {
+    throw new InvalidTtsRequestError('Missing required field: text');
+  }
 
-  const payload = {
-    iss: creds.client_email,
-    scope: 'https://www.googleapis.com/auth/cloud-platform',
-    aud: creds.token_uri,
-    iat: now,
-    exp: now + 3600,
+  const languageCode = body.languageCode;
+  if (languageCode !== undefined && typeof languageCode !== 'string') {
+    throw new InvalidTtsRequestError('languageCode must be a string.');
+  }
+
+  const speed = body.speed;
+  if (
+    speed !== undefined &&
+    (typeof speed !== 'number' ||
+      !Number.isFinite(speed) ||
+      speed < 0.7 ||
+      speed > 1.2)
+  ) {
+    throw new InvalidTtsRequestError('speed must be between 0.7 and 1.2.');
+  }
+
+  const voice = body.voice ?? 'female';
+  if (!isTtsVoicePreset(voice)) {
+    throw new InvalidTtsRequestError('voice must be female or male.');
+  }
+
+  return {
+    text: body.text,
+    languageCode,
+    speed,
+    voice,
   };
-
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const encodeBase64Url = (obj: object) =>
-    Buffer.from(JSON.stringify(obj)).toString('base64url');
-
-  const headerB64 = encodeBase64Url(header);
-  const payloadB64 = encodeBase64Url(payload);
-  const signingInput = `${headerB64}.${payloadB64}`;
-
-  // Import the RSA private key for JWT signing.
-  const privateKey = await crypto.subtle.importKey(
-    'pkcs8',
-    pemToDer(creds.private_key),
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5',
-    privateKey,
-    new TextEncoder().encode(signingInput)
-  );
-
-  const signatureB64 = Buffer.from(signature).toString('base64url');
-  const jwt = `${signingInput}.${signatureB64}`;
-
-  // Exchange the JWT for a short-lived OAuth2 access token.
-  const tokenRes = await fetch(creds.token_uri, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt,
-    }),
-  });
-
-  if (!tokenRes.ok) {
-    const err = await tokenRes.text();
-    throw new Error(`Token exchange failed: ${err}`);
-  }
-
-  const { access_token } = await tokenRes.json();
-  cachedToken = { value: access_token, expiresAt: now + 3600 };
-  return access_token;
 }
 
-
-// Utilità per la conversione del formato della chiave
-function pemToDer(pem: string): ArrayBuffer {
-  const b64 = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
-    .replace(/\s+/g, '');
-  const binary = Buffer.from(b64, 'base64');
-  return binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength);
-}
-
-// Endpoint principale POST
 export async function POST(request: NextRequest) {
+  try {
+    await requireAuthenticatedClaims();
+
+    let requestBody: unknown;
     try {
-        const body: TTSRequest = await request.json();
-
-        if ((!body.text && !body.ssml) || !body.languageCode) {
-            return NextResponse.json(
-                { error: 'Missing required fields: (text or ssml) and languageCode' },
-                { status: 400 }
-            );
-        }
-
-        // Enforce length limits on whichever input format is used.
-        // SSML includes markup, so its raw length is higher than plain text.
-        const inputLength = body.ssml?.length ?? body.text?.length ?? 0;
-        if (inputLength > 5000) {
-            return NextResponse.json(
-                { error: 'Text too long (max 5000 characters)' },
-                { status: 400 }
-            );
-        }
-
-        const accessToken = await getAccessToken();
-
-        const voiceConfig: Record<string, string> = {
-            languageCode: body.languageCode,
-        };
-        
-        if (body.voiceName) {
-            voiceConfig.name = body.voiceName;
-        } else {
-            voiceConfig.ssmlGender = body.ssmlGender ?? 'NEUTRAL';
-        }
-
-        const requestBody = {
-            // Use SSML input when provided (multilingual), plain text otherwise.
-            // SSML enables <lang> tags for per-segment phoneme switching.
-            input: body.ssml ? { ssml: body.ssml } : { text: body.text! },
-            voice: voiceConfig,
-            audioConfig: {
-                audioEncoding: 'MP3',
-                pitch: body.pitch ?? 0,
-                speakingRate: body.speakingRate ?? 1.0,
-                volumeGainDb: body.volumeGainDb ?? 0,
-            },
-        };
-
-        const response = await fetch(GOOGLE_TTS_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Google TTS API error:', errorData);
-            return NextResponse.json(
-                { error: `Google TTS error: ${response.status}`, detail: errorData },
-                { status: response.status }
-            );
-        }
-
-        const data = await response.json();
-
-        if (!data.audioContent) {
-            return NextResponse.json(
-                { error: 'No audio received from API' },
-                { status: 500 }
-            );
-        }
-
-        return NextResponse.json({ audioContent: data.audioContent });
-
-    } catch (error) {
-        console.error('TTS API route error:', error);
-        return NextResponse.json(
-            { error: 'Internal server error', detail: String(error) },
-            { status: 500 }
-        );
+      requestBody = await request.json();
+    } catch {
+      throw new InvalidTtsRequestError('Request body must be valid JSON.');
     }
+
+    const body = parseTtsRequest(requestBody);
+    const text = prepareTtsText(body.text);
+
+    if (!text) {
+      return NextResponse.json({ error: 'Missing required field: text' }, { status: 400 });
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json(
+        { error: `Text too long (max ${MAX_TEXT_LENGTH} characters)` },
+        { status: 400 },
+      );
+    }
+
+    const { apiKey, modelId, voiceId } = getElevenLabsConfig(body.voice);
+    const languageCode = body.languageCode ? normalizeLanguageCode(body.languageCode) : undefined;
+
+    const response = await fetch(
+      `${ELEVENLABS_TTS_ENDPOINT}/${encodeURIComponent(voiceId)}/stream?output_format=mp3_22050_32`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          text,
+          model_id: modelId,
+          ...(languageCode ? { language_code: languageCode } : {}),
+          voice_settings: {
+            stability: 0.35,
+            similarity_boost: 0.75,
+            style: 0.35,
+            use_speaker_boost: true,
+            speed: body.speed ?? 1,
+          },
+        }),
+        signal: AbortSignal.timeout(20_000),
+      },
+    );
+
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error('ElevenLabs TTS API error:', response.status, detail);
+      return NextResponse.json(
+        { error: getElevenLabsErrorMessage(response.status) },
+        { status: response.status === 429 ? 429 : 502 },
+      );
+    }
+
+    return new NextResponse(response.body, {
+      headers: {
+        'Cache-Control': 'private, max-age=3600',
+        'Content-Type': 'audio/mpeg',
+      },
+    });
+  } catch (error) {
+    if (error instanceof AuthenticationRequiredError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
+    if (error instanceof InvalidTtsRequestError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    console.error('TTS API route error:', error);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+  }
+}
+
+function getElevenLabsErrorMessage(status: number): string {
+  if (status === 401) return 'The ElevenLabs API key is invalid.';
+  if (status === 404) return 'The selected ElevenLabs voice is not available.';
+  if (status === 429) return 'TTS usage limit reached.';
+
+  return 'TTS generation failed.';
 }

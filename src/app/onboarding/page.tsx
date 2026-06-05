@@ -1,49 +1,58 @@
-/**
- * Filename: src/app/onboarding/page.tsx
- * Description: Client-side page component that initializes the onboarding process and redirects if already completed.
- */
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useProfile } from '@/hooks/useProfile';
-import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
-
 import { useTranslation } from 'react-i18next';
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+import { useProfile } from '@/hooks/useProfile';
 
-/**
- * Onboarding page component.
- * Checks if user has already completed onboarding and redirects if so.
- */
 export default function OnboardingPage() {
   const router = useRouter();
-  const { profile, loading } = useProfile();
   const { t } = useTranslation();
+  const { profile, loading, error, reloadProfile, completeOnboarding } = useProfile();
 
-  // Redirect to dashboard if onboarding already completed
   useEffect(() => {
     if (!loading && profile?.onboarding_completed) {
       router.replace('/dashboard');
     }
   }, [loading, profile, router]);
 
-  // Show loading state while checking profile
   if (loading) {
+    return <LoadingProfile />;
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground">{t('common.loading')}</p>
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="space-y-4 text-center">
+          <p className="text-sm text-red-600">{error}</p>
+          <button
+            onClick={() => void reloadProfile()}
+            className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+          >
+            {t('common.retry', { defaultValue: 'Retry' })}
+          </button>
         </div>
       </div>
     );
   }
 
-  // If onboarding is completed, don't render (redirect in progress)
   if (profile?.onboarding_completed) {
     return null;
   }
 
-  // Render onboarding flow
-  return <OnboardingFlow />;
+  return <OnboardingFlow onCompleteOnboarding={completeOnboarding} />;
+}
+
+function LoadingProfile() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-muted-foreground">{t('common.loading')}</p>
+      </div>
+    </div>
+  );
 }

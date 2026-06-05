@@ -43,8 +43,8 @@ export function NoCardsDue({
         {/* Free study: let the user study all cards regardless of the schedule */}
         <Link
           href={studyAllHref}
-          className="inline-block mt-1 bg-indigo-600 text-white px-5 py-2
-                     rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-block mt-1 bg-black text-white px-5 py-2
+                     rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
         >
           {t('study_session.study_all_cards')}
         </Link>

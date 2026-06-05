@@ -1,23 +1,20 @@
-// src/lib/validation.ts
-// Basic text validation for flashcard content.
+export type ValidationResult =
+  | { isValid: true; value: string }
+  | { isValid: false; error: string };
 
-export interface ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export function validateFlashcardText(text: unknown): ValidationResult {
+  if (typeof text !== 'string') {
+    return { isValid: false, error: 'Text must be a string' };
+  }
 
-// Checks that the text is not empty and not too long.
-// Used on the server before saving a card to the database.
-export function validateFlashcardText(text: string): ValidationResult {
-  const clean = text.trim();
-
-  if (!clean) {
+  const value = text.trim();
+  if (!value) {
     return { isValid: false, error: 'Text cannot be empty' };
   }
 
-  if (clean.length > 500) {
+  if (value.length > 500) {
     return { isValid: false, error: 'Text too long (max 500 characters)' };
   }
 
-  return { isValid: true };
+  return { isValid: true, value };
 }

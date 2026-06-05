@@ -1,21 +1,15 @@
-// SummaryStep.tsx
-// This is the last step. It shows a summary of all the user's choices before saving.
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Pencil, Check, Loader2 } from 'lucide-react';
-import { LANGUAGES, LEVELS, PURPOSES, LANG_KEY_MAP } from '../types';
-import type { OnboardingFormData } from '../types';
+import type { OnboardingFormData } from '@/lib/onboarding';
+import { getTranslatedLanguageName } from '@/lib/translated-language';
 
 interface SummaryStepProps {
-  // All the data the user filled in during onboarding
   data: OnboardingFormData;
-  // Called when the user clicks the edit button for a step
   onEdit: (step: number) => void;
-  // Called when the user clicks the finish button
   onComplete: () => void;
-  // True while we are saving the data
   isLoading: boolean;
 }
 
@@ -26,29 +20,20 @@ export function SummaryStep({
   isLoading,
 }: SummaryStepProps) {
   const { t } = useTranslation();
-
-  // Helper functions to turn codes into readable names
-  const getLanguageName = (code: string) => {
-    const key = LANG_KEY_MAP[code] || 'en-US';
-    return t(`languages.${key}`);
-  };
-
   const getLevelTitle = (value: string) =>
     t(`onboarding.step3.levels.${value}`);
 
   const getPurposeTitle = (value: string) =>
     t(`onboarding.step2.goals.${value}`);
-
-  // Summary items with their step numbers for editing
   const summaryItems = [
     {
       label: t('onboarding.step1.native_language'),
-      value: getLanguageName(data.native_language),
+      value: getTranslatedLanguageName(t, data.native_language),
       step: 1,
     },
     {
       label: t('onboarding.step1.target_language'),
-      value: getLanguageName(data.target_language),
+      value: getTranslatedLanguageName(t, data.target_language),
       step: 2,
     },
     {
@@ -74,7 +59,6 @@ export function SummaryStep({
 
   return (
     <div className="space-y-6 py-4">
-      {/* Header */}
       <div className="text-center space-y-2">
         <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black flex items-center justify-center">
           <span className="text-5xl font-bold text-white">L</span>
@@ -84,8 +68,6 @@ export function SummaryStep({
           {t('onboarding.summary.subtitle')}
         </p>
       </div>
-
-      {/* Summary List */}
       <div className="space-y-3 max-w-md mx-auto">
         {summaryItems.map((item) => (
           <div
@@ -109,8 +91,6 @@ export function SummaryStep({
             </Button>
           </div>
         ))}
-
-        {/* Additional details if present */}
         {data.learning_purpose_details && (
           <div className="p-4 rounded-xl bg-muted/50 border">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
@@ -122,8 +102,6 @@ export function SummaryStep({
           </div>
         )}
       </div>
-
-      {/* Complete Button */}
       <div className="max-w-md mx-auto pt-4">
         <Button
           size="lg"

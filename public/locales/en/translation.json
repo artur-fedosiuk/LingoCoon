@@ -263,8 +263,10 @@
       "category_placeholder": "E.g.: travel, work, daily",
       "notes": "Notes (optional)",
       "notes_placeholder": "Add context or usage examples",
-      "translate_auto": "Translate automatically",
-      "translating": "Translating...",
+      "translate_auto": "Suggest translations",
+      "translating": "Finding meanings...",
+      "suggestions_title": "Choose the intended meaning",
+      "suggestions_hint": "Select a suggestion, then edit the translation if needed.",
       "save_card": "Save Flashcard",
       "saving": "Saving...",
       "creating": "Creating...",
@@ -288,7 +290,8 @@
       "original_required": "Original text is required",
       "translation_required": "Translation is required",
       "enter_text_to_translate": "Enter text to translate",
-      "translation_error": "Translation error. Enter manually."
+      "translation_error": "Could not suggest translations. Enter one manually or try again.",
+      "create_error": "Could not create the card. Please try again."
     },
     "success": {
       "card_saved": "Flashcard saved successfully!"
@@ -303,6 +306,8 @@
     "ai_tutor_label": "AI Tutor",
     "progress": "{{current}} / {{total}}",
     "ai_error": "Something went wrong. Please try again.",
+    "rating_save_error": "Could not save your rating. Please try again.",
+    "restart": "Restart",
     "responds_in": "Responds in {{language}}",
     "ask_about_card": "Ask a question about this card.",
     "thinking": "Thinking…",
@@ -325,7 +330,9 @@
       "input_thinking": "AI is thinking…",
       "input_placeholder": "Write your answer…",
       "start_error": "An error occurred while starting the session. Please try again.",
-      "ai_error": "Something went wrong. Please try again."
+      "ai_error": "Something went wrong. Please try again.",
+      "rating_save_error": "Your answer could not be saved. Retry, or continue without saving this rating.",
+      "continue_without_saving": "Continue"
     }
   },
   "ai_page": {
@@ -445,6 +452,7 @@
     "dashboard": "Dashboard",
     "ai": "AI Mode",
     "flashcards": "Flashcards",
+    "lexicoon": "LexiCoon",
     "settings": "Settings"
   },
   "decks": {
@@ -455,6 +463,7 @@
     "card_count_single": "{{count}} card",
     "study": "Study",
     "edit": "Edit",
+    "generate_with_ai": "Generate with AI",
     "study_with_ai": "Study with AI",
     "empty": {
       "title": "No decks yet",
@@ -483,14 +492,31 @@
     "page_title": "Generate deck with AI",
     "page_subtitle": "Describe what you want to learn. The AI will generate flashcards for you to review.",
     "prompt_label": "What do you want to learn?",
-    "prompt_placeholder": "e.g. Give me 20 Italian words about food and cooking, with English translations",
+    "prompt_placeholder": "e.g. Create a {{level}} {{target}} deck for {{purpose}}, with {{native}} translations",
     "generate_button": "Generate deck",
     "shortcut_hint": "⌘+Enter to generate",
     "examples_label": "Examples",
+    "fallback_target_language": "the language you want to learn",
+    "fallback_native_language": "your language",
+    "fallback_level": "your current level",
+    "fallback_purpose": "your learning goal",
+    "suggestions": {
+      "personal_goal": "Create a {{level}} {{target}} deck for my goal: {{details}}. Add {{native}} translations",
+      "purpose": "20 practical {{target}} words for {{purpose}}, at {{level}} level, with {{native}} translations",
+      "conversation": "Common {{target}} phrases for conversations related to {{purpose}}, with {{native}} meanings",
+      "verbs": "Essential {{target}} verbs for a {{level}} learner, with {{native}} translations and examples",
+      "food": "Useful {{target}} words about food and everyday life, at {{level}} level, with {{native}} translations"
+    },
     "generating_title": "Generating your deck…",
     "generating_subtitle": "Selecting vocabulary, writing translations, and adding example sentences.",
-    "error_console": "Check the console for technical details.",
+    "error_console": "Go back and try again. Your request has not been saved.",
     "error_back": "← Go back",
+    "errors": {
+      "invalid_prompt": "Describe what you want to learn using up to 1000 characters.",
+      "unexpected_format": "The AI could not create a valid deck. Please try again.",
+      "service_unavailable": "The AI service is temporarily unavailable. Please try again.",
+      "save_failed": "The deck could not be saved. Please try again."
+    },
     "review_title": "Review your deck",
     "review_subtitle": "Edit, add, or delete cards before saving.",
     "cards_count": "{{count}} cards",
@@ -500,6 +526,8 @@
     "save_button": "Save deck ({{count}} cards)",
     "saving_button": "Saving…",
     "add_card_button": "Add card",
+    "edit_card_label": "Edit card {{number}}",
+    "delete_card_label": "Delete card {{number}}",
     "new_card_label": "New card",
     "front_placeholder": "Front",
     "back_placeholder": "Back",
@@ -508,8 +536,55 @@
     "add_card": "Add",
     "cancel": "Cancel"
   },
+  "lexicoon": {
+    "subtitle": "An advanced dictionary personalized for your learning languages.",
+    "search_label": "Which word do you want to understand?",
+    "search_placeholder": "Type a word or short phrase…",
+    "search_button": "Search",
+    "search_hint": "You will get meanings in your native language and examples in the language you are learning.",
+    "empty_title": "Search for a word",
+    "empty_description": "LexiCoon will explain its meaning, usage, examples, synonyms, and antonyms.",
+    "corrected_from": "Corrected \"{{from}}\" to \"{{to}}\". Examples use the corrected form.",
+    "translations": "Translations",
+    "usage_note": "Usage note",
+    "essence": "In essence",
+    "explanation": "Explanation",
+    "contrast": "Contrast",
+    "meaning_synonyms": "Synonyms for this meaning",
+    "examples": "Examples",
+    "synonyms": "Synonyms",
+    "antonyms": "Antonyms",
+    "usage": "Written and spoken use",
+    "written": "Written",
+    "spoken": "Spoken",
+    "collocations": "Often used with",
+    "curiosity": "Worth knowing",
+    "errors": {
+      "invalid_query": "Enter a word or short phrase using up to 100 characters.",
+      "invalid_response": "LexiCoon could not create a valid dictionary entry. Please try again.",
+      "service_unavailable": "LexiCoon is temporarily unavailable. Please try again."
+    }
+  },
+  "stt": {
+    "start_recording": "Speak",
+    "stop_recording": "Stop recording",
+    "transcribing": "Transcribing…",
+    "transcribing_hint": "Transcribing your voice…",
+    "errors": {
+      "unsupported": "This browser cannot record audio.",
+      "microphone_denied": "Microphone access was denied. Allow access and try again.",
+      "transcription_failed": "Speech could not be recognized. Please try again."
+    }
+  },
   "tts": {
-    "languageCode": "en-US",
-    "voiceName": "en-US-Neural2-F"
+    "voice": "Voice",
+    "play_audio": "Play audio",
+    "play_pronunciation": "Play pronunciation",
+    "enable_auto_play": "Enable auto-play",
+    "disable_auto_play": "Disable auto-play",
+    "voices": {
+      "male": "Male",
+      "female": "Female"
+    }
   }
 }

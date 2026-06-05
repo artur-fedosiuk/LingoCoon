@@ -1,39 +1,23 @@
-/**
- * Filename: src/components/onboarding/StepNavigation.tsx
- * Description: Navigation buttons (Back, Next/Complete) component for moving between onboarding steps.
- */
 'use client';
 
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
 interface StepNavigationProps {
-  /** Callback when back button is clicked */
   onBack: () => void;
-  /** Callback when next button is clicked */
   onNext: () => void;
-  /** Whether navigation forward is allowed */
   canGoNext: boolean;
-  /** Whether navigation backward is allowed */
   canGoBack: boolean;
-  /** Whether a save operation is in progress */
   isLoading?: boolean;
-  /** Whether this is the final step */
-  isLastStep?: boolean;
 }
 
-/**
- * Navigation buttons for the onboarding flow.
- * Provides back/next navigation with loading and disabled states.
- */
 export function StepNavigation({
   onBack,
   onNext,
   canGoNext,
   canGoBack,
   isLoading = false,
-  isLastStep = false,
 }: StepNavigationProps) {
   const { t } = useTranslation();
 
@@ -49,22 +33,21 @@ export function StepNavigation({
         <ArrowLeft className="h-4 w-4" />
         <span className="hidden sm:inline">{t('common.back')}</span>
       </Button>
-
       <Button
         onClick={onNext}
         disabled={!canGoNext || isLoading}
-        className="gap-2 min-w-[140px]"
-        aria-label={isLastStep ? t('common.complete') : t('common.next')}
+        className="min-w-[140px] gap-2"
+        aria-label={t('common.next')}
       >
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>{t('onboarding.saving')}</span>
+            {t('onboarding.saving')}
           </>
         ) : (
           <>
-            <span>{isLastStep ? t('common.complete') : t('common.next')}</span>
-            {!isLastStep && <ArrowRight className="h-4 w-4" />}
+            {t('common.next')}
+            <ArrowRight className="h-4 w-4" />
           </>
         )}
       </Button>

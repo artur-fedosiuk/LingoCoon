@@ -1,35 +1,36 @@
-/**
- * Filename: src/app/auth/callback/route.ts
- * Description: Handles the OAuth callback from Supabase Authentication, exchanging the code for a session and redirecting the user.
- */
-import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { getSiteUrl } from '@/lib/server/site-url';
+import { createClient } from '@/lib/supabase/server';
+
+const INTERNAL_URL_BASE = 'http://localhost';
+
+function getSafeRedirectPath(value: string | null) {
+  if (!value) return '/onboarding';
+
+  try {
+    const redirectUrl = new URL(value, INTERNAL_URL_BASE);
+    if (redirectUrl.origin !== INTERNAL_URL_BASE) return '/onboarding';
+
+    return `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
+  } catch {
+    return '/onboarding';
+  }
+}
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/dashboard'
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = getSafeRedirectPath(searchParams.get('next'));
+  const siteUrl = getSiteUrl(origin);
 
-    if (code) {
-        const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+  if (code) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-        if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host')
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-
-            if (isLocalEnv) {
-                // In development, redirect to origin
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                // In production with a load balancer/proxy
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
-            }
-        }
+    if (!error) {
+      return NextResponse.redirect(`${siteUrl}${next}`);
     }
+  }
 
-    // Return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/login?error=Could not authenticate user`)
+  return NextResponse.redirect(`${siteUrl}/login?error=Could not authenticate user`);
 }

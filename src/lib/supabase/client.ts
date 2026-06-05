@@ -1,19 +1,17 @@
-// src/lib/supabase/client.ts
-// Creates the Supabase client for use in the browser (client-side).
-// Each call to createClient() returns the same cached instance.
-
 import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from './types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseConfig } from '@/lib/supabase/config';
+import type { Database } from '@/lib/supabase/types';
 
-// createBrowserClient creates a Supabase connection that works in the browser.
-// It reads the URL and key from environment variables.
+let browserClient: SupabaseClient<Database> | undefined;
+
 export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  if (browserClient) return browserClient;
+
+  const { url, anonKey } = getSupabaseConfig();
+  browserClient = createBrowserClient<Database>(url, anonKey);
+
+  return browserClient;
 }
 
-// Re-export common types so other files can import them from one place
-export type { Database } from './types';
-export type { Profile, OnboardingData } from './types';
+export type { Database, OnboardingData, Profile } from '@/lib/supabase/types';

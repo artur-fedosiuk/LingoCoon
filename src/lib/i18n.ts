@@ -1,11 +1,9 @@
-// i18n.ts
-// This file sets up the translation system (i18next).
-// It loads language files directly to avoid network issues.
 'use client';
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { APP_LANGUAGE_CODES } from '@/lib/languages';
 
 import enTranslation from '../../public/locales/en/translation.json';
 import itTranslation from '../../public/locales/it/translation.json';
@@ -26,10 +24,10 @@ if (!i18n.isInitialized) {
     .init({
       resources,
       fallbackLng: 'en',
-      supportedLngs: ['en', 'it', 'fr', 'uk'],
+      supportedLngs: APP_LANGUAGE_CODES,
       nonExplicitSupportedLngs: true,
       load: 'languageOnly',
-      debug: process.env.NODE_ENV === 'development',
+      debug: false,
       defaultNS: 'translation',
       interpolation: {
         escapeValue: false,

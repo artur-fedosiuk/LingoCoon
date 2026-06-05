@@ -263,8 +263,10 @@
       "category_placeholder": "Es.: viaggio, lavoro, quotidiano",
       "notes": "Note (opzionale)",
       "notes_placeholder": "Aggiungi contesto o esempi d'uso",
-      "translate_auto": "Traduci automaticamente",
-      "translating": "Traduzione in corso...",
+      "translate_auto": "Suggerisci traduzioni",
+      "translating": "Ricerca dei significati...",
+      "suggestions_title": "Scegli il significato corretto",
+      "suggestions_hint": "Seleziona un suggerimento, poi modifica la traduzione se necessario.",
       "save_card": "Salva Flashcard",
       "saving": "Salvataggio...",
       "creating": "Creazione in corso...",
@@ -288,7 +290,8 @@
       "original_required": "Il testo originale è obbligatorio",
       "translation_required": "La traduzione è obbligatoria",
       "enter_text_to_translate": "Inserisci un testo da tradurre",
-      "translation_error": "Errore di traduzione. Inserisci manualmente."
+      "translation_error": "Impossibile suggerire traduzioni. Inseriscine una manualmente o riprova.",
+      "create_error": "Impossibile creare la carta. Riprova."
     },
     "success": {
       "card_saved": "Flashcard salvata con successo!"
@@ -303,6 +306,8 @@
     "ai_tutor_label": "Tutor AI",
     "progress": "{{current}} / {{total}}",
     "ai_error": "Qualcosa è andato storto. Riprova.",
+    "rating_save_error": "Impossibile salvare il voto. Riprova.",
+    "restart": "Ricomincia",
     "responds_in": "Risponde in {{language}}",
     "ask_about_card": "Fai una domanda su questa carta.",
     "thinking": "Sto pensando…",
@@ -325,7 +330,9 @@
       "input_thinking": "L'AI sta pensando…",
       "input_placeholder": "Scrivi la tua risposta…",
       "start_error": "Si è verificato un errore all'avvio della sessione. Riprova.",
-      "ai_error": "Qualcosa è andato storto. Riprova."
+      "ai_error": "Qualcosa è andato storto. Riprova.",
+      "rating_save_error": "Non è stato possibile salvare la risposta. Riprova oppure continua senza salvare questo voto.",
+      "continue_without_saving": "Continua"
     }
   },
   "ai_page": {
@@ -445,6 +452,7 @@
     "dashboard": "Dashboard",
     "ai": "Modalità AI",
     "flashcards": "Flashcard",
+    "lexicoon": "LexiCoon",
     "settings": "Impostazioni"
   },
   "decks": {
@@ -455,6 +463,7 @@
     "card_count_single": "{{count}} carta",
     "study": "Studia",
     "edit": "Modifica",
+    "generate_with_ai": "Genera con AI",
     "study_with_ai": "Studia con AI",
     "empty": {
       "title": "Nessun mazzo ancora",
@@ -483,14 +492,31 @@
     "page_title": "Genera mazzo con AI",
     "page_subtitle": "Descrivi cosa vuoi imparare. L'AI genererà le flashcard per te.",
     "prompt_label": "Cosa vuoi imparare?",
-    "prompt_placeholder": "Es. Dammi 20 parole italiane sul cibo e la cucina, con traduzione in inglese",
+    "prompt_placeholder": "Es. Crea un mazzo di {{target}} di livello {{level}} per {{purpose}}, con traduzioni in {{native}}",
     "generate_button": "Genera mazzo",
     "shortcut_hint": "⌘+Invio per generare",
     "examples_label": "Esempi",
+    "fallback_target_language": "la lingua che vuoi imparare",
+    "fallback_native_language": "la tua lingua",
+    "fallback_level": "il tuo livello attuale",
+    "fallback_purpose": "il tuo obiettivo di apprendimento",
+    "suggestions": {
+      "personal_goal": "Crea un mazzo di {{target}} di livello {{level}} per il mio obiettivo: {{details}}. Aggiungi traduzioni in {{native}}",
+      "purpose": "20 parole pratiche di {{target}} per {{purpose}}, livello {{level}}, con traduzioni in {{native}}",
+      "conversation": "Frasi comuni in {{target}} per conversazioni legate a {{purpose}}, con significati in {{native}}",
+      "verbs": "Verbi essenziali in {{target}} per uno studente di livello {{level}}, con traduzioni in {{native}} ed esempi",
+      "food": "Parole utili in {{target}} su cibo e vita quotidiana, livello {{level}}, con traduzioni in {{native}}"
+    },
     "generating_title": "Generazione del mazzo in corso…",
     "generating_subtitle": "Selezione del vocabolario, traduzione e aggiunta di frasi di esempio.",
-    "error_console": "Controlla la console per i dettagli tecnici.",
+    "error_console": "Torna indietro e riprova. La richiesta non è stata salvata.",
     "error_back": "← Torna indietro",
+    "errors": {
+      "invalid_prompt": "Descrivi cosa vuoi imparare usando al massimo 1000 caratteri.",
+      "unexpected_format": "L'AI non è riuscita a creare un mazzo valido. Riprova.",
+      "service_unavailable": "Il servizio AI non è temporaneamente disponibile. Riprova.",
+      "save_failed": "Non è stato possibile salvare il mazzo. Riprova."
+    },
     "review_title": "Rivedi il tuo mazzo",
     "review_subtitle": "Modifica, aggiungi o elimina carte prima di salvare.",
     "cards_count": "{{count}} carte",
@@ -500,6 +526,8 @@
     "save_button": "Salva mazzo ({{count}} carte)",
     "saving_button": "Salvataggio…",
     "add_card_button": "Aggiungi carta",
+    "edit_card_label": "Modifica carta {{number}}",
+    "delete_card_label": "Elimina carta {{number}}",
     "new_card_label": "Nuova carta",
     "front_placeholder": "Fronte",
     "back_placeholder": "Retro",
@@ -508,8 +536,55 @@
     "add_card": "Aggiungi",
     "cancel": "Annulla"
   },
+  "lexicoon": {
+    "subtitle": "Un dizionario avanzato personalizzato per le lingue che studi.",
+    "search_label": "Quale parola vuoi capire?",
+    "search_placeholder": "Scrivi una parola o una frase breve…",
+    "search_button": "Cerca",
+    "search_hint": "Riceverai i significati nella tua lingua madre e gli esempi nella lingua che stai imparando.",
+    "empty_title": "Cerca una parola",
+    "empty_description": "LexiCoon spiegherà significato, uso, esempi, sinonimi e contrari.",
+    "corrected_from": "Ho corretto \"{{from}}\" in \"{{to}}\". Gli esempi usano la forma corretta.",
+    "translations": "Traduzioni",
+    "usage_note": "Nota d'uso",
+    "essence": "In sostanza",
+    "explanation": "Spiegazione",
+    "contrast": "Contrasto",
+    "meaning_synonyms": "Sinonimi per questo significato",
+    "examples": "Esempi",
+    "synonyms": "Sinonimi",
+    "antonyms": "Contrari",
+    "usage": "Uso scritto e parlato",
+    "written": "Scritto",
+    "spoken": "Parlato",
+    "collocations": "Si usa spesso con",
+    "curiosity": "Vale la pena sapere",
+    "errors": {
+      "invalid_query": "Inserisci una parola o una frase breve usando al massimo 100 caratteri.",
+      "invalid_response": "LexiCoon non è riuscito a creare una voce valida. Riprova.",
+      "service_unavailable": "LexiCoon non è temporaneamente disponibile. Riprova."
+    }
+  },
+  "stt": {
+    "start_recording": "Parla",
+    "stop_recording": "Ferma registrazione",
+    "transcribing": "Trascrizione…",
+    "transcribing_hint": "Sto trascrivendo la tua voce…",
+    "errors": {
+      "unsupported": "Questo browser non può registrare audio.",
+      "microphone_denied": "L'accesso al microfono è stato negato. Autorizzalo e riprova.",
+      "transcription_failed": "Non è stato possibile riconoscere la voce. Riprova."
+    }
+  },
   "tts": {
-    "languageCode": "it-IT",
-    "voiceName": "it-IT-Neural2-A"
+    "voice": "Voce",
+    "play_audio": "Riproduci audio",
+    "play_pronunciation": "Riproduci pronuncia",
+    "enable_auto_play": "Attiva riproduzione automatica",
+    "disable_auto_play": "Disattiva riproduzione automatica",
+    "voices": {
+      "male": "Maschile",
+      "female": "Femminile"
+    }
   }
 }

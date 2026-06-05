@@ -1,4 +1,3 @@
-// Description: Shared TypeScript type for a single chat message used in all chat interfaces.
 
 /**
  * ChatMessage represents one bubble in a conversation.

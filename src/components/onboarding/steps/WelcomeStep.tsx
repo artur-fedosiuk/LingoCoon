@@ -1,5 +1,3 @@
-// WelcomeStep.tsx
-// This is the first step of the onboarding. It shows a welcome message and a list of features.
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,7 +5,6 @@ import { Sparkles, Brain, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface WelcomeStepProps {
-  // Function called when the user clicks the start button
   onNext: () => void;
 }
 
@@ -34,7 +31,6 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
 
   return (
     <div className="flex flex-col items-center text-center space-y-8 py-8">
-      {/* Hero Section */}
       <div className="space-y-4">
         <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black flex items-center justify-center">
           <span className="text-5xl font-bold text-white">L</span>
@@ -46,8 +42,6 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           {t('onboarding.welcome_subtitle')}
         </p>
       </div>
-
-      {/* Benefits */}
       <div className="grid gap-4 w-full max-w-md">
         {benefits.map((benefit, index) => (
           <div
@@ -66,8 +60,6 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           </div>
         ))}
       </div>
-
-      {/* CTA */}
       <Button
         size="lg"
         onClick={onNext}

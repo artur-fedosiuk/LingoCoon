@@ -1,18 +1,12 @@
-// ProgressBar.tsx
-// Shows how far the user is through the onboarding steps.
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { Progress } from '@/components/ui/progress';
 
 interface ProgressBarProps {
-  // Which step the user is on (0 = first step)
   currentStep: number;
-  // Total number of steps
   totalSteps: number;
 }
-
-// The translation key for each step label (in order)
 const STEP_LABEL_KEYS = [
   'welcome',
   'native_label',
@@ -25,10 +19,7 @@ const STEP_LABEL_KEYS = [
 
 export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const { t } = useTranslation();
-  // Calculate how far along the user is as a percentage
   const progressPercentage = (currentStep / (totalSteps - 1)) * 100;
-
-  // Get the label for the current step
   const key = STEP_LABEL_KEYS[currentStep] || 'steps';
 
   return (

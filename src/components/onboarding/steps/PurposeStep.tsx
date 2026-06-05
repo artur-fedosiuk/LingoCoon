@@ -1,19 +1,13 @@
-// PurposeStep.tsx
-// This step lets the user pick their main reason for learning the language.
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { PURPOSES } from '../types';
+import { ONBOARDING_PURPOSES } from '@/lib/onboarding';
 
 interface PurposeStepProps {
-  // The currently selected purpose
   value: string;
-  // Any extra notes the user has typed
   details: string;
-  // Called when the user selects a purpose
   onChange: (value: string) => void;
-  // Called when the user types in the details box
   onDetailsChange: (details: string) => void;
 }
 
@@ -27,30 +21,27 @@ export function PurposeStep({
 
   return (
     <div className="space-y-6 py-4">
-      {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">{t('onboarding.step2.title')}</h2>
         <p className="text-muted-foreground">
           {t('onboarding.step2.subtitle')}
         </p>
       </div>
-
-      {/* Purpose Grid */}
       <div
         className="grid grid-cols-2 sm:grid-cols-3 gap-3"
         role="radiogroup"
         aria-label={t('onboarding.step2.subtitle')}
       >
-        {PURPOSES.map((purpose) => {
-          const isSelected = value === purpose.value;
+        {ONBOARDING_PURPOSES.map((purpose) => {
+          const isSelected = value === purpose;
 
           return (
             <button
-              key={purpose.value}
+              key={purpose}
               type="button"
               role="radio"
               aria-checked={isSelected}
-              onClick={() => onChange(purpose.value)}
+              onClick={() => onChange(purpose)}
               className={cn(
                 'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
                 'hover:border-primary/50 hover:bg-muted/50',
@@ -66,14 +57,12 @@ export function PurposeStep({
                   isSelected ? 'text-primary' : 'text-foreground'
                 )}
               >
-                {t(`onboarding.step2.goals.${purpose.value}`)}
+                {t(`onboarding.step2.goals.${purpose}`)}
               </span>
             </button>
           );
         })}
       </div>
-
-      {/* Optional Details */}
       <div className="space-y-2">
         <label
           htmlFor="purpose-details"

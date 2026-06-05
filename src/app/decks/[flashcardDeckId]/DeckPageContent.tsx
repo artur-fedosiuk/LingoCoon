@@ -1,137 +1,88 @@
-// Description: Client component for the individual deck page.
-//              Left column: "Add New Card" form. Right column: existing cards list.
-//              Header: study buttons (Classic + AI) and delete button.
-
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
+import { ArrowLeft, Play, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Play } from 'lucide-react';
-import AppShell from '@/components/layout/AppShell';
-import CreateCardForm from '@/components/flashcards/CreateCardForm';
-import CardItem from '@/components/flashcards/CardItem';
 import DeckActionsMenu from '@/components/decks/DeckActionsMenu';
-import type { Deck, Card } from '@/lib/supabase/types';
-
-// ─── PROPS ────────────────────────────────────────────────────────────────────
+import CardItem from '@/components/flashcards/CardItem';
+import CreateCardForm from '@/components/flashcards/CreateCardForm';
+import AppShell from '@/components/layout/AppShell';
+import type { Card, Deck } from '@/lib/supabase/types';
 
 interface DeckPageContentProps {
-  /** The deck metadata (title, language codes, etc.) */
   deck: Deck;
-  /** All cards that belong to this deck. */
   cards: Card[];
-  /** The logged-in user's email — shown in the AppShell navigation. */
   userEmail?: string;
 }
-
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function DeckPageContent({ deck, cards, userEmail }: DeckPageContentProps) {
   const { t } = useTranslation();
 
   return (
     <AppShell userEmail={userEmail}>
-      <div className="container mx-auto p-6 space-y-8 max-w-6xl">
-
-        {/* ── HEADER ──────────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center
-                        gap-4 border-b pb-6">
-
-          {/* Left: back link, deck title, language pair */}
+      <div className="container mx-auto max-w-6xl space-y-8 p-6">
+        <header className="flex flex-col items-start justify-between gap-4 border-b pb-6 md:flex-row md:items-center">
           <div className="flex-1">
-            {/* Back link navigates to the main decks list. */}
             <Link
               href="/decks"
-              className="flex items-center gap-2 text-gray-900 hover:text-gray-700
-                         hover:underline mb-3 text-sm"
+              className="mb-3 flex items-center gap-2 text-sm text-gray-900 hover:text-gray-700 hover:underline"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               {t('decks.back_to_decks')}
             </Link>
-
-            {/* Deck title */}
             <h1 className="text-3xl font-bold text-gray-900">{deck.title}</h1>
-
-            {/* Language direction: e.g. "EN → IT" */}
-            <p className="text-gray-500 mt-1">
+            <p className="mt-1 text-gray-500">
               {deck.language_from.toUpperCase()} → {deck.language_to.toUpperCase()}
             </p>
           </div>
 
-          {/* Right: action buttons — only shown if there are cards to study */}
-          <div className="flex gap-3 items-start flex-wrap">
+          <div className="flex flex-wrap items-start gap-3">
             {cards.length > 0 && (
               <>
-                {/* Classic study session */}
-                <Link href={`/decks/${deck.id}/study`}>
-                  <button className="bg-black text-white px-6 py-3 rounded-lg font-medium
-                                     hover:bg-gray-800 flex items-center gap-2 shadow-lg">
-                    <Play className="w-5 h-5" />
-                    {t('decks.start_study')}
-                  </button>
-                </Link>
-
-                {/* AI-powered study session */}
-                <Link href={`/study/ai/${deck.id}`}>
-                  <button className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white
-                                     px-6 py-3 rounded-lg font-medium hover:from-violet-500
-                                     hover:to-indigo-500 flex items-center gap-2 shadow-lg
-                                     transition-all">
-                    {/* ✦ is a decorative star used as the AI icon throughout the app */}
-                    <span className="text-base">✦</span>
-                    {t('decks.study_with_ai')}
-                  </button>
-                </Link>
+                <StudyLink href={`/decks/${deck.id}/study`} label={t('decks.start_study')}>
+                  <Play className="h-5 w-5" />
+                </StudyLink>
+                <StudyLink
+                  href={`/study/ai/${deck.id}`}
+                  label={t('decks.study_with_ai')}
+                  ai
+                >
+                  <Sparkles className="h-5 w-5" />
+                </StudyLink>
               </>
             )}
-
-            {/* Delete deck button (with confirmation dialog) */}
             <DeckActionsMenu deckId={deck.id} deckTitle={deck.title} />
           </div>
-        </div>
+        </header>
 
-        {/* ── TWO-COLUMN LAYOUT ────────────────────────────────────────── */}
-        <div className="grid md:grid-cols-2 gap-8">
-
-          {/* LEFT COLUMN: Add New Card form */}
-          <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 h-fit">
-            <h2 className="font-semibold text-lg mb-4 text-gray-900">
+        <div className="grid gap-8 md:grid-cols-2">
+          <section className="h-fit rounded-xl border border-gray-200 bg-gray-50 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
               {t('flashcards.create_new')}
             </h2>
-            {/*
-              CreateCardForm handles its own state and calls the createCard
-              Server Action directly — no props needed for that logic.
-            */}
             <CreateCardForm
               deckId={deck.id}
               deckLanguage={deck.language_from}
               languageTo={deck.language_to}
             />
-          </div>
+          </section>
 
-          {/* RIGHT COLUMN: Existing cards list */}
-          <div className="space-y-4">
-
-            {/* Section header with card count badge */}
-            <h2 className="font-semibold text-lg flex justify-between items-center text-gray-900">
+          <section className="space-y-4">
+            <h2 className="flex items-center justify-between text-lg font-semibold text-gray-900">
               {t('decks.cards_in_deck')}
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
                 {cards.length}
               </span>
             </h2>
-
-            {/* Empty state: shown when no cards exist yet */}
             {cards.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 border-2 border-dashed
-                              border-gray-300 rounded-xl bg-gray-50">
-                <p className="text-lg mb-2">{t('flashcards.empty_state')}</p>
+              <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-16 text-center text-gray-400">
+                <p className="mb-2 text-lg">{t('flashcards.empty_state')}</p>
                 <p className="text-sm">{t('flashcards.empty_state_cta')}</p>
               </div>
             ) : (
-              // Scrollable list of cards — max height prevents the column from
-              // growing too tall on decks with many cards.
-              <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-                {cards.map((card: Card) => (
+              <div className="max-h-[700px] space-y-3 overflow-y-auto pr-2">
+                {cards.map((card) => (
                   <CardItem
                     key={card.id}
                     card={card}
@@ -141,11 +92,35 @@ export default function DeckPageContent({ deck, cards, userEmail }: DeckPageCont
                 ))}
               </div>
             )}
-
-          </div>
+          </section>
         </div>
-
       </div>
     </AppShell>
+  );
+}
+
+function StudyLink({
+  href,
+  label,
+  ai = false,
+  children,
+}: {
+  href: string;
+  label: string;
+  ai?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2 rounded-lg px-6 py-3 font-medium text-white shadow-lg ${
+        ai
+          ? 'bg-black transition-all hover:bg-gray-800'
+          : 'bg-black hover:bg-gray-800'
+      }`}
+    >
+      {children}
+      {label}
+    </Link>
   );
 }
