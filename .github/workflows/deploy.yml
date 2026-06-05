@@ -1,0 +1,40 @@
+name: CI-CD
+
+on:
+  push:
+    branches:
+      - main
+      - promote-new-generation-to-main
+  pull_request:
+    branches:
+      - main
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  quality-gate:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+
+      - name: Lint sources
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build
