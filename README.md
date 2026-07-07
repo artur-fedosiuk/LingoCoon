@@ -5,7 +5,7 @@ Built with spaced repetition, multilingual support, and efficient review techniq
 
 ## Live Demo
 
-👉 **[https://lingoccoon.vercel.app](https://lingoccoon.vercel.app)**
+👉 **[https://lingoccoon.vercel.app](https://lingocoon.vercel.app)**
 
 No installation needed — the app is deployed and fully functional. Just open the link.
 
