@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { getGroqAiConfig } from '@/lib/server/ai-config';
+import { getAiConfig } from '@/lib/server/ai-config';
 import { buildOpenAiMessages } from '@/lib/server/ai-messages';
 import {
   validateConversation,
@@ -20,12 +20,12 @@ export async function callFastAi(
 ): Promise<string> {
   validateConversation(systemPrompt, history);
   const maxTokens = validateMaxTokens(options.maxTokens ?? 400);
-  const config = getGroqAiConfig();
+  const config = getAiConfig();
 
   return callOpenAiCompatible(config, systemPrompt, history, {
     maxTokens,
     modelId: config.chatModelId,
-    provider: 'Groq',
+    provider: config.provider,
     userId: options.userId,
   });
 }
@@ -37,7 +37,7 @@ export async function callStructuredAi(
 ): Promise<string> {
   validateConversation(systemPrompt, history);
   const maxTokens = validateMaxTokens(options.maxTokens);
-  const config = getGroqAiConfig();
+  const config = getAiConfig();
   const requestHistory = history.slice(-MAX_REQUEST_HISTORY_TURNS);
   const model = config.structuredModelId;
   const startedAt = Date.now();
@@ -66,10 +66,10 @@ export async function callStructuredAi(
     }),
     signal: AbortSignal.timeout(12_000),
   });
-  logSlowRequest('Groq', model, requestHistory.length, startedAt);
+  logSlowRequest(config.provider, model, requestHistory.length, startedAt);
 
   if (!response.ok) {
-    throw new Error(`Groq AI request failed: ${response.status}`);
+    throw new Error(`${config.provider} AI request failed: ${response.status}`);
   }
 
   const result = await response.json() as {

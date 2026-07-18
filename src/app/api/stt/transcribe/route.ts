@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeLanguageCode } from '@/lib/languages';
-import { getGroqSttConfig } from '@/lib/server/stt-config';
+import { getSttConfig } from '@/lib/server/stt-config';
 import {
   AuthenticationRequiredError,
   requireAuthenticatedClaims,
@@ -37,27 +37,27 @@ export async function POST(request: NextRequest) {
       throw new InvalidSttRequestError('A language is required.');
     }
 
-    const config = getGroqSttConfig();
-    const groqFormData = new FormData();
-    groqFormData.set('file', audio, getAudioFileName(audio.type));
-    groqFormData.set('model', config.modelId);
-    groqFormData.set('language', normalizeLanguageCode(language));
-    groqFormData.set('response_format', 'json');
-    groqFormData.set('temperature', '0');
+    const config = getSttConfig();
+    const transcriptionFormData = new FormData();
+    transcriptionFormData.set('file', audio, getAudioFileName(audio.type));
+    transcriptionFormData.set('model', config.modelId);
+    transcriptionFormData.set('language', normalizeLanguageCode(language));
+    transcriptionFormData.set('response_format', 'json');
+    transcriptionFormData.set('temperature', '0');
 
     const response = await fetch(config.endpoint, {
       method: 'POST',
       headers: { Authorization: `Bearer ${config.apiKey}` },
-      body: groqFormData,
+      body: transcriptionFormData,
       signal: AbortSignal.timeout(20_000),
     });
 
     if (!response.ok) {
       const detail = await response.text();
-      console.error('Groq STT API error:', response.status, detail);
+      console.error('OpenAI STT API error:', response.status, detail);
 
       return NextResponse.json(
-        { error: getGroqErrorMessage(response.status) },
+        { error: getSttErrorMessage(response.status) },
         { status: response.status === 429 ? 429 : 502 },
       );
     }
@@ -101,7 +101,7 @@ function getAudioFileName(mimeType: string): string {
   return 'recording.webm';
 }
 
-function getGroqErrorMessage(status: number): string {
+function getSttErrorMessage(status: number): string {
   if (status === 401 || status === 403) return 'Speech recognition is not configured correctly.';
   if (status === 429) return 'Speech recognition usage limit reached. Try again later.';
 

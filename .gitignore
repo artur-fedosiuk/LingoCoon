@@ -44,6 +44,7 @@ next-env.d.ts
 
 # credentials files
 /credentials/
+client_secret_*.json
 
 # TTS credentials
 LingoCoonTTS.json

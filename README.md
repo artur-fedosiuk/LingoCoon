@@ -56,7 +56,7 @@ Create a `.env.local` file at the root:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ELEVENLABS_API_KEY=your_elevenlabs_free_tier_key
-GROQ_API_KEY=your_groq_free_tier_key
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 TTS uses verified free ElevenLabs female and male Default voices with `eleven_flash_v2_5`. The free plan
@@ -66,12 +66,12 @@ resets. Keep pay-as-you-go disabled if you want to avoid charges. ElevenLabs
 does not expose Voice Library voices through the API on the free tier, so keep
 the configured default voice IDs when using a free account.
 
-Interactive AI chat, structured dictionary responses, and speech input use
-Groq. Speech recognition uses Whisper Large V3. Create a free Groq API key at
-[console.groq.com/keys](https://console.groq.com/keys), then add it to `.env.local`
-as `GROQ_API_KEY`. The key stays on the server. Voice recordings are limited to
-20 seconds and are transcribed only after an authenticated user presses the
-microphone button.
+Interactive AI chat, structured dictionary responses, deck generation,
+translation suggestions, and speech input use OpenAI. Create an API key at
+[platform.openai.com/api-keys](https://platform.openai.com/api-keys), then add it
+to `.env.local` as `OPENAI_API_KEY`. The key stays on the server. Voice
+recordings are limited to 20 seconds and are transcribed only after an
+authenticated user presses the microphone button.
 
 ---
 

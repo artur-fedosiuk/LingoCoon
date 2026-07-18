@@ -1,13 +1,15 @@
 import { getRequiredEnvironmentVariable } from '@/lib/server/environment';
 
-const DEFAULT_GROQ_CHAT_MODEL_ID = 'llama-3.1-8b-instant';
-const DEFAULT_GROQ_STRUCTURED_MODEL_ID = 'openai/gpt-oss-120b';
+const DEFAULT_OPENAI_CHAT_MODEL_ID = 'gpt-5.4-mini';
+const DEFAULT_OPENAI_STRUCTURED_MODEL_ID = 'gpt-5.4-mini';
 
-export function getGroqAiConfig() {
+export function getAiConfig() {
   return {
-    apiKey: getRequiredEnvironmentVariable('GROQ_API_KEY'),
-    baseURL: 'https://api.groq.com/openai/v1',
-    chatModelId: process.env.GROQ_CHAT_MODEL_ID ?? DEFAULT_GROQ_CHAT_MODEL_ID,
-    structuredModelId: process.env.GROQ_STRUCTURED_MODEL_ID ?? DEFAULT_GROQ_STRUCTURED_MODEL_ID,
+    apiKey: getRequiredEnvironmentVariable('OPENAI_API_KEY'),
+    baseURL: 'https://api.openai.com/v1',
+    chatModelId: process.env.OPENAI_CHAT_MODEL_ID ?? DEFAULT_OPENAI_CHAT_MODEL_ID,
+    provider: 'OpenAI',
+    structuredModelId:
+      process.env.OPENAI_STRUCTURED_MODEL_ID ?? DEFAULT_OPENAI_STRUCTURED_MODEL_ID,
   };
 }

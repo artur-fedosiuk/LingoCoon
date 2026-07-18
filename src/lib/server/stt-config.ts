@@ -1,11 +1,11 @@
 import { getRequiredEnvironmentVariable } from '@/lib/server/environment';
 
-const DEFAULT_GROQ_STT_MODEL_ID = 'whisper-large-v3';
+const DEFAULT_OPENAI_STT_MODEL_ID = 'gpt-4o-mini-transcribe';
 
-export function getGroqSttConfig() {
+export function getSttConfig() {
   return {
-    apiKey: getRequiredEnvironmentVariable('GROQ_API_KEY'),
-    endpoint: 'https://api.groq.com/openai/v1/audio/transcriptions',
-    modelId: process.env.GROQ_STT_MODEL_ID ?? DEFAULT_GROQ_STT_MODEL_ID,
+    apiKey: getRequiredEnvironmentVariable('OPENAI_API_KEY'),
+    endpoint: 'https://api.openai.com/v1/audio/transcriptions',
+    modelId: process.env.OPENAI_STT_MODEL_ID ?? DEFAULT_OPENAI_STT_MODEL_ID,
   };
 }
