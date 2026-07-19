@@ -17,7 +17,7 @@ export default function PrivacyPage() {
             Contents
           </p>
           <nav className="flex flex-col gap-1">
-            <a href="#who-i-am" className="text-sm text-gray-500 hover:text-black">1. Who I am</a>
+            <a href="#general" className="text-sm text-gray-500 hover:text-black">1. General</a>
             <a href="#data-we-collect" className="text-sm text-gray-500 hover:text-black">2. Data LingoCoon collects</a>
             <a href="#how-we-use-it" className="text-sm text-gray-500 hover:text-black">3. How your data is used</a>
             <a href="#third-parties" className="text-sm text-gray-500 hover:text-black">4. Third parties</a>
@@ -27,14 +27,14 @@ export default function PrivacyPage() {
         </div>
 
         <div className="flex-1">
-          <section id="who-i-am" className="mb-12">
-            <h2 className="mb-4 text-xl font-semibold text-black">1. Who I am</h2>
+          <section id="general" className="mb-12">
+            <h2 className="mb-4 text-xl font-semibold text-black">1. General</h2>
             <p className="leading-relaxed text-gray-600">
-              LingoCoon is a language learning app built for the personalised learning.
-              You can contact me at{' '}
-              <a href="mailto:lingocoon.info@gmail.com" className="text-black underline">
-                lingocoon.info@gmail.com
-              </a>
+              LingoCoon is a language learning app designed to help you learn languages
+              through personalised flashcards, AI conversation, and speech practice.
+              This Privacy Policy explains what personal data LingoCoon collects when
+              you use the app, why it is collected, and your rights under the
+              General Data Protection Regulation (GDPR).
             </p>
           </section>
 
