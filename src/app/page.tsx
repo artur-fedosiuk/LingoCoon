@@ -41,7 +41,10 @@ export default function Home() {
         </p>
       </main>
       <footer className="relative z-10 border-t border-gray-200 py-6 text-center text-sm text-gray-400">
-        &copy; 2026 LingoCoon
+        <span>&copy; 2026 LingoCoon </span>
+        <Link href="/privacy" className="hover:text-black underline">
+          Privacy Policy
+        </Link>
       </footer>
     </div>
   );

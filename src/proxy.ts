@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseConfig } from '@/lib/supabase/config';
 import type { Database } from '@/lib/supabase/types';
 
-const PUBLIC_ROUTE_PREFIXES = ['/', '/onboarding', '/login', '/signup', '/auth/callback'];
+const PUBLIC_ROUTE_PREFIXES = ['/', '/onboarding', '/login', '/signup', '/auth/callback', '/privacy'];
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
