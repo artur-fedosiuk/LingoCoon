@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import I18nProvider from '@/components/providers/I18nProvider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
+import CookieBanner from '@/components/CookieBanner';
 
 export const metadata: Metadata = {
   title: 'LingoCoon - Learn Languages',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <I18nProvider>
           {children}
           <Toaster />
+          <CookieBanner />
         </I18nProvider>
       </body>
     </html>
