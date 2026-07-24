@@ -22,15 +22,14 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed-bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white px-6 py-4">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white px-6 py-4">
       <div className="mx-auto flex max-w-4xl items-center justify-between gap-6">
         <p className="text-sm text-gray-600">
           LingoCoon uses essential cookies to keep you logged in.
-          {''}
+          {' '}
           <Link href="/privacy" className="text-black underline">
             Learn more
           </Link>
-          .
         </p>
         <button
           onClick={handleAccept}
