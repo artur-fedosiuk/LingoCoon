@@ -28,7 +28,7 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(credentials);
 
-  if (error) redirect('/login?error=Invalid credentials');
+  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath('/', 'layout');
   redirect('/onboarding');
@@ -38,10 +38,16 @@ export async function signup(formData: FormData) {
   const credentials = getCredentials(formData);
   if (!credentials) redirect('/login?error=Email and password are required');
 
+  const siteUrl = getSiteUrl();
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp(credentials);
+  const { error } = await supabase.auth.signUp({
+    ...credentials,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/onboarding`,
+    },
+  });
 
-  if (error) redirect('/login?error=Could not create account');
+  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath('/', 'layout');
   redirect('/login?message=Check your email to confirm your account');

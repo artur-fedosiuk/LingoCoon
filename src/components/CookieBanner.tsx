@@ -9,7 +9,8 @@ export default function CookieBanner() {
   useEffect(() => {
     const accepted = localStorage.getItem('cookies_accepted');
     if (!accepted) {
-      setVisibile(true);
+      const timer = requestAnimationFrame(() => setVisibile(true));
+      return () => cancelAnimationFrame(timer);
     }
   }, []);
 

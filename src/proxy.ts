@@ -3,10 +3,20 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseConfig } from '@/lib/supabase/config';
 import type { Database } from '@/lib/supabase/types';
 
-const PUBLIC_ROUTE_PREFIXES = ['/', '/onboarding', '/login', '/signup', '/auth/callback', '/privacy'];
+const PUBLIC_ROUTE_PREFIXES = ['/', '/onboarding', '/login', '/signup', '/auth/callback', '/auth/confirm', '/privacy'];
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const searchParams = request.nextUrl.searchParams;
+
+  if (
+    (searchParams.has('code') || searchParams.has('token_hash') || searchParams.has('token')) &&
+    !pathname.startsWith('/auth/')
+  ) {
+    const callbackUrl = new URL('/auth/callback', request.url);
+    callbackUrl.search = searchParams.toString();
+    return NextResponse.redirect(callbackUrl);
+  }
 
   if (pathname.startsWith('/api/')) {
     return NextResponse.next({ request });
