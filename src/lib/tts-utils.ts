@@ -1,6 +1,5 @@
 /**
- * Remove legacy XML-style markers before sending text to ElevenLabs.
- * ElevenLabs detects mixed languages directly from plain text.
+ * Remove legacy XML-style markers before plain-text speech synthesis.
  */
 export function prepareTtsText(text: string): string {
   return text

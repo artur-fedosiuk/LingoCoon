@@ -31,3 +31,30 @@ explicitly approved environment. The script uses a transaction and rolls back
 its temporary probe table.
 
 Never run `supabase db reset --linked` against production.
+
+## Isolated TTS verification
+
+`.github/workflows/database.yml` creates a disposable PostgreSQL service, runs
+`scripts/test-database.mjs`, and destroys the service with the job. It never uses
+project credentials or connects to hosted Supabase. The runner requires the
+local host, database `lingocoon_ci`, and `LINGOCOON_ISOLATED_DB=true`.
+
+`tests/isolated-bootstrap.sql` supplies minimal Auth/Storage schema fixtures for
+SQL tests only. It is not a Supabase installation and must never be applied to
+the hosted project. Tests exercise ordered upgrades, grants/RLS, quota failures,
+cache ownership, preservation of existing consumption, and parallel reservations.
+They do not prove Storage HTTP authorization/deletion or live Google playback.
+
+## Google speech rollout boundary
+
+The three TTS migrations dated 20260913, 20260914 and 20260915 must run in order,
+after the earlier hardening migrations have been reconciled. The final migration
+disables old periods and sets the Chirp cap to 999,700; it creates no positive
+allowance. Never apply the historical baseline or test fixtures to an existing
+project. Inspect migration history, bucket collisions and the current schema first.
+
+Keep `GOOGLE_TTS_ENABLED=false` until schema, private Storage, server credentials,
+cleanup and a reconciled billing period have passed hosted acceptance. Prior and
+external usage must be included; the app cap cannot stop other clients using the
+Google account. Preserve consumption counters during activation and rollback.
+Disable the flag to stop synthesis; retain the ledger and cleanup path.

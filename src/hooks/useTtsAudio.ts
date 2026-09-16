@@ -5,7 +5,7 @@ import type { TtsVoicePreset } from '@/lib/tts';
 
 interface PlayTtsAudioOptions {
   text: string;
-  languageCode?: string;
+  languageCode: string;
   speed?: number;
   voice?: TtsVoicePreset;
 }
