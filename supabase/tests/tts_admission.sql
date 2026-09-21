@@ -37,7 +37,7 @@ begin
     key := lpad(to_hex(i),64,'0');
     insert into auth.users(id,email) values(owner_id,'queue-'||i||'@example.test');
     result := public.reading_tts_admit(owner_id,key,100,repeat('f',64),lease_id,100,1);
-    if result->>'status' <> case when i<=5 then 'reserved' else 'queued' end then
+    if result->>'status' <> (case when i<=5 then 'reserved' else 'queued' end) then
       raise exception 'Admission % returned %', i,result;
     end if;
   end loop;
@@ -85,7 +85,7 @@ begin
   if result->>'status'<>'queued' then raise exception 'Provider pacing bypass'; end if;
   update public.reading_tts_admission set expires_at=clock_timestamp()-interval '1 second';
   result := public.reading_tts_admit(owners[2],repeat('c',64),1,repeat('f',64),gen_random_uuid(),1,1);
-  if exists(select 1 from public.reading_tts_admission where owner_id=owners[1]) then
+  if exists(select 1 from public.reading_tts_admission as admission where admission.owner_id=owners[1]) then
     raise exception 'Abandoned ticket retained';
   end if;
 end;
