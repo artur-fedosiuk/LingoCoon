@@ -1,9 +1,9 @@
 import { MAX_TTS_STREAM_BYTES, TtsError, ttsEventSchema, type TtsEvent, type TtsInput } from '../../reading-tts/contract';
 import type { TtsProvider } from './provider';
 
-export type Reservation = { status: 'hit' | 'wait' | 'reserved' | 'rate_limited' | 'quota_exceeded' | 'busy'; objectPath?: string };
+export type Reservation = { status: 'hit' | 'wait' | 'reserved' | 'queued' | 'rate_limited' | 'quota_exceeded' | 'busy'; objectPath?: string };
 export interface TtsStore {
-  reserve(owner: string, key: string, characters: number, ipHash: string, lease: string, billableCharacters?: number): Promise<Reservation>;
+  reserve(owner: string, key: string, characters: number, ipHash: string, lease: string, billableCharacters?: number, providerRequests?: number): Promise<Reservation>;
   find(owner: string, key: string): Promise<{ status: string; objectPath: string | null } | null>;
   read(path: string): Promise<ReadableStream<Uint8Array>>;
   save(owner: string, key: string, lease: string, body: Uint8Array): Promise<void>;
@@ -117,7 +117,9 @@ export function createTtsService(store: TtsStore, provider: TtsProvider, options
       // characters if the provider's billing unit differs from code points.
       const billableCharacters = provider.billableCharacters?.(input) ?? input.text.length;
       if (!Number.isSafeInteger(billableCharacters) || billableCharacters < input.text.length || billableCharacters > 50_000) throw new TtsError('invalid_input');
-      const reservation = await store.reserve(owner, key, input.text.length, ipHash, lease, billableCharacters);
+      const providerRequests = provider.requestCount?.(input) ?? 1;
+      if (!Number.isSafeInteger(providerRequests) || providerRequests < 1 || providerRequests > 100) throw new TtsError('invalid_input');
+      const reservation = await store.reserve(owner, key, input.text.length, ipHash, lease, billableCharacters, providerRequests);
       if (signal.aborted) {
         if (reservation.status === 'reserved') await store.fail(owner, key, lease).catch(() => {});
         throw new TtsError('interrupted');

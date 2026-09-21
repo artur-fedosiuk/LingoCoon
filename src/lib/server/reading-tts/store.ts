@@ -5,7 +5,7 @@ import type { TtsDatabase } from './database-types';
 import type { ReadingTtsStorageConfig } from './config';
 import type { Reservation, TtsStore } from './service';
 
-const reservationSchema = z.object({ status: z.enum(['hit', 'wait', 'reserved', 'rate_limited', 'quota_exceeded', 'busy']), objectPath: z.string().optional() });
+const reservationSchema = z.object({ status: z.enum(['hit', 'wait', 'reserved', 'queued', 'rate_limited', 'quota_exceeded', 'busy']), objectPath: z.string().optional() });
 const validPath = /^[0-9a-f-]{36}\/[0-9a-f]{64}\/[0-9a-f-]{36}\.ndjson$/u;
 export const TTS_BUCKET = 'reading-audio';
 export function createTtsStorageClient(config: ReadingTtsStorageConfig, signal?: AbortSignal) {
@@ -17,10 +17,10 @@ export function createTtsStorageClient(config: ReadingTtsStorageConfig, signal?:
 export function createSupabaseTtsStore(client: SupabaseClient<TtsDatabase>): TtsStore {
   const bucket = client.storage.from(TTS_BUCKET);
   return {
-    async reserve(owner, key, characters, ipHash, lease, billableCharacters = characters): Promise<Reservation> {
+    async reserve(owner, key, characters, ipHash, lease, billableCharacters = characters, providerRequests = 1): Promise<Reservation> {
       await cleanupExpiredTts(client, key, owner);
       const args = { p_owner_id: owner, p_cache_key: key, p_characters: characters, p_ip_hash: ipHash, p_lease_id: lease };
-      const { data, error } = await client.rpc('reading_tts_reserve_google', { ...args, p_billable_characters: billableCharacters });
+      const { data, error } = await client.rpc('reading_tts_admit', { ...args, p_billable_characters: billableCharacters, p_provider_requests: providerRequests });
       if (error) throw new TtsError('storage_failure');
       const parsed = reservationSchema.safeParse(data);
       if (!parsed.success) throw new TtsError('storage_failure');

@@ -469,6 +469,7 @@
       "speed": "Velocità (modifica anche il tono)",
       "buffered": "Caricato",
       "buffering": "Preparazione audio…",
+      "queued": "Audio in coda. Puoi annullare durante l’attesa.",
       "retry": "Riprova l’audio",
       "online": "Voce neurale online",
       "privacy": "Il testo che ascolti viene inviato al fornitore vocale. La cache privata scade dopo 30 giorni; la cancellazione degli audio scaduti è programmata ogni giorno.",

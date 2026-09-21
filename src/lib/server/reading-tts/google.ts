@@ -58,6 +58,7 @@ export class GoogleTtsProvider implements TtsProvider {
   billableCharacters(input: TtsInput): number {
     return planGoogleSpeech(input).reduce((total, segment) => total + segment.characters, 0);
   }
+  requestCount(input: TtsInput): number { return planGoogleSpeech(input).length; }
   async *stream(input: TtsInput, signal: AbortSignal): AsyncGenerator<TtsEvent> {
     if (googleVoice(input) !== this.voice) throw new TtsError('invalid_input');
     const segments = planGoogleSpeech(input);

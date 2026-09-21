@@ -1,5 +1,6 @@
 import { MAX_TTS_CHARACTERS, readNdjson, TTS_ERROR_CODES, TTS_SAMPLE_RATE, TtsError, ttsEventSchema, ttsInputSchema, type TtsErrorCode, type TtsInput, type WordAlignment } from './contract';
 import { decodePcm16, type AudioDriver } from './web-audio-driver';
+import { fetchAdmittedAudio } from './admission-client';
 
 export type AudioSide = 'source' | 'translation';
 export interface AudioSpan {
@@ -9,6 +10,7 @@ export interface AudioSpan {
 export interface AudioRequest { input: TtsInput; side: AudioSide; spans: readonly AudioSpan[] }
 export type AudioStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 export interface AudioSnapshot {
+  queued: boolean;
   status: AudioStatus; currentTime: number; bufferedDuration: number; duration: number | null;
   playbackRate: number; mode: TtsInput['mode']; side: AudioSide;
   error: TtsErrorCode | null; hasPausedReading: boolean;
@@ -17,11 +19,12 @@ export interface AudioWordSnapshot {
   status: AudioStatus; sentenceId: string | null; tokenId: string | null;
   mode: TtsInput['mode']; side: AudioSide;
 }
-export const IDLE_AUDIO: AudioSnapshot = { status: 'idle', currentTime: 0, bufferedDuration: 0, duration: null, playbackRate: 1, mode: 'reading', side: 'source', error: null, hasPausedReading: false };
+export const IDLE_AUDIO: AudioSnapshot = { queued: false, status: 'idle', currentTime: 0, bufferedDuration: 0, duration: null, playbackRate: 1, mode: 'reading', side: 'source', error: null, hasPausedReading: false };
 export const IDLE_AUDIO_WORD: AudioWordSnapshot = { status: 'idle', sentenceId: null, tokenId: null, mode: 'reading', side: 'source' };
 
 type Chunk = { samples: Float32Array; start: number };
 type Recording = {
+  queued: boolean;
   request: AudioRequest; abort: AbortController; chunks: Chunk[]; frames: number;
   words: WordAlignment[]; complete: boolean; clip: { start: number; end: number } | null;
   position: number; anchorTime: number | null; anchorFrame: number; scheduledFrame: number;
@@ -86,13 +89,14 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
       wordListeners.forEach((listener) => listener());
     }
     const next: AudioSnapshot = recording ? {
+      queued: recording.queued,
       status: state, currentTime: Math.max(0, frame - startFrame(recording)) / TTS_SAMPLE_RATE,
       bufferedDuration: recording.request.input.mode === 'word' && !recording.clip ? 0 : Math.max(0, Math.min(recording.frames, endFrame(recording)) - startFrame(recording)) / TTS_SAMPLE_RATE,
       duration: recording.clip ? (recording.clip.end - recording.clip.start) / TTS_SAMPLE_RATE : recording.complete ? recording.frames / TTS_SAMPLE_RATE : null,
       playbackRate: rate, mode: recording.request.input.mode, side: recording.request.side,
       error: recording.error, hasPausedReading: !!heldReading,
     } : { ...IDLE_AUDIO, playbackRate: rate };
-    const structuralChange = next.status !== snapshot.status || next.error !== snapshot.error || next.mode !== snapshot.mode || next.side !== snapshot.side || next.hasPausedReading !== snapshot.hasPausedReading || next.playbackRate !== snapshot.playbackRate;
+    const structuralChange = next.queued !== snapshot.queued || next.status !== snapshot.status || next.error !== snapshot.error || next.mode !== snapshot.mode || next.side !== snapshot.side || next.hasPausedReading !== snapshot.hasPausedReading || next.playbackRate !== snapshot.playbackRate;
     if (forcePosition || structuralChange || driver.currentTime - lastPositionNotice >= 0.25) {
       if (Object.keys(next).some((key) => next[key as keyof AudioSnapshot] !== snapshot[key as keyof AudioSnapshot])) {
         snapshot = next;
@@ -198,11 +202,13 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
     };
     armTimeout();
     try {
-      const response = await fetchAudio('/api/tts', {
+      const response = await fetchAdmittedAudio('/api/tts', {
         method: 'POST', mode: 'same-origin', credentials: 'same-origin', redirect: 'error', signal,
         headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
         body: JSON.stringify(recording.request.input),
-      });
+      }, { fetch: fetchAudio, onQueued: () => { recording.queued = true; armTimeout(); notify(true); } });
+      recording.queued = false;
+      armTimeout();
       if (!live(recording)) { void response.body?.cancel().catch(() => {}); return; }
       if (!response.ok) {
         const error: unknown = await response.json().catch(() => null);
@@ -262,7 +268,7 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
     } else cancel(active);
     if (request.input.mode !== 'word') { cancel(heldReading); heldReading = null; }
     const recording: Recording = {
-      request, abort: new AbortController(), chunks: [], frames: 0, words: [], complete: false, clip: null,
+      queued: false, request, abort: new AbortController(), chunks: [], frames: 0, words: [], complete: false, clip: null,
       position: 0, anchorTime: null, anchorFrame: 0, scheduledFrame: 0, wantsPlay: true, ready: false, error: null,
     };
     active = recording;

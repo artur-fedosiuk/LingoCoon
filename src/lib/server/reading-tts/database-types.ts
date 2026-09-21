@@ -108,6 +108,10 @@ export type TtsDatabase = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      reading_tts_admit: {
+        Args: { p_owner_id: string; p_cache_key: string; p_characters: number; p_ip_hash: string; p_lease_id: string; p_billable_characters: number; p_provider_requests: number };
+        Returns: Json;
+      };
       reading_tts_reserve_google: {
         Args: { p_owner_id: string; p_cache_key: string; p_characters: number; p_ip_hash: string; p_lease_id: string; p_billable_characters: number };
         Returns: Json;

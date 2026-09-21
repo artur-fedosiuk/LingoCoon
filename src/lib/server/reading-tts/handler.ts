@@ -48,7 +48,7 @@ export function createTtsHandler(dependencies: TtsHandlerDependencies) {
       return new Response(body, { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'X-Accel-Buffering': 'no' } });
     } catch (error) {
       const failure = safeTtsError(error, request.signal);
-      return Response.json({ code: failure.code }, { status: ttsStatus(failure.code), headers: { 'Cache-Control': 'no-store', ...(failure.code === 'busy' || failure.code === 'rate_limited' ? { 'Retry-After': '5' } : {}) } });
+      return Response.json({ code: failure.code }, { status: ttsStatus(failure.code), headers: { 'Cache-Control': 'no-store', ...(['queued', 'busy', 'rate_limited'].includes(failure.code) ? { 'Retry-After': '4' } : {}) } });
     }
   };
 }

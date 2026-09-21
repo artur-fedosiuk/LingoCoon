@@ -41,7 +41,7 @@ begin
     raise exception 'Missing reconciled period must block before reservation';
   end if;
   insert into public.google_tts_budget_periods(starts_at, ends_at, outside_characters, reconciled_at, enabled)
-    values (period_start, clock_timestamp() + interval '1 day', 999620, clock_timestamp(), true);
+    values (period_start, clock_timestamp() + interval '1 day', 998920, clock_timestamp(), true);
 
   update public.google_tts_budget_periods set voice_tier = 'wavenet' where starts_at = period_start;
   response := public.reading_tts_reserve_google(owner_id, repeat('a',64), 10, repeat('c',64), lease_a, 50);
@@ -81,7 +81,7 @@ begin
   exception when invalid_parameter_value then null;
   end;
   begin
-    update public.google_tts_budget_periods set character_limit = 1000000 where starts_at = period_start;
+    update public.google_tts_budget_periods set character_limit = 999001 where starts_at = period_start;
     raise exception 'Allowed raising the approved maximum';
   exception when check_violation then null;
   end;

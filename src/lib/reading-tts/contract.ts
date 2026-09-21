@@ -4,7 +4,7 @@ export const TTS_LANGUAGES = ['en', 'it', 'fr', 'uk'] as const;
 export const TTS_SAMPLE_RATE = 24_000;
 export const MAX_TTS_CHARACTERS = 6_000;
 export const MAX_TTS_STREAM_BYTES = 32 * 1024 * 1024;
-export const TTS_ERROR_CODES = ['invalid_input', 'authentication_required', 'forbidden', 'unavailable', 'rate_limited', 'quota_exceeded', 'busy', 'provider_auth', 'provider_failure', 'timeout', 'interrupted', 'invalid_audio', 'alignment_unavailable', 'storage_failure'] as const;
+export const TTS_ERROR_CODES = ['invalid_input', 'authentication_required', 'forbidden', 'unavailable', 'rate_limited', 'quota_exceeded', 'busy', 'queued', 'provider_auth', 'provider_failure', 'timeout', 'interrupted', 'invalid_audio', 'alignment_unavailable', 'storage_failure'] as const;
 export type TtsErrorCode = typeof TTS_ERROR_CODES[number];
 
 // Preserve the exact Unicode text and offsets. Trimming or NFC conversion would
@@ -43,6 +43,7 @@ export class TtsError extends Error {
   constructor(code: TtsErrorCode) { super(code); this.name = 'TtsError'; this.code = code; }
 }
 export function ttsStatus(code: TtsErrorCode): number {
+  if (code === 'queued') return 202;
   if (code === 'invalid_input') return 400;
   if (code === 'authentication_required') return 401;
   if (code === 'forbidden') return 403;

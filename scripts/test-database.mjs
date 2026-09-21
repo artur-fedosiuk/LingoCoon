@@ -30,7 +30,7 @@ for (const name of readdirSync('supabase/migrations').filter(name => name.endsWi
     query("delete from public.google_tts_budget_periods where starts_at = '2000-01-01'");
   }
 }
-for (const name of ['database_security.sql', 'reading_tts.sql', 'google_tts_budget.sql']) {
+for (const name of ['database_security.sql', 'reading_tts.sql', 'google_tts_budget.sql', 'tts_admission.sql']) {
   file(`supabase/tests/${name}`);
 }
 
@@ -40,7 +40,7 @@ query(`insert into auth.users(id,email) values ('${owner}','concurrency@example.
   update public.reading_tts_budget set lifetime_limit=1000000, daily_limit=1000000,
     user_daily_limit=1000000, credit_expires_at=clock_timestamp()+interval '1 day';
   insert into public.google_tts_budget_periods(starts_at,ends_at,outside_characters,reconciled_at,enabled)
-    values (clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',999600,clock_timestamp(),true)`);
+    values (clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',998900,clock_timestamp(),true)`);
 const run = promisify(execFile);
 const responses = await Promise.all(['a', 'b'].map(async (key) => {
   const result = await run('psql', [...args, '-At', '-c', `select public.reading_tts_reserve_google(

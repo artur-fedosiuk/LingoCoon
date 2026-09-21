@@ -469,6 +469,7 @@
       "speed": "Vitesse (modifie aussi la hauteur)",
       "buffered": "Chargé",
       "buffering": "Préparation audio…",
+      "queued": "Audio en attente. Vous pouvez annuler pendant l’attente.",
       "retry": "Réessayer l’audio",
       "online": "Voix neuronale en ligne",
       "privacy": "Le texte écouté est envoyé au fournisseur vocal. Le cache privé expire après 30 jours ; la suppression des audios expirés est programmée quotidiennement.",

@@ -139,5 +139,5 @@ test('Google store uses the shared-budget RPC with billable units, never legacy-
   const chain = { select() { return this; }, or() { return this; }, order() { return this; }, limit() { return this; }, eq() { return this; }, then(resolve) { resolve({ data: [], error: null }); } };
   const client = { storage: { from() { return {}; } }, from() { return chain; }, async rpc(name, args) { recorded = [name, args]; return { data: { status: 'reserved' }, error: null }; } };
   const result = await createSupabaseTtsStore(client).reserve('owner', 'a'.repeat(64), 10, 'ip', 'lease', 30);
-  assert.equal(result.status, 'reserved'); assert.equal(recorded[0], 'reading_tts_reserve_google'); assert.equal(recorded[1].p_billable_characters, 30); assert.equal(recorded[1].p_characters, 10);
+  assert.equal(result.status, 'reserved'); assert.equal(recorded[0], 'reading_tts_admit'); assert.equal(recorded[1].p_billable_characters, 30); assert.equal(recorded[1].p_characters, 10); assert.equal(recorded[1].p_provider_requests, 1);
 });

@@ -469,6 +469,7 @@
       "speed": "Speed (also changes pitch)",
       "buffered": "Loaded",
       "buffering": "Preparing audio…",
+      "queued": "Audio queued. You can cancel while waiting.",
       "retry": "Try audio again",
       "online": "Online neural voice",
       "privacy": "The text you play is sent to our speech provider. Private cache access expires after 30 days; expired audio is scheduled for daily deletion.",

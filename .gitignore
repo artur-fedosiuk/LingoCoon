@@ -52,6 +52,7 @@ service_account*.json
 LingoCoonTTS.json
 
 # Private project work products
+CHEATSHEET.md
 AGENTS.md
 security_report/
 docs/

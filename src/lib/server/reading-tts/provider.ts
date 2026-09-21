@@ -5,5 +5,6 @@ export interface TtsProvider {
   readonly model: string;
   readonly voice: string;
   billableCharacters?(input: TtsInput): number;
+  requestCount?(input: TtsInput): number;
   stream(input: TtsInput, signal: AbortSignal): AsyncIterable<TtsEvent>;
 }

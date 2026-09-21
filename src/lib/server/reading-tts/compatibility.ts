@@ -58,7 +58,7 @@ export function createWavTtsHandler(dependencies: {
     } catch (error) {
       const failure = safeTtsError(error, request.signal);
       return Response.json({ error: failure.code }, { status: ttsStatus(failure.code),
-        headers: { 'Cache-Control': 'no-store' } });
+        headers: { 'Cache-Control': 'no-store', ...(failure.code === 'queued' ? { 'Retry-After': '4' } : {}) } });
     }
   };
 }

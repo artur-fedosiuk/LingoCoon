@@ -21,7 +21,7 @@ export default function ReadingAudioPlayer({ player, language, sourceLanguage, n
   const current = timeLabel(state.currentTime);
   const buffered = timeLabel(state.bufferedDuration);
   const duration = state.duration === null ? state.error ? '—' : t('context_studio.audio.awaiting_duration') : timeLabel(state.duration);
-  const status = state.error ? t(`context_studio.audio.errors.${state.error}`) : state.status === 'loading' ? t('context_studio.audio.buffering') : t(`context_studio.immersive.audio_${state.status}`);
+  const status = state.error ? t(`context_studio.audio.errors.${state.error}`) : state.queued ? t('context_studio.audio.queued') : state.status === 'loading' ? t('context_studio.audio.buffering') : t(`context_studio.immersive.audio_${state.status}`);
   return <section className={styles.audioPlayer} data-reading-audio-player aria-label={t('context_studio.audio.label')}>
     <div className={styles.audioHeading}>
       <span className="text-sm font-medium">{t('context_studio.audio.label')} · {t(`context_studio.immersive.languages.${state.side === 'source' ? sourceLanguage : nativeLanguage}`)}</span>

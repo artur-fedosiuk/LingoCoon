@@ -35,7 +35,7 @@ $function$;
 
 select pg_temp.assert_true(
   (select count(*) = 1 and bool_and(lifetime_limit = 0 and lifetime_used = 0
-    and daily_limit = 10000 and user_daily_limit = 3000 and concurrent_limit = 2
+    and daily_limit = 999000 and user_daily_limit = 10000 and concurrent_limit = 5
     and storage_limit_bytes = 268435456) from public.reading_tts_budget),
   'fresh singleton defaults must fail closed'
 );
@@ -145,7 +145,7 @@ select pg_temp.assert_true((select lifetime_used = 0 and daily_used = 0 from pub
 select pg_temp.assert_true((select requests = 1 from public.reading_tts_rate_windows
   where scope = 'user' and subject = :'tts_owner'), 'quota rejection still counts access');
 
-update public.reading_tts_budget set lifetime_limit = 10000, user_daily_limit = 10000;
+update public.reading_tts_budget set lifetime_limit = 10000, user_daily_limit = 10000, concurrent_limit = 2;
 select pg_temp.assert_true(public.reading_tts_reserve(:'tts_owner', repeat('a', 64), 100,
   repeat('f', 64), :'tts_lease_a')->>'status' = 'quota_exceeded', 'unverified credit expiry disables dispatch despite a positive limit');
 update public.reading_tts_budget set credit_expires_at = clock_timestamp() + interval '60 seconds';
@@ -319,12 +319,12 @@ select pg_temp.assert_true(public.reading_tts_reserve(:'tts_owner', repeat('a', 
   repeat('f', 64), gen_random_uuid())->>'status' = 'rate_limited', '91st user access blocked even on hit');
 update public.reading_tts_rate_windows set requests = 0 where scope = 'user';
 insert into public.reading_tts_rate_windows (scope, subject, window_start, requests)
-values ('ip', repeat('f', 64), date_trunc('minute', clock_timestamp(), 'UTC'), 179)
-on conflict (scope, subject, window_start) do update set requests = 179;
+values ('ip', repeat('f', 64), date_trunc('minute', clock_timestamp(), 'UTC'), 1199)
+on conflict (scope, subject, window_start) do update set requests = 1199;
 select pg_temp.assert_true(public.reading_tts_reserve(:'tts_owner', repeat('a', 64), 1,
-  repeat('f', 64), gen_random_uuid())->>'status' = 'hit', '180th shared IP access permitted');
+  repeat('f', 64), gen_random_uuid())->>'status' = 'hit', '1200th shared IP access permitted');
 select pg_temp.assert_true(public.reading_tts_reserve(:'tts_other', repeat('a', 64), 1,
-  repeat('f', 64), gen_random_uuid())->>'status' = 'rate_limited', '181st shared IP access blocked across users');
+  repeat('f', 64), gen_random_uuid())->>'status' = 'rate_limited', '1201st shared IP access blocked across users');
 update public.reading_tts_rate_windows set requests = 0;
 
 -- Expired ready audio is never returned, nor silently uncounted.
