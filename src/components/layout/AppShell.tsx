@@ -3,7 +3,7 @@
 import type { ComponentType, ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Bot, Home, Library, LogOut, Settings } from 'lucide-react';
+import { BookOpen, Bot, FileText, Home, Library, LogOut, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/app/login/actions';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/ai', icon: Bot, labelKey: 'navigation.ai' },
   { href: '/decks', icon: Library, labelKey: 'navigation.flashcards' },
   { href: '/lexicoon', icon: BookOpen, labelKey: 'navigation.lexicoon' },
+  ...(process.env.NEXT_PUBLIC_READING_ENABLED === 'true' || process.env.NODE_ENV === 'development'
+    ? [{ href: '/context-studio', icon: FileText, labelKey: 'navigation.context_studio' }]
+    : []),
   { href: '/settings', icon: Settings, labelKey: 'navigation.settings' },
 ];
 

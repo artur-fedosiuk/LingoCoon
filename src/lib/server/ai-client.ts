@@ -74,7 +74,7 @@ export async function sendStructuredRequestToGemini(
     jsonSchema: object;
     maxTokens: number;
     schemaName: string;
-    userId: string;
+    userId?: string;
   },
 ): Promise<string> {
   validateConversation(systemPrompt, conversationHistory);
@@ -106,7 +106,7 @@ interface GeminiRequestOptions {
   systemPrompt: string;
   temperature: number;
   topP?: number;
-  userId: string;
+  userId?: string;
 }
 
 /**
@@ -130,7 +130,7 @@ async function sendRequestToGeminiApi(
     ),
     temperature: options.temperature,
     max_tokens: options.maxTokens,
-    user: options.userId,
+    ...(options.userId ? { user: options.userId } : {}),
     stream: false,
   };
 
@@ -159,14 +159,9 @@ async function sendRequestToGeminiApi(
   );
 
   if (!response.ok) {
-    const errorBody = await response.text().catch(() => '');
-    console.error(
-      `[sendRequestToGeminiApi] HTTP ${response.status}:`,
-      errorBody,
-    );
-    throw new Error(
-      `Gemini API request failed (${response.status}): ${errorBody}`,
-    );
+    // Provider bodies may echo learner content or credentials; retain only the status.
+    await response.body?.cancel();
+    throw new Error(`Gemini API request failed (${response.status}).`);
   }
 
   const result = (await response.json()) as {

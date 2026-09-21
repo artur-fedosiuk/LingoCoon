@@ -48,7 +48,8 @@ export default function PrivacyPage() {
               <li>Profile: nickname, native language, target language, learning level</li>
               <li>Flashcard decks and cards you create</li>
               <li>Study progress and learning statistics</li>
-              <li>Voice audio when you use speech features — sent to a third-party AI provider for processing, not stored by LingoCoon</li>
+              <li>Microphone audio used for speech recognition — sent to a third-party AI provider for processing, not intentionally stored by LingoCoon</li>
+              <li>Text selected for speech — sent to Google Cloud Text-to-Speech. Generated audio is privately cached for your account with a 30-day expiry and scheduled deletion after expiry</li>
               <li>Chat messages sent to the AI assistant — processed by a third-party AI provider</li>
             </ul>
           </section>
@@ -92,4 +93,4 @@ export default function PrivacyPage() {
       </div>
     </div>
   );
-} 
+}

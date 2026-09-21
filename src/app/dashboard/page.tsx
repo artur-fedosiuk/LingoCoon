@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { ArrowRight, BookOpen, Bot, Library, MessageSquare, Plus } from 'lucide-react';
+import { ArrowRight, BookOpen, Bot, FileText, Library, MessageSquare, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppShell from '@/components/layout/AppShell';
 
@@ -36,6 +36,23 @@ export default function DashboardPage() {
             dashed
           />
         </div>
+
+        {(process.env.NEXT_PUBLIC_READING_ENABLED === 'true' || process.env.NODE_ENV === 'development') && <Link
+          href="/context-studio"
+          className="group mb-4 flex items-center justify-between rounded-2xl border border-gray-300 bg-white p-6 transition-all duration-200 hover:border-gray-900 hover:shadow-md"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gray-900">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-gray-600">Reading</span>
+              <h2 className="mb-1 text-base font-bold text-gray-900">{t('context_studio.title')}</h2>
+              <p className="text-sm leading-relaxed text-gray-500">{t('context_studio.description')}</p>
+            </div>
+          </div>
+          <ArrowRight className="ml-4 h-5 w-5 flex-shrink-0 text-gray-500 transition-all group-hover:translate-x-1 group-hover:text-gray-900" />
+        </Link>}
 
         <Link
           href="/ai"

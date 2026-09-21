@@ -40,8 +40,8 @@ export default function GeneralChat({ nativeLanguage, targetLanguage }: GeneralC
   }, [messages]);
 
   const handlePlayAudio = useCallback((text: string, messageIndex: number) => {
-    void playAudio({ text, speed: 0.95, voice }, `message-${messageIndex}`);
-  }, [playAudio, voice]);
+    void playAudio({ text, languageCode: nativeLanguage ?? targetLanguage ?? 'en', speed: 0.95, voice }, `message-${messageIndex}`);
+  }, [playAudio, voice, nativeLanguage, targetLanguage]);
 
   useAutoPlayLatestAiMessage({
     autoPlay,

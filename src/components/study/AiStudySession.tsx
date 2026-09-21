@@ -65,8 +65,8 @@ export default function AiStudySession({
   }, [messages]);
 
   const handlePlayAudio = useCallback((text: string, messageIndex: number) => {
-    void playAudio({ text, speed: 0.95, voice }, `message-${messageIndex}`);
-  }, [playAudio, voice]);
+    void playAudio({ text, languageCode: deck.language_from, speed: 0.95, voice }, `message-${messageIndex}`);
+  }, [playAudio, voice, deck.language_from]);
 
   useAutoPlayLatestAiMessage({
     autoPlay,
