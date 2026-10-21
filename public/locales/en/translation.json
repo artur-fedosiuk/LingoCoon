@@ -457,6 +457,24 @@
     "settings": "Settings"
   },
   "context_studio": {
+    "redesign": {
+      "hide_translation": "Hide translation",
+      "show_translation": "Show translation",
+      "more": "More options",
+      "keyboard": "Keyboard shortcuts",
+      "player_shortcuts": "Space: play or pause. Arrow keys: seek 10 seconds. Shift + arrows: previous or next sentence. These shortcuts do not apply while editing or navigating words.",
+      "about_audio": "About audio",
+      "timing_note": "Sentence tracking uses received audio. Word timing is unavailable. Speed changes can also change pitch. Audio is prepared ahead; the full duration appears when preparation finishes.",
+      "previous": "Previous sentence",
+      "next": "Next sentence",
+      "audio_language": "Audio language",
+      "pronouncing": "Pronouncing word…",
+      "resume_document": "Resume reading audio",
+      "pronounce": "Pronounce word",
+      "expand_dictionary": "Expand dictionary",
+      "collapse_dictionary": "Reduce dictionary",
+      "return_playback": "Return to playback"
+    },
     "audio": {
       "label": "Reading audio",
       "play": "Play",

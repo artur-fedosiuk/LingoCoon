@@ -39,7 +39,7 @@ export default function ContextStudio() {
     if (changed) { setSession(candidate.data); setFocusCount(0); }
     setEditing(false); setConfirmApply(false);
   }
-  return <main className="dark min-h-dvh bg-background text-foreground">
+  return <main className="min-h-dvh bg-background text-foreground">
     {editing && <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
       <a href="/dashboard" className="inline-flex min-h-11 items-center text-sm underline underline-offset-4">{t('context_studio.immersive.back')}</a>
       <h1 className="mb-2 mt-4 text-3xl font-semibold tracking-tight">Context Studio</h1>

@@ -1,51 +1,99 @@
-.control {
+.control, .iconButton, .sentencePlay, .textAction, .menuAction {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-  min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .5rem;
-  background: var(--card); color: var(--foreground); font-size: .875rem; cursor: pointer;
+  min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: .875rem; cursor: pointer;
 }
-.control:hover:not(:disabled) { background: var(--accent); }
-.control:disabled { opacity: .5; cursor: not-allowed; }
-.control:focus-visible, .word:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.control { padding: .5rem .75rem; border: 1px solid var(--border); }
+.iconButton, .sentencePlay { width: 44px; flex-shrink: 0; padding: 0; }
+.control:hover:not(:disabled), .iconButton:hover:not(:disabled), .sentencePlay:hover:not(:disabled), .menuAction:hover { background: var(--accent); }
+.control:disabled, .iconButton:disabled, .sentencePlay:disabled { opacity: .35; cursor: not-allowed; }
+.control:focus-visible, .iconButton:focus-visible, .sentencePlay:focus-visible, .word:focus-visible, .textAction:focus-visible, .menuAction:focus-visible, .more summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 .primary { background: var(--primary); color: var(--primary-foreground); }
 .primary:hover:not(:disabled) { background: var(--primary); opacity: .9; }
-.layout { display: grid; gap: 1.5rem; align-items: start; }
-.withDictionary { grid-template-columns: minmax(0, 1fr) 400px; }
-.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 1px solid var(--border); scroll-margin-block: 10rem; }
-.column { min-width: 0; padding: 1.25rem; }
-.column + .column { border-left: 1px solid var(--border); }
-.sentence { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.125rem; line-height: 1.95; }
+.reader { max-width: 1480px; margin-inline: auto; padding-inline: clamp(16px, 3vw, 48px); padding-bottom: 32px; }
+.chrome { position: sticky; top: 0; z-index: 30; background: var(--background); }
+.header { display: flex; align-items: center; gap: 8px; min-height: 56px; border-bottom: 1px solid var(--border); }
+.backLink { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; margin-right: auto; font-weight: 600; font-size: .875rem; }
+.languages { font-size: .75rem; color: var(--muted-foreground); margin-inline: 8px; }
+.more { position: relative; }
+.more > summary { list-style: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.morePanel { position: absolute; z-index: 1; right: 0; top: 48px; width: min(304px, calc(100vw - 32px)); border: 1px solid var(--border); border-radius: 12px; background: var(--popover); color: var(--popover-foreground); padding: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / 10%); }
+.menuAction { width: 100%; justify-content: flex-start; padding: 8px 12px; }
+.morePanel details { padding: 12px; font-size: .8125rem; }
+.morePanel summary { cursor: pointer; }
+.morePanel p { margin-top: 8px; line-height: 1.5; color: var(--muted-foreground); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: start; padding-top: 24px; }
+.withDictionary { grid-template-columns: minmax(0, 1fr) 380px; }
+.readingSurface { min-width: 0; width: 100%; max-width: 1060px; margin-inline: auto; padding-inline: 32px 8px; }
+.row { display: grid; position: relative; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; margin-bottom: 20px; border-radius: 4px; scroll-margin-block: 160px; }
+.sourceOnly { grid-template-columns: minmax(0, 1fr); max-width: 68ch; margin-inline: auto; }
+.column { min-width: 0; }
+.sentence { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.1875rem; line-height: 1.6; }
+.translation .sentence { font-size: 1rem; line-height: 1.55; color: var(--muted-foreground); }
 .word { display: inline; padding: 0; margin: 0; border: 0; border-radius: 3px; background: transparent; color: inherit; font: inherit; }
 button.word { cursor: pointer; }
 .word:where(button):hover { background: var(--accent); box-shadow: 0 1px 0 var(--foreground); }
 .word[data-state="occurrence"] { background: var(--accent); text-decoration: underline; text-decoration-color: var(--muted-foreground); text-underline-offset: 3px; }
-.word[data-state="selected"] { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 0 0 1px var(--primary); }
-.word[data-state="spoken"] { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 3px 0 var(--primary); outline: 1px solid var(--primary); outline-offset: 2px; font-weight: 700; }
-.activeRow { background: var(--secondary); box-shadow: inset 3px 0 0 var(--primary); }
-.dictionary { position: sticky; top: 1rem; max-height: calc(100dvh - 2rem); overflow: auto; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); overflow-wrap: anywhere; }
-.drawer { position: fixed; inset: auto 0 0; margin: 0; width: 100%; max-width: none; max-height: 78dvh; padding: 0; overflow: auto; border: 1px solid var(--border); border-radius: .75rem .75rem 0 0; background: var(--card); color: var(--foreground); }
-.drawer::backdrop { background: rgb(0 0 0 / 55%); }
-.popup { width: min(280px, calc(100vw - 24px)); max-height: min(400px, calc(100dvh - 32px)); overflow: auto; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 8px 30px rgb(0 0 0 / 25%); z-index: 50; }
-.audioPlayer { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; padding: .75rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); color: var(--foreground); }
-.audioHeading, .audioControls, .audioStatus { display: flex; align-items: center; gap: .5rem; min-width: 0; }
-.audioHeading { grid-column: 1 / -1; justify-content: space-between; }
-.audioControls { flex-wrap: wrap; }
-.audioIcon { min-width: 44px; flex-shrink: 0; }
-.audioSpeed { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; font-size: .875rem; }
-.audioSpeed select { min-height: 44px; padding: .5rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); color: var(--foreground); }
-.audioTimeline { display: flex; flex-direction: column; min-width: 0; justify-content: center; }
-.audioTimeline input { width: 100%; min-width: 0; min-height: 44px; accent-color: var(--primary); cursor: pointer; }
-.audioTimeline input:disabled { opacity: .5; cursor: not-allowed; }
-.audioTimeline input:focus-visible, .audioSpeed select:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.audioTimes { font-size: .75rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.audioStatus { grid-column: 1 / -1; flex-wrap: wrap; font-size: .75rem; overflow-wrap: anywhere; }
+.word[data-state="selected"] { background: var(--secondary); box-shadow: 0 2px 0 var(--foreground); }
+.word[data-state="spoken"] { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 2px 0 var(--primary); }
+.activeRow { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+.sentencePlay { position: absolute; left: -40px; top: -7px; opacity: 0; color: var(--muted-foreground); }
+.row:hover .sentencePlay, .row:focus-within .sentencePlay { opacity: 1; }
+.dictionary { position: sticky; top: 136px; max-height: calc(100dvh - 152px); overflow: auto; border-left: 1px solid var(--border); background: var(--background); overflow-wrap: anywhere; }
+.dictionaryHeading { position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 24px; background: var(--background); }
+.dictionaryContent { padding: 0 24px 24px; display: grid; gap: 24px; }
+.dictionaryContent .sentence { font-size: .9375rem; }
+.dictionaryContent h3 { font-size: .8125rem; font-weight: 600; }
+.dictionaryActions { display: flex; gap: 8px; align-items: center; }
+.drawer { position: fixed; inset: auto 0 0; margin: 0; width: 100%; max-width: none; max-height: 90dvh; padding: 0; overflow: auto; border: 1px solid var(--border); border-radius: 12px 12px 0 0; background: var(--background); color: var(--foreground); }
+.drawer::backdrop { background: rgb(0 0 0 / 25%); }
+.sheetHandle { width: 100%; min-height: 28px; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: ns-resize; }
+.sheetHandle::before { content: ''; width: 32px; height: 4px; border-radius: 4px; background: var(--muted-foreground); opacity: .5; }
+.popup { width: max-content; max-width: min(240px, calc(100vw - 24px)); max-height: min(240px, calc(100dvh - 32px)); overflow: auto; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 4px 12px rgb(0 0 0 / 12%); z-index: 50; font-size: .875rem; line-height: 1.45; overflow-wrap: anywhere; }
+.previewWord { display: block; font-size: .75rem; color: var(--muted-foreground); margin-bottom: 4px; }
+.previewLoading { font-size: .75rem; color: var(--muted-foreground); }
+.textAction { min-height: 32px; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.audioPlayer { min-height: 64px; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid var(--border); background: var(--background); color: var(--foreground); padding-block: 8px; }
+.audioControls { display: flex; align-items: center; gap: 0; }
+.audioIcon { position: relative; width: 40px; min-width: 40px; }
+.skipSeconds { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -42%); font-size: 8px; font-weight: 600; }
+.audioMain { border-radius: 50%; }
+.audioSpeed select, .audioSide { min-height: 44px; border: 0; background: transparent; color: inherit; font-size: .8125rem; border-radius: 4px; padding-inline: 4px; }
+.audioSide { max-width: 110px; }
+.audioTimeline { flex: 1; min-width: 60px; display: flex; align-items: center; gap: 8px; }
+.audioTimeline input { width: 100%; min-width: 20px; min-height: 44px; accent-color: var(--primary); cursor: pointer; }
+.audioTimeline input:disabled { opacity: .4; cursor: not-allowed; }
+.audioTimeline input:focus-visible, .audioSpeed select:focus-visible, .audioSide:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.audioTime { font-size: .6875rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted-foreground); }
+.audioStatus { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .75rem; color: var(--muted-foreground); }
+.audioStatus:empty { display: none; }
+.notice { font-size: .8125rem; line-height: 1.5; color: var(--muted-foreground); }
+.notice:not(:empty) { padding-block: 8px; }
+.follow { margin-left: auto; }
 @media (max-width: 1199px) { .withDictionary { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 599px) {
-  .audioPlayer { grid-template-columns: minmax(0, 1fr); }
-  .audioControls { gap: .25rem; }
-  .audioSpeed { margin-left: auto; }
-  .audioSpeed > span { flex-basis: 100%; }
-  .row { grid-template-columns: minmax(0, 1fr); }
-  .column { padding: 1rem; }
-  .column + .column { border-left: 0; padding-top: 0; }
+@media (max-width: 700px) {
+  .reader { padding-inline: 16px; }
+  .header { flex-wrap: wrap; gap: 0; }
+  .languages { max-width: 136px; font-size: .6875rem; margin-inline: 4px; }
+  .backLink span { display: none; }
+  .audioPlayer { display: grid; grid-template-columns: minmax(0, 1fr) 82px 44px; column-gap: 8px; row-gap: 0; }
+  .audioTimeline { grid-column: 1; grid-row: 2; }
+  .audioControls { grid-column: 1 / 3; grid-row: 1; }
+  .audioSpeed { grid-column: 3; grid-row: 1; }
+  .audioPlayer > button { grid-column: 3; grid-row: 2; }
+  .audioSide { grid-column: 2; grid-row: 2; max-width: 82px; }
+  .audioSpeed select { max-width: 54px; }
+  .layout { padding-top: 16px; }
+  .row { grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 20px; }
+  .readingSurface { padding-inline: 24px 0; }
+  .sentence { font-size: 1.125rem; }
+  .translation .sentence { font-size: .9375rem; }
+  .sentencePlay { left: -36px; }
 }
-@media (prefers-reduced-motion: no-preference) { .word { transition: background-color 80ms; } }
+@media (hover: none) { .sentencePlay { opacity: .6; } }
+@media (prefers-reduced-motion: no-preference) {
+  .word, .sentencePlay { transition: background-color 100ms, opacity 100ms; }
+  .popup { animation: reveal 100ms ease-out; }
+  .dictionary, .drawer { animation: reveal 150ms ease-out; }
+  @keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+}

@@ -10,39 +10,30 @@ import type { ContextExplanation, ContextSession } from '@/types/context-studio'
 
 type Resource<T> = { key: string; status: 'ready'; value: T } | { key: string; status: 'error'; value: null };
 
-function useCachedResource<T>(key: string | null, request: () => Promise<T>, cache: ReturnType<typeof createReaderCache<T>>) {
+function useCachedResource<T>(key: string | null, request: () => Promise<T>, cache: ReturnType<typeof createReaderCache<T>>, delayMs = 0) {
   const [result, setResult] = useState<Resource<T> | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!key) return;
     const gate = createLatestRequest();
-    void gate.run(() => cache.load(key, request), {
+    const timer = setTimeout(() => { void gate.run(() => cache.load(key, request), {
       onResult: (value) => setResult({ key, status: 'ready', value }),
       onError: () => setResult({ key, status: 'error', value: null }),
       onSettled: () => {},
-    });
-    return () => gate.invalidate();
-  }, [key, request, cache, attempt]);
+    }); }, cache.peek(key) === undefined ? delayMs : 0);
+    return () => { clearTimeout(timer); gate.invalidate(); };
+  }, [key, request, cache, attempt, delayMs]);
+  const cached = key ? cache.peek(key) : undefined;
   const current = result?.key === key ? result : null;
   return {
-    value: current?.status === 'ready' ? current.value : null,
-    status: key ? current?.status ?? 'loading' : 'idle',
+    value: cached ?? (current?.status === 'ready' ? current.value : null),
+    status: key ? cached !== undefined ? 'ready' : current?.status ?? 'loading' : 'idle',
     retry: () => { if (key) { cache.delete(key); setResult(null); setAttempt((value) => value + 1); } },
   };
 }
 
-export function useReaderDictionary(session: ContextSession, selection: ReaderSelection | null, pair: SentencePair | null) {
-  const [lexicalCache] = useState(() => createReaderCache<ReaderDictionary>());
-  const [explanationCache] = useState(() => createReaderCache<ContextExplanation>());
-  const lexicalKey = selection ? readerDictionaryKey(session, selection) : null;
-  const contextualKey = selection && pair ? readerExplanationKey(session, selection, pair) : null;
-  const word = selection?.text;
-  const { sourceLanguage, nativeLanguage } = session;
-  const fetchDictionary = useCallback(async () => {
-    const response = await lookupContextDictionary({ sourceLanguage, nativeLanguage, word });
-    if (!response.value) throw new Error('Dictionary unavailable.');
-    return response.value;
-  }, [sourceLanguage, nativeLanguage, word]);
+function useContextExplanation(session: ContextSession, selection: ReaderSelection | null, pair: SentencePair | null, cache: ReturnType<typeof createReaderCache<ContextExplanation>>, delayMs = 0) {
+  const key = selection && pair ? readerExplanationKey(session, selection, pair) : null;
   const start = selection?.start;
   const end = selection?.end;
   const translatedContext = pair?.translatedText;
@@ -51,11 +42,26 @@ export function useReaderDictionary(session: ContextSession, selection: ReaderSe
     if (!response.value) throw new Error('Explanation unavailable.');
     return response.value;
   }, [session, start, end, translatedContext]);
+  return useCachedResource(key, fetchExplanation, cache, delayMs);
+}
+
+export function useReaderDictionary(session: ContextSession, selection: ReaderSelection | null, pair: SentencePair | null, hovered: ReaderSelection | null, hoveredPair: SentencePair | null) {
+  const [lexicalCache] = useState(() => createReaderCache<ReaderDictionary>());
+  const [explanationCache] = useState(() => createReaderCache<ContextExplanation>());
+  const lexicalKey = selection ? readerDictionaryKey(session, selection) : null;
+  const word = selection?.text;
+  const { sourceLanguage, nativeLanguage } = session;
+  const fetchDictionary = useCallback(async () => {
+    const response = await lookupContextDictionary({ sourceLanguage, nativeLanguage, word });
+    if (!response.value) throw new Error('Dictionary unavailable.');
+    return response.value;
+  }, [sourceLanguage, nativeLanguage, word]);
   const dictionary = useCachedResource(lexicalKey, fetchDictionary, lexicalCache);
-  const explanation = useCachedResource(contextualKey, fetchExplanation, explanationCache);
+  const explanation = useContextExplanation(session, selection, pair, explanationCache);
+  const preview = useContextExplanation(session, hovered, hoveredPair, explanationCache, 200);
   return {
     dictionary: { ...dictionary, value: dictionary.value ?? (selection ? localReaderDictionary(selection.text, session.sourceLanguage, session.nativeLanguage) : null) },
     explanation,
-    preview: (word: ReaderSelection) => lexicalCache.peek(readerDictionaryKey(session, word)) ?? localReaderDictionary(word.text, session.sourceLanguage, session.nativeLanguage),
+    preview,
   };
 }
