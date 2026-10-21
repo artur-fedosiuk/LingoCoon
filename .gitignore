@@ -63,3 +63,7 @@ docs/
 .claude/settings.local.json
 .claude/*.bak*
 CLAUDE.local.md
+
+# Claude Code local settings (never commit)
+.claude/
+CLAUDE.md
