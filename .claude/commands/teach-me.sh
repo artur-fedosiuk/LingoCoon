@@ -2,8 +2,8 @@
 # /teach-me — 3 questions on last change, logs to docs/learning-log.md
 set -euo pipefail
 
-LOG_FILE="docs/learning-log.md"
-mkdir -p docs
+LOG_FILE="docs/private/learning-log.md"
+mkdir -p docs/private
 
 # Get last commit message
 LAST_COMMIT=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "No commits yet")

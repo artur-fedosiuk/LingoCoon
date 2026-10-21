@@ -66,4 +66,4 @@ Decision log: `docs/decisions/decision-log.md` (tracked, with "interview defense
 
 - `/verify` → `npm run check && npm audit`
 - `/explain-change` → runs explainer subagent on current diff
-- `/teach-me` → 3 questions on last change, logs answers to `docs/learning-log.md`
+- `/teach-me` → 3 questions on last change, logs answers to `docs/private/learning-log.md`
