@@ -67,3 +67,9 @@ CLAUDE.local.md
 # Claude Code local settings (never commit)
 .claude/
 CLAUDE.md
+
+# Codex conversations (private, large)
+.codexconversations/
+
+# Generated output (images, prompts)
+output/
