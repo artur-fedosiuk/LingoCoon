@@ -58,3 +58,8 @@ security_report/
 docs/
 .agents/
 .vscode/
+
+# Claude Code local config
+.claude/settings.local.json
+.claude/*.bak*
+CLAUDE.local.md
