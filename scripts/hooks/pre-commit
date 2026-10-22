@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# pre-commit hook - runs before each commit
+# Versioned in scripts/hooks/, installed to .git/hooks/
+
+set -euo pipefail
+
+echo "🔍 pre-commit: scanning for secrets..."
+npm run security:secrets
+
+echo "🔍 pre-commit: checking staged files for whitespace errors..."
+git diff --cached --check
+
+echo "🔍 pre-commit: type-checking..."
+npm run typecheck
+
+echo "✅ pre-commit: all checks passed"

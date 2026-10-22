@@ -5,9 +5,13 @@ on:
     branches:
       - main
       - 'codex/**'
+      - 'hardening/**'
+      - 'claude/**'
   pull_request:
     branches:
       - main
+      - 'hardening/**'
+      - 'claude/**'
 
 permissions:
   contents: read

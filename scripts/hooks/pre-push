@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# pre-push hook - runs before each push
+# Versioned in scripts/hooks/, installed to .git/hooks/
+# Reads remote refs from stdin (format: <local-ref> <local-sha> <remote-ref> <remote-sha>)
+
+set -euo pipefail
+
+# Read stdin to check what refs are being pushed
+while read local_ref local_sha remote_ref remote_sha; do
+    # Extract branch name from remote ref (refs/heads/<branch>)
+    remote_branch="${remote_ref#refs/heads/}"
+
+    # Block pushes to main or master
+    if [[ "$remote_branch" == "main" || "$remote_branch" == "master" ]]; then
+        echo "❌ pre-push: BLOCKED — pushes to '$remote_branch' are not allowed"
+        echo "   Use a feature branch and open a PR instead"
+        exit 1
+    fi
+done
+
+# If we get here, it's a push to a non-protected branch - run full check
+echo "🔍 pre-push: running full check pipeline on $remote_branch..."
+npm run check
+
+echo "✅ pre-push: all checks passed"
