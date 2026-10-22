@@ -84,4 +84,376 @@ begin
 end;
 $test$;
 
+-- study_progress RLS ownership enforcement tests
+-- Verifies that INSERT/UPDATE on study_progress requires the referenced card
+-- to belong to the same authenticated owner (via cards -> decks -> user_id).
+
+-- Setup: two test decks/cards owned by two different users
+do $test$
+declare
+  v_owner1_deck uuid;
+  v_owner1_card uuid;
+  v_owner2_deck uuid;
+  v_owner2_card uuid;
+begin
+  select id into v_owner1_deck from public.decks where user_id = '00000000-0000-0000-0000-000000000001'::uuid limit 1;
+  if v_owner1_deck is null then
+    insert into public.decks (id, user_id, name, language_from, language_to)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-000000000001'::uuid, 'Owner1 Deck', 'en', 'it')
+    returning id into v_owner1_deck;
+  end if;
+
+  select id into v_owner1_card from public.cards where deck_id = v_owner1_deck limit 1;
+  if v_owner1_card is null then
+    insert into public.cards (id, deck_id, front, back, difficulty)
+    values (gen_random_uuid(), v_owner1_deck, 'Owner1 Front', 'Owner1 Back', 0)
+    returning id into v_owner1_card;
+  end if;
+
+  select id into v_owner2_deck from public.decks where user_id = '00000000-0000-0000-0000-000000000002'::uuid limit 1;
+  if v_owner2_deck is null then
+    insert into public.decks (id, user_id, name, language_from, language_to)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-000000000002'::uuid, 'Owner2 Deck', 'en', 'it')
+    returning id into v_owner2_deck;
+  end if;
+
+  select id into v_owner2_card from public.cards where deck_id = v_owner2_deck limit 1;
+  if v_owner2_card is null then
+    insert into public.cards (id, deck_id, front, back, difficulty)
+    values (gen_random_uuid(), v_owner2_deck, 'Owner2 Front', 'Owner2 Back', 0)
+    returning id into v_owner2_card;
+  end if;
+
+  raise notice 'Test cards: owner1=%, owner2=%', v_owner1_card, v_owner2_card;
+end;
+$test$;
+
+-- Test 1: Owner can INSERT own study_progress for own card
+do $test$
+declare
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card);
+end;
+$test$;
+
+-- Test 2: Other user CANNOT INSERT study_progress for owner 1's card
+do $test$
+declare
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002'::uuid);
+  set local role authenticated;
+
+  begin
+    insert into public.study_progress (user_id, card_id)
+    values ('00000000-0000-0000-0000-000000000002'::uuid, v_card);
+    raise exception 'Expected RLS violation for cross-user study_progress INSERT';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Test 3: Owner can UPDATE own study_progress for own card
+do $test$
+declare
+  v_card uuid;
+  v_sp_id uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  update public.study_progress set quality_rating = 4 where id = v_sp_id;
+end;
+$test$;
+
+-- Test 4: Other user CANNOT UPDATE study_progress for owner 1's card
+do $test$
+declare
+  v_sp_id uuid;
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  reset role;
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+  set local role authenticated;
+
+  begin
+    update public.study_progress set quality_rating = 5 where id = v_sp_id;
+    raise exception 'Expected RLS violation for cross-user study_progress UPDATE';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Test 5: Anon CANNOT INSERT study_progress
+do $test$
+declare
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  set local role anon;
+
+  begin
+    insert into public.study_progress (user_id, card_id)
+    values ('00000000-0000-0000-0000-000000000001'::uuid, v_card);
+    raise exception 'Expected RLS violation for anon study_progress INSERT';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Test 6: Anon CANNOT UPDATE study_progress
+do $test$
+declare
+  v_sp_id uuid;
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  reset role;
+  set local role anon;
+
+  begin
+    update public.study_progress set quality_rating = 5 where id = v_sp_id;
+    raise exception 'Expected RLS violation for anon study_progress UPDATE';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Test 7: Owner CAN SELECT own study_progress
+do $test$
+declare
+  v_card uuid;
+  v_count int;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now());
+
+  select count(*) into v_count from public.study_progress where card_id = v_card;
+  if v_count <> 1 then
+    raise exception 'Owner SELECT failed: expected 1 row, got %', v_count;
+  end if;
+end;
+$test$;
+
+-- Test 8: Other user CANNOT SELECT owner 1's study_progress
+do $test$
+declare
+  v_card uuid;
+  v_count int;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now());
+
+  reset role;
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+  set local role authenticated;
+
+  select count(*) into v_count from public.study_progress where card_id = v_card;
+  if v_count <> 0 then
+    raise exception 'Other-user SELECT should return 0 rows, got %', v_count;
+  end if;
+end;
+$test$;
+
+-- Test 9: Anon CANNOT SELECT study_progress
+do $test$
+declare
+  v_card uuid;
+  v_count int;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now());
+
+  reset role;
+  set local role anon;
+
+  select count(*) into v_count from public.study_progress where card_id = v_card;
+  if v_count <> 0 then
+    raise exception 'Anon SELECT should return 0 rows, got %', v_count;
+  end if;
+end;
+$test$;
+
+-- Test 10: Owner can DELETE own study_progress
+do $test$
+declare
+  v_sp_id uuid;
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  delete from public.study_progress where id = v_sp_id;
+end;
+$test$;
+
+-- Test 11: Other user CANNOT DELETE owner 1's study_progress
+do $test$
+declare
+  v_sp_id uuid;
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  reset role;
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+  set local role authenticated;
+
+  begin
+    delete from public.study_progress where id = v_sp_id;
+    raise exception 'Expected RLS violation for cross-user study_progress DELETE';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Test 12: Anon CANNOT DELETE study_progress
+do $test$
+declare
+  v_sp_id uuid;
+  v_card uuid;
+begin
+  select c.id into v_card
+  from public.cards c
+  join public.decks d on d.id = c.deck_id
+  where d.user_id = '00000000-0000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now())
+  returning id into v_sp_id;
+
+  reset role;
+  set local role anon;
+
+  begin
+    delete from public.study_progress where id = v_sp_id;
+    raise exception 'Expected RLS violation for anon study_progress DELETE';
+  exception when insufficient_privilege then
+    null;
+  end;
+end;
+$test$;
+
+-- Cleanup: remove test data we created (rolled back anyway)
+delete from public.study_progress where user_id in (
+  '00000000-0000-0000-0000-000000000001'::uuid,
+  '00000000-0000-0000-0000-000000000002'::uuid
+);
+
+drop table public.__rls_probe;
+
 rollback;
