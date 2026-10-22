@@ -32,6 +32,8 @@ const grammarLabels: Record<string, Record<Exclude<ContextLanguage, 'en'>, strin
   uncountable: { it: 'non numerabile', fr: 'indénombrable', uk: 'незлічуваний' },
   singular: { it: 'singolare', fr: 'singulier', uk: 'однина' },
   plural: { it: 'plurale', fr: 'pluriel', uk: 'множина' },
+  'feminine noun': { it: 'sostantivo femminile', fr: 'nom féminin', uk: 'жіночий іменник' },
+  'masculine noun': { it: 'sostantivo maschile', fr: 'nom masculin', uk: 'чоловічий іменник' },
 };
 
 /** Translate recognizable grammar tags only; never rewrite free-form source quotations. */
