@@ -53,10 +53,7 @@ LingoCoonTTS.json
 
 # Private project work products
 CHEATSHEET.md
-AGENTS.md
 security_report/
-docs/
-.agents/
 .vscode/
 
 # Claude Code local config
