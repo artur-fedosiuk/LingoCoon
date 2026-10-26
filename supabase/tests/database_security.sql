@@ -448,6 +448,96 @@ begin
 end;
 $test$;
 
+-- Test 13: get_deck_stats returns zero rows for anon (ownership guard)
+do $test$
+declare
+  v_deck uuid;
+  v_total bigint;
+  v_to_review bigint;
+  v_mastered bigint;
+begin
+  select d.id into v_deck
+  from public.decks d
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  set local role anon;
+
+  select total_cards, cards_to_review, mastered_cards
+  into v_total, v_to_review, v_mastered
+  from public.get_deck_stats(v_deck);
+
+  if v_total <> 0 or v_to_review <> 0 or v_mastered <> 0 then
+    raise exception 'Anon get_deck_stats should return all zeros, got (%,%,%)', v_total, v_to_review, v_mastered;
+  end if;
+end;
+$test$;
+
+-- Test 14: get_deck_stats returns zero rows for other authenticated user (ownership guard)
+do $test$
+declare
+  v_deck uuid;
+  v_total bigint;
+  v_to_review bigint;
+  v_mastered bigint;
+begin
+  select d.id into v_deck
+  from public.decks d
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+  set local role authenticated;
+
+  select total_cards, cards_to_review, mastered_cards
+  into v_total, v_to_review, v_mastered
+  from public.get_deck_stats(v_deck);
+
+  if v_total <> 0 or v_to_review <> 0 or v_mastered <> 0 then
+    raise exception 'Other-user get_deck_stats should return all zeros, got (%,%,%)', v_total, v_to_review, v_mastered;
+  end if;
+end;
+$test$;
+
+-- Test 15: get_deck_stats returns actual stats for deck owner
+do $test$
+declare
+  v_deck uuid;
+  v_card uuid;
+  v_total bigint;
+  v_to_review bigint;
+  v_mastered bigint;
+begin
+  select d.id into v_deck
+  from public.decks d
+  where d.user_id = '00000000-0000-0000-0000-000000000001'::uuid
+  limit 1;
+
+  select c.id into v_card
+  from public.cards c
+  where c.deck_id = v_deck
+  limit 1;
+
+  -- Add a study_progress record that's due for review
+  select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+
+  insert into public.study_progress (user_id, card_id, quality_rating, last_reviewed_at, next_review_date)
+  values ('00000000-0000-0000-0000-000000000001'::uuid, v_card, 3, now(), now() - interval '1 day');
+
+  select total_cards, cards_to_review, mastered_cards
+  into v_total, v_to_review, v_mastered
+  from public.get_deck_stats(v_deck);
+
+  if v_total < 1 then
+    raise exception 'Owner get_deck_stats should return total_cards >= 1, got %', v_total;
+  end if;
+  if v_to_review < 1 then
+    raise exception 'Owner get_deck_stats should return cards_to_review >= 1, got %', v_to_review;
+  end if;
+end;
+$test$;
+
 -- Cleanup: remove test data we created (rolled back anyway)
 delete from public.study_progress where user_id in (
   '00000000-0000-0000-0000-000000000001'::uuid,
