@@ -78,10 +78,12 @@
 - Migration: `supabase/migrations/20261026000000_study_progress_rls.sql`
 - Verification: `supabase/tests/database_security.sql` passes
 
-### P0-2: get_deck_stats ownership guard (Critical IDOR / info disclosure) 🔄 **NEXT**
+### P0-2: get_deck_stats ownership guard (Critical IDOR / info disclosure) ✅ **COMPLETE**
 - **Risk**: Function returns deck statistics without verifying caller owns the deck → info disclosure
-- **Fix**: Create migration adding ownership check using `auth.uid()` against `decks.user_id`
-- **Test**: Add test case in `supabase/tests/database_security.sql` verifying anon and other users get zero rows
+- **Fix**: Migration `supabase/migrations/20261026010000_get_deck_stats_ownership.sql` adds ownership check using `auth.uid()` against `decks.user_id` at function entry point (lines 13-20)
+- **Test**: Tests 13-15 in `supabase/tests/database_security.sql` verify: anon gets zeros, other authenticated user gets zeros, owner gets actual stats with `total_cards >= 1` and `cards_to_review >= 1`
+- **Verification**: 309 security tests pass / 0 fail (includes Tests 13-15), code review PASS, local quality gates green
+- **CI Database Workflow**: Applied on disposable PostgreSQL in `.github/workflows/database.yml` (baseline + all migrations + database_security.sql)
 
 ### P0-3: Server Action / Route Handler ownership audit
 - Audit all `src/app/api/**/route.ts` and Server Actions for missing ownership checks

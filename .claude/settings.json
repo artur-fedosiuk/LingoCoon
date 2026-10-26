@@ -1,0 +1,108 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push * main*)",
+      "Bash(git push * master*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Read(.env*)",
+      "Read(.claude/**/*.bak*)",
+      "Edit(.env*)",
+      "Edit(.claude/**/*.bak*)"
+    ],
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log(JSON.stringify(process.argv, null, 2))\" node scripts/hooks/session-start-bootstrap.js)",
+      "Bash(npm run *)",
+      "Bash(node --test .claude/hooks/hooks.test.mjs)",
+      "Bash(git -C /Users/arturfedosyuk/Developer/LingoCoon status --short)",
+      "Bash(git -C /Users/arturfedosyuk/Developer/LingoCoon rev-parse --show-toplevel)",
+      "Bash(git -C /Users/arturfedosyuk/Developer/LingoCoon branch --show-current)",
+      "Bash(git -C /Users/arturfedosyuk/Developer/LingoCoon log --oneline -30)",
+      "Bash(git -C /Users/arturfedosyuk/Developer/LingoCoon branch -a)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git check-ignore *)",
+      "Bash(git restore *)",
+      "Bash(git rm *)",
+      "Bash(git reset *)",
+      "Bash(npm install *)",
+      "Bash(npm ci)",
+      "Bash(npm audit *)",
+      "Bash(npm view *)",
+      "Bash(npm ls *)",
+      "Bash(npm list *)",
+      "Bash(npm pack *)",
+      "Bash(npx vitest *)",
+      "Bash(node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/test-setup.mjs --test tests/*.test.mjs)",
+      "Bash(node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/test-setup.mjs -e ' *)",
+      "Bash(node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/test-setup.mjs --input-type=module -e ' *)",
+      "Bash(xargs grep -l \"server action|use server|deck|card\")",
+      "Bash(xargs grep -l '\"use server\"')",
+      "Bash(perl -pi -e 's/\\s+$//' /Users/arturfedosyuk/Developer/LingoCoon/docs/engineering/hardening-backlog.md)",
+      "Bash(grep -n '\\s$' /Users/arturfedosyuk/Developer/LingoCoon/docs/engineering/hardening-backlog.md)",
+      "Bash(npx supabase *)",
+      "Bash(docker pull *)",
+      "Bash(docker run *)",
+      "Bash(psql --version)",
+      "Bash(docker --version)",
+      "Bash(brew list *)",
+      "Bash(npx @supabase/cli --version)",
+      "Bash(ls /Applications/Postgres.app/Contents/Versions/ 2>/dev/null || echo \"Postgres.app not found\")",
+      "Bash(gh run *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:analytics.brew.sh)",
+      "Skill(insecure-defaults:audit)",
+      "Skill(insecure-defaults:audit:*)",
+      "Skill(static-analysis:semgrep-scan)",
+      "Skill(static-analysis:semgrep-scan:*)",
+      "Skill(differential-review:diff-review)",
+      "Skill(differential-review:diff-review:*)",
+      "Skill(audit-context-building:audit-context)",
+      "Skill(audit-context-building:audit-context:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/arturfedosyuk/Developer/LingoCoon/.claude"
+    ]
+  },
+  "outputStyle": "mentor-it",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|Glob|Grep|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-gate.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

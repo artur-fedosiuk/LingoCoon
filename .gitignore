@@ -56,17 +56,15 @@ CHEATSHEET.md
 security_report/
 .vscode/
 
-# Claude Code local config
+# Claude Code local config (only local/secret files)
 .claude/settings.local.json
 .claude/*.bak*
 CLAUDE.local.md
-
-# Claude Code local settings (never commit)
-.claude/
-CLAUDE.md
-
-# Codex conversations (private, large)
-.codexconversations/
+.claude/.cc-writes/
+.claude/.stop-gate-state/
 
 # Generated output (images, prompts)
 output/
+
+# Codex conversations (private, large)
+.codexconversations/
