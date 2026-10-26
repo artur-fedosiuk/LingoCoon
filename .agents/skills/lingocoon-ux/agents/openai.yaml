@@ -1,0 +1,6 @@
+interface:
+  display_name: "LingoCoon UX"
+  short_description: "Design accessible LingoCoon learning experiences"
+  default_prompt: "Use $lingocoon-ux to turn an approved LingoCoon product decision into a UX specification."
+policy:
+  allow_implicit_invocation: true
