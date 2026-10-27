@@ -30,8 +30,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 
-const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const PROJECT_DIR_LOWER = PROJECT_DIR.toLowerCase();
+function getProjectDir() {
+  return process.env.CLAUDE_PROJECT_DIR || process.cwd();
+}
+
+function getProjectDirLower() {
+  return getProjectDir().toLowerCase();
+}
 const ALLOWED_ENV_BASENAMES = new Set(['.env.example', '.env.local.example']);
 const ENV_TOUCHING_COMMANDS = ['cat', 'cp', 'mv', 'source', 'grep', 'head', 'tail', 'base64', 'sed', 'awk'];
 const FILE_READ_COMMANDS = ['node', 'python', 'python3', 'perl', 'ruby', 'sed', 'awk', 'head', 'tail', 'cat', 'grep'];
@@ -151,7 +156,7 @@ function getCommand(input) {
 // We strip the QUOTE CHARACTERS only, preserving content inside
 function stripShellQuoting(str) {
   return str
-    .replace(/\\./g, '')       // remove backslash escapes (keep the escaped char)
+    .replace(/\\/g, '')        // remove backslashes only
     .replace(/'/g, '')         // strip single quotes
     .replace(/"/g, '')         // strip double quotes
     .replace(/`/g, '');        // strip backticks
@@ -296,18 +301,48 @@ function isGitPushToMainOrMaster(subCmd) {
     return true;
   }
 
-  // Check every token after "git push" for main/master as destination
+  // Parse tokens after "git push"
   const afterPush = normalized.replace(/^git\s+push\s*/i, '');
-  const tokens = afterPush.split(/\s+/);
-  for (const token of tokens) {
-    if (refTargetsMainOrMaster(token)) return true;
+  const tokens = afterPush.split(/\s+/).filter(t => t.length > 0);
+
+  // Skip flags (tokens starting with '-')
+  const nonFlagTokens = tokens.filter(t => !t.startsWith('-'));
+
+  if (nonFlagTokens.length === 0) {
+    // No tokens at all - just "git push" (or only flags)
+    const currentBranch = getCurrentGitBranch();
+    if (currentBranch === 'main' || currentBranch === 'master') return true;
+    return false;
   }
 
-  // Check for "git push" with no refspec while on main/master branch
-  const noRefspec = /^git\s+push\s*(?:\s+\S+)?\s*$/i.test(normalized) || /^git\s+push\s+\S+\s*$/i.test(normalized);
-  if (noRefspec) {
+  // First non-flag token is the remote
+  // Remaining tokens are refspecs
+  const refspecs = nonFlagTokens.slice(1);
+
+  if (refspecs.length === 0) {
+    // No refspec provided - push current branch to same name on remote
     const currentBranch = getCurrentGitBranch();
-    if (currentBranch === 'main' || currentBranch === 'master') {
+    if (currentBranch === 'main' || currentBranch === 'master') return true;
+    return false;
+  }
+
+  // Check each refspec's destination
+  for (const refspec of refspecs) {
+    let dest;
+    if (refspec.includes(':')) {
+      // Format: src:dest (src can have + prefix for force)
+      dest = refspec.split(':')[1];
+    } else {
+      // Format: branch (pushes to same name on remote), may have + prefix
+      dest = refspec;
+    }
+    // Strip leading + (force push indicator)
+    dest = dest.replace(/^\+/, '');
+    // HEAD means current branch (command is lowercased, so check for 'head')
+    if (dest === 'head') {
+      dest = getCurrentGitBranch() || '';
+    }
+    if (dest === 'main' || dest === 'master' || dest === 'refs/heads/main' || dest === 'refs/heads/master') {
       return true;
     }
   }
