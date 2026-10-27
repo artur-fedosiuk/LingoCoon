@@ -8,12 +8,14 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/**/*.test.{ts,js,mts,mjs}'],
+    // Only run vitest-style tests (describe/it/expect). Exclude node:test files (*.test.mjs).
+    include: ['src/**/*.test.{ts,tsx,mts,mjs}', 'tests/**/*.vitest.{ts,tsx,mts,mjs}'],
     exclude: [
       'node_modules/**',
       '.next/**',
       '.claude/hooks/**',
       'tests/test-setup.mjs',
+      'tests/*.test.mjs',
     ],
     environment: 'node',
   },
