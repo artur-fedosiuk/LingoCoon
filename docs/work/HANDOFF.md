@@ -102,6 +102,23 @@
 - **MEDIUM**: Returning zero instead of error leaves small enumeration signal (intentional for API stability, UUIDs non-predictable)
 - **LOW**: Verify migration trailing newline
 
+## Guard Hook Fix: git push on main branch ✅ COMPLETE
+
+| Item | Status |
+| --- | --- |
+| Fixed `getProjectDir()` dynamic resolution | ✅ Replaced 7 static `PROJECT_DIR`/`PROJECT_DIR_LOWER` references with dynamic `getProjectDir()`/`getProjectDirLower()` calls |
+| Fixed test timing: `env` object captured `tempDir` before `before()` hook ran | ✅ Replaced static `env` const with `getEnv()` function evaluated at test time |
+| All 91 hook tests pass | ✅ `node --test .claude/hooks/hooks.test.mjs` → 91 pass / 0 fail (93 with 2 todo) |
+| B3: Added test.todo for known bypass gaps | ✅ `cat .e*` and `cat .??v` documented as test.todo |
+| B4: Updated guard.mjs header comment | ✅ Added known bypass gaps section |
+| B4: Simplified toolName check | ✅ `if (!toolName \|\| typeof toolName !== 'string' \|\| toolName.trim() === '')` → `if (!toolName.trim())` |
+| B5: Removed dead code in lint.mjs | ✅ Simplified toolName extraction (removed unused fallback chain) |
+| `npm run check` | ✅ 4/5 sub-commands pass (secrets sandbox-blocked on .env.local EPERM, not a code issue) |
+| `npm audit --audit-level=high` | ✅ 0 vulnerabilities |
+| `git diff --check` | ✅ Clean |
+
+Root cause: `getCurrentGitBranch()` used `cwd: PROJECT_DIR` where `PROJECT_DIR` was captured at module load time as `process.cwd()` (the main project directory, not the test's temp dir). The git push tests each create a temp git repo on `main`, but the hook always read the main project's branch (`hardening/foundation`), so "git push" on main was allowed. Fixing `getProjectDir()` to read `process.env.CLAUDE_PROJECT_DIR` at call time (as `runHook` passes via env override) makes branch detection correct per-test invocation.
+
 ## Phase C/D Status (Documentation Only — Not Implemented)
 
 | Item | Status |

@@ -455,6 +455,10 @@ describe('guard.mjs - bypass hardening', () => {
     const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'ls src' } });
     assert.strictEqual(result.code, 0);
   });
+
+  // Known bypass gaps (documented, not blocked yet) — test.todo
+  test.todo('blocks cat .e* (single-char wildcard after .e)');
+  test.todo('blocks cat .??v (three-char pattern)');
 });
 
 describe('guard.mjs - git push on main', () => {
@@ -478,37 +482,39 @@ describe('guard.mjs - git push on main', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const env = { CLAUDE_PROJECT_DIR: tempDir };
+  function getEnv() {
+    return { CLAUDE_PROJECT_DIR: tempDir };
+  }
 
   test('blocks git push origin HEAD on main', async () => {
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD' } }, getEnv());
     assert.strictEqual(result.code, 2);
   });
 
   test('blocks git push -u origin HEAD on main', async () => {
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push -u origin HEAD' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push -u origin HEAD' } }, getEnv());
     assert.strictEqual(result.code, 2);
   });
 
   test('blocks git push (no refspec) on main', async () => {
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push' } }, getEnv());
     assert.strictEqual(result.code, 2);
   });
 
   test('allows git push origin HEAD:feature/x on main', async () => {
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD:feature/x' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD:feature/x' } }, getEnv());
     assert.strictEqual(result.code, 0);
   });
 
   test('allows git push origin feature/x on main', async () => {
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin feature/x' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin feature/x' } }, getEnv());
     assert.strictEqual(result.code, 0);
   });
 
   test('allows git push origin HEAD on feature branch', async () => {
     // Switch to feature branch
     execFileSync('git', ['switch', '-c', 'feature/x'], { cwd: tempDir, stdio: 'ignore' });
-    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD' } }, env);
+    const result = await runHook(GUARD_HOOK, { tool_name: 'Bash', tool_input: { command: 'git push origin HEAD' } }, getEnv());
     assert.strictEqual(result.code, 0);
   });
 });

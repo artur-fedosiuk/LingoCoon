@@ -47,7 +47,7 @@ async function main() {
   }
 
   // Support both payload shapes (real shape has tool_input at top level)
-  const toolName = input.tool_name || input.name || (input.tool && input.tool.name) || (input.tool_input && input.tool_input.tool && input.tool_input.tool.name) || '';
+  const toolName = input.tool_name || input.name || (input.tool && input.tool.name) || '';
   const filePath = input.tool_input?.file_path
     || input.file_path
     || input.path

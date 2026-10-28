@@ -19,6 +19,10 @@
  *   * Commands using node, python, sed, awk to read .env* files.
  *   * Bare `env` or `printenv` without arguments (dumps all env vars).
  *
+ * Known bypass gaps (test.todo):
+ *   * cat .e* (single-char wildcard after .e)
+ *   * cat .??v (three-char pattern)
+ *
  * Paths are normalized (resolve against $CLAUDE_PROJECT_DIR, collapse ../,
  * case-insensitive, symlinks) before matching.
  *
@@ -94,21 +98,21 @@ function exitBlocked(reason) {
 
 function normalizeFilePath(filePath) {
   if (typeof filePath !== 'string' || filePath.length === 0) return null;
-  const resolved = path.resolve(PROJECT_DIR, filePath);
+  const resolved = path.resolve(getProjectDir(), filePath);
   let normalized = resolved;
   try {
     normalized = fs.realpathSync(resolved);
   } catch {}
-  // Symlink escape protection: resolved path must still be under PROJECT_DIR
+  // Symlink escape protection: resolved path must still be under getProjectDir()
   const resolvedLower = normalized.toLowerCase();
-  if (!resolvedLower.startsWith(PROJECT_DIR_LOWER + path.sep) && resolvedLower !== PROJECT_DIR_LOWER) {
+  if (!resolvedLower.startsWith(getProjectDirLower() + path.sep) && resolvedLower !== getProjectDirLower()) {
     return null;
   }
   return resolvedLower;
 }
 
 function isUnderDirectory(normalizedPath, directoryName) {
-  const rel = path.relative(PROJECT_DIR_LOWER, normalizedPath);
+  const rel = path.relative(getProjectDirLower(), normalizedPath);
   if (rel === '' || rel === directoryName) return true;
   const parts = rel.split(path.sep);
   return parts[0] === directoryName && !rel.startsWith('..');
@@ -191,7 +195,7 @@ function expandEnvVars(str) {
 function getCurrentGitBranch() {
   try {
     const output = execSync('git branch --show-current', {
-      cwd: PROJECT_DIR,
+      cwd: getProjectDir(),
       stdio: ['ignore', 'pipe', 'ignore'],
       encoding: 'utf8',
       timeout: 5000
@@ -371,9 +375,9 @@ function isCatastrophicRm(subCmd) {
     }
     // Also check if path resolves to project root
     try {
-      const resolved = path.resolve(PROJECT_DIR, expandedPath);
+      const resolved = path.resolve(getProjectDir(), expandedPath);
       const resolvedLower = resolved.toLowerCase();
-      if (resolvedLower === PROJECT_DIR_LOWER) {
+      if (resolvedLower === getProjectDirLower()) {
         return true;
       }
     } catch {}
@@ -467,7 +471,7 @@ async function main() {
   const { name: toolName, input: toolInput } = extractToolInfo(payload);
 
   // Fail-closed: unknown or empty tool name is a bypass attempt
-  if (!toolName || typeof toolName !== 'string' || toolName.trim() === '') {
+  if (!toolName.trim()) {
     exitBlocked('Missing or empty tool_name');
   }
 
