@@ -75,15 +75,19 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
     const clientConfig = readFileSync(resolve(ROOT, "src/instrumentation-client.ts"), "utf8");
     const serverConfig = readFileSync(resolve(ROOT, "src/sentry.server.config.ts"), "utf8");
 
-    // Client and server should have replayIntegration
+    // Client should have replayIntegration (browser only)
     assert.ok(/replayIntegration/.test(clientConfig), "client missing replayIntegration");
-    assert.ok(/replayIntegration/.test(serverConfig), "server missing replayIntegration");
 
-    // Sample rates configured (10% sessions, 100% errors)
+    // Server should NOT have replayIntegration (not available in Node.js SDK)
+    assert.ok(!/replayIntegration/.test(serverConfig), "server should not have replayIntegration (Node.js SDK doesn't support it)");
+
+    // Sample rates configured on client only (10% sessions, 100% errors)
     assert.ok(/replaysSessionSampleRate:\s*0\.1/.test(clientConfig), "client missing replaysSessionSampleRate");
     assert.ok(/replaysOnErrorSampleRate:\s*1\.0/.test(clientConfig), "client missing replaysOnErrorSampleRate");
-    assert.ok(/replaysSessionSampleRate:\s*0\.1/.test(serverConfig), "server missing replaysSessionSampleRate");
-    assert.ok(/replaysOnErrorSampleRate:\s*1\.0/.test(serverConfig), "server missing replaysOnErrorSampleRate");
+
+    // Server should NOT have sample rates (replay not supported) - check for uncommented active config
+    assert.ok(!/^[^/\n]*replaysSessionSampleRate:\s*0\.1/m.test(serverConfig), "server should not have active replaysSessionSampleRate");
+    assert.ok(!/^[^/\n]*replaysOnErrorSampleRate:\s*1\.0/m.test(serverConfig), "server should not have active replaysOnErrorSampleRate");
 
     // Edge should NOT have replay (not supported in edge runtime) - check for uncommented active config
     const edgeConfig = readFileSync(resolve(ROOT, "src/sentry.edge.config.ts"), "utf8");
