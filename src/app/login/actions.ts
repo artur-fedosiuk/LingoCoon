@@ -28,7 +28,15 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(credentials);
 
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    console.error('[AUTH DEBUG] signInWithPassword failed:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      name: error.name,
+    });
+    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath('/', 'layout');
   redirect('/onboarding');
