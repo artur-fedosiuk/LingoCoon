@@ -62,9 +62,11 @@ security_report/
 CLAUDE.local.md
 .claude/.cc-writes/
 .claude/.stop-gate-state/
-
 # Generated output (images, prompts)
 output/
 
+# Claude Code private rules
+CLAUDE.md
+
 # Codex conversations (private, large)
-.codexconversations/CLAUDE.md
+.codexconversations/
