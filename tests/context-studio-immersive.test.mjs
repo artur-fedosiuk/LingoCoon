@@ -127,7 +127,7 @@ test('sentence pairs align by ID, preserve paragraphs/absolute offsets and rejec
   assert.equal(new Set(aligned.map((pair) => pair.paragraph)).size, 3);
 });
 
-test('dictionary previews are local, language-scoped and honestly absent when unknown', () => {
+test('fallback glossary is language-scoped and honestly absent when unknown', () => {
   assert.deepEqual(dictionary.dictionaryTranslations(dictionary.localReaderDictionary('To,', 'en', 'it')), ['a', 'verso', 'per', 'di']);
   assert.equal(dictionary.localReaderDictionary('unknownword', 'en', 'it'), null);
   assert.equal(dictionary.localReaderDictionary('colleague', 'fr', 'it'), null);
@@ -209,4 +209,25 @@ test('provider failures discard raw bodies instead of logging or throwing their 
   t.mock.method(globalThis, 'fetch', async () => new Response('private echoed learner material', { status: 429 }));
   await assert.rejects(transport.sendStructuredRequestToGemini('Translate the supplied text.', history, options), { message: 'Gemini API request failed (429).' });
   assert.equal(errors.mock.callCount(), 0);
+});
+
+
+test('hover and dictionary share contextual work without conflating repeated bank meanings', async () => {
+  const { createReaderCache } = await import('../src/lib/context-studio/reader-cache.ts');
+  const cache = createReaderCache();
+  const keyFor = (word) => dictionary.readerExplanationKey(session, word, pairs.find((pair) => pair.id === word.sentenceId));
+  const pending = Promise.withResolvers();
+  let calls = 0;
+  const request = () => { calls += 1; return pending.promise; };
+  const hover = cache.load(keyFor(banks[0]), request);
+  const openedDictionary = cache.load(keyFor(banks[0]), request);
+  await Promise.resolve();
+  assert.equal(calls, 1);
+  const river = await cache.load(keyFor(banks[1]), async () => ({ translation: 'riva' }));
+  pending.resolve({ translation: 'banca' });
+  assert.deepEqual(await hover, { translation: 'banca' });
+  assert.deepEqual(await openedDictionary, { translation: 'banca' });
+  assert.deepEqual(river, { translation: 'riva' });
+  assert.deepEqual(await cache.load(keyFor(banks[0]), () => { throw new Error('Unexpected repeated request'); }), { translation: 'banca' });
+  assert.deepEqual(cache.peek(keyFor(banks[1])), { translation: 'riva' });
 });

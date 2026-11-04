@@ -1,0 +1,6 @@
+interface:
+  display_name: "LingoCoon Product"
+  short_description: "Design personalized language-learning product experiences"
+  default_prompt: "Use $lingocoon-product to reason about LingoCoon product, learning design, personalization, AI tutoring, and roadmap decisions."
+policy:
+  allow_implicit_invocation: true

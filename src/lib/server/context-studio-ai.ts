@@ -26,11 +26,14 @@ export const contextDictionaryRequestSchema = z.object({
   ...languageShape,
   word: z.string().trim().min(1).max(160),
 }).strict();
+const noHtml = z.string().refine((val) => !/<[^>]*>/.test(val), { message: 'HTML is not allowed' });
+const noHtmlTranslation = noHtml.min(1).max(120);
+
 const dictionaryResponseSchema = z.object({
   ...languageShape,
   senses: z.array(z.object({
-    partOfSpeech: z.string().trim().min(1).max(80),
-    translations: z.array(z.string().trim().min(1).max(120)).min(1).max(6),
+    partOfSpeech: noHtml,
+    translations: z.array(noHtmlTranslation).min(1).max(6),
     definition: z.string().trim().min(1).max(300).nullable(),
   }).strict()).min(1).max(6),
 }).strict();
@@ -62,7 +65,7 @@ export function parseContextDictionary(raw: string, languages: ContextLanguages)
 export const CONTEXT_DICTIONARY_JSON_SCHEMA = z.toJSONSchema(dictionaryResponseSchema);
 
 export class InvalidContextStudioResponseError extends Error {
-  constructor() { super('Invalid Context Studio response.'); }
+  constructor() { super('Invalid Context Studio response.'); this.name = 'InvalidContextStudioResponseError'; }
 }
 
 function languageRules(languages: ContextLanguages): string {

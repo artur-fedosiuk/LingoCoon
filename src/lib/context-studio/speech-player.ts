@@ -19,6 +19,7 @@ export function wordAudioRequest(session: ContextSession, word: ReaderSelection)
   return {
     // Chirp supplies no word boundaries: pronounce the selection independently.
     input: { text: word.text, language: session.sourceLanguage, voice: 'female', speed: 1, mode: 'sentence' },
+    purpose: 'lexical-preview',
     side: 'source', spans: [{ start: 0, end: word.text.length, sentenceId: unit.id, tokens: [] }],
   };
 }
@@ -40,6 +41,10 @@ export function pairsAudioRequest(session: ContextSession, pairs: readonly Sente
   return {
     input: { text: parts.join('\n'), language: side === 'source' ? session.sourceLanguage : session.nativeLanguage, voice: 'female', speed: 1, mode: mode === 'document' ? 'reading' : 'sentence' },
     side, spans,
+    ...(mode === 'document' ? { sequence: parts.map((text, index) => ({
+      input: { text, language: side === 'source' ? session.sourceLanguage : session.nativeLanguage, voice: 'female' as const, speed: 1, mode: 'sentence' as const },
+      sentenceId: spans[index].sentenceId, offset: spans[index].start,
+    })) } : {}),
   };
 }
 

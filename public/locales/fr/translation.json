@@ -457,6 +457,24 @@
     "settings": "Paramètres"
   },
   "context_studio": {
+    "redesign": {
+      "hide_translation": "Masquer la traduction",
+      "show_translation": "Afficher la traduction",
+      "more": "Autres options",
+      "keyboard": "Raccourcis clavier",
+      "player_shortcuts": "Espace : lecture ou pause. Flèches : avancer ou reculer de 10 secondes. Maj + flèches : phrase précédente ou suivante. Ces raccourcis ne s’appliquent pas à la saisie ou à la navigation entre les mots.",
+      "about_audio": "À propos de l’audio",
+      "timing_note": "Le suivi des phrases utilise l’audio reçu. Le minutage des mots est indisponible. La vitesse peut aussi modifier la hauteur de la voix. L’audio est préparé à l’avance ; la durée totale apparaît ensuite.",
+      "previous": "Phrase précédente",
+      "next": "Phrase suivante",
+      "audio_language": "Langue audio",
+      "pronouncing": "Prononciation du mot…",
+      "resume_document": "Reprendre la lecture audio",
+      "pronounce": "Écouter le mot",
+      "expand_dictionary": "Agrandir le dictionnaire",
+      "collapse_dictionary": "Réduire le dictionnaire",
+      "return_playback": "Revenir à la lecture"
+    },
     "audio": {
       "label": "Audio du texte",
       "play": "Lire",

@@ -7,10 +7,16 @@ export interface AudioSpan {
   start: number; end: number; sentenceId: string;
   tokens: ReadonlyArray<{ id: string; start: number; end: number }>;
 }
-export interface AudioRequest { input: TtsInput; side: AudioSide; spans: readonly AudioSpan[] }
+export interface AudioRequest {
+  input: TtsInput; side: AudioSide; spans: readonly AudioSpan[];
+  /** Client playback intent is independent of the provider's synthesis mode. */
+  purpose?: 'lexical-preview';
+  sequence?: readonly { input: TtsInput; sentenceId: string; offset: number }[];
+}
 export type AudioStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 export interface AudioSnapshot {
   queued: boolean;
+  canPrevious: boolean; canNext: boolean;
   status: AudioStatus; currentTime: number; bufferedDuration: number; duration: number | null;
   playbackRate: number; mode: TtsInput['mode']; side: AudioSide;
   error: TtsErrorCode | null; hasPausedReading: boolean;
@@ -19,13 +25,14 @@ export interface AudioWordSnapshot {
   status: AudioStatus; sentenceId: string | null; tokenId: string | null;
   mode: TtsInput['mode']; side: AudioSide;
 }
-export const IDLE_AUDIO: AudioSnapshot = { queued: false, status: 'idle', currentTime: 0, bufferedDuration: 0, duration: null, playbackRate: 1, mode: 'reading', side: 'source', error: null, hasPausedReading: false };
+export const IDLE_AUDIO: AudioSnapshot = { queued: false, canPrevious: false, canNext: false, status: 'idle', currentTime: 0, bufferedDuration: 0, duration: null, playbackRate: 1, mode: 'reading', side: 'source', error: null, hasPausedReading: false };
 export const IDLE_AUDIO_WORD: AudioWordSnapshot = { status: 'idle', sentenceId: null, tokenId: null, mode: 'reading', side: 'source' };
 
 type Chunk = { samples: Float32Array; start: number };
 type Recording = {
   queued: boolean;
   request: AudioRequest; abort: AbortController; chunks: Chunk[]; frames: number;
+  segments: { sentenceId: string; start: number; end: number }[];
   words: WordAlignment[]; complete: boolean; clip: { start: number; end: number } | null;
   position: number; anchorTime: number | null; anchorFrame: number; scheduledFrame: number;
   wantsPlay: boolean; ready: boolean; error: TtsErrorCode | null;
@@ -37,6 +44,7 @@ type Options = {
   /** Tests advance the injected audio clock and call tick; no second timing algorithm. */
   autoTick?: boolean;
   streamTimeoutMs?: number;
+  sequencePaceMs?: number;
 };
 
 function errorCode(error: unknown, fallback: TtsErrorCode): TtsErrorCode {
@@ -45,7 +53,7 @@ function errorCode(error: unknown, fallback: TtsErrorCode): TtsErrorCode {
   return error instanceof SyntaxError ? 'invalid_audio' : fallback;
 }
 
-export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fetch(...args), autoTick = true, streamTimeoutMs = 45_000 }: Options) {
+export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fetch(...args), autoTick = true, streamTimeoutMs = 45_000, sequencePaceMs = 1_000 }: Options) {
   let active: Recording | null = null;
   let heldReading: Recording | null = null;
   let disposed = false;
@@ -61,6 +69,9 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
   const endFrame = (recording: Recording) => recording.clip?.end ?? recording.frames;
   const position = (recording: Recording) => recording.anchorTime === null ? recording.position : Math.min(recording.scheduledFrame, recording.anchorFrame + Math.max(0, driver.currentTime - recording.anchorTime) * rate * TTS_SAMPLE_RATE);
   const status = (recording: Recording): AudioStatus => recording.error ? 'error' : !recording.wantsPlay ? 'paused' : recording.anchorTime !== null && position(recording) < recording.scheduledFrame ? 'playing' : 'loading';
+
+  const isPreview = (request: AudioRequest) => request.purpose === 'lexical-preview' || request.input.mode === 'word';
+  const currentSegment = (recording: Recording, frame: number) => recording.segments.findIndex((segment) => segment.start <= frame && frame < segment.end);
 
   function notify(forcePosition = false) {
     const recording = active;
@@ -79,10 +90,12 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
       if (word && time >= word.endTime) word = undefined;
     }
     const span = word ? recording?.request.spans.find((item) => item.start <= word.start && word.end <= item.end) : undefined;
+    const segmentIndex = recording ? currentSegment(recording, frame) : -1;
+    const segment = recording?.segments[segmentIndex];
     const token = word ? span?.tokens.find((item) => item.start <= word.start && word.start < item.end) : undefined;
     const nextWord: AudioWordSnapshot = recording ? {
-      status: state, sentenceId: span?.sentenceId ?? null, tokenId: token?.id ?? null,
-      mode: recording.request.input.mode, side: recording.request.side,
+      status: state, sentenceId: span?.sentenceId ?? (state === 'playing' ? segment?.sentenceId ?? null : null), tokenId: token?.id ?? null,
+      mode: isPreview(recording.request) ? 'word' : recording.request.input.mode, side: recording.request.side,
     } : IDLE_AUDIO_WORD;
     if (Object.keys(nextWord).some((key) => nextWord[key as keyof AudioWordSnapshot] !== wordSnapshot[key as keyof AudioWordSnapshot])) {
       wordSnapshot = nextWord;
@@ -90,13 +103,15 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
     }
     const next: AudioSnapshot = recording ? {
       queued: recording.queued,
+      canPrevious: !isPreview(recording.request) && recording.segments.length > 0 && frame > 0,
+      canNext: !isPreview(recording.request) && recording.segments.some((item) => item.start > frame && item.end > item.start),
       status: state, currentTime: Math.max(0, frame - startFrame(recording)) / TTS_SAMPLE_RATE,
       bufferedDuration: recording.request.input.mode === 'word' && !recording.clip ? 0 : Math.max(0, Math.min(recording.frames, endFrame(recording)) - startFrame(recording)) / TTS_SAMPLE_RATE,
       duration: recording.clip ? (recording.clip.end - recording.clip.start) / TTS_SAMPLE_RATE : recording.complete ? recording.frames / TTS_SAMPLE_RATE : null,
-      playbackRate: rate, mode: recording.request.input.mode, side: recording.request.side,
+      playbackRate: rate, mode: isPreview(recording.request) ? 'word' : recording.request.input.mode, side: recording.request.side,
       error: recording.error, hasPausedReading: !!heldReading,
     } : { ...IDLE_AUDIO, playbackRate: rate };
-    const structuralChange = next.queued !== snapshot.queued || next.status !== snapshot.status || next.error !== snapshot.error || next.mode !== snapshot.mode || next.side !== snapshot.side || next.hasPausedReading !== snapshot.hasPausedReading || next.playbackRate !== snapshot.playbackRate;
+    const structuralChange = next.canPrevious !== snapshot.canPrevious || next.canNext !== snapshot.canNext || next.queued !== snapshot.queued || next.status !== snapshot.status || next.error !== snapshot.error || next.mode !== snapshot.mode || next.side !== snapshot.side || next.hasPausedReading !== snapshot.hasPausedReading || next.playbackRate !== snapshot.playbackRate;
     if (forcePosition || structuralChange || driver.currentTime - lastPositionNotice >= 0.25) {
       if (Object.keys(next).some((key) => next[key as keyof AudioSnapshot] !== snapshot[key as keyof AudioSnapshot])) {
         snapshot = next;
@@ -145,7 +160,7 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
     if (frame >= end) {
       if (recording.complete || recording.clip) {
         recording.wantsPlay = false;
-        if (recording.request.input.mode === 'word') {
+        if (isPreview(recording.request)) {
           if (!restoreReading()) { cancel(recording); driver.stop(); active = null; }
         }
       }
@@ -194,65 +209,93 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
     recording.clip = { start, end };
     recording.position = start;
   }
+  async function waitForLookahead(recording: Recording, earliest: number) {
+    const signal = recording.abort.signal;
+    while (live(recording) && (!recording.wantsPlay || recording.frames - position(recording) > 20 * TTS_SAMPLE_RATE || Date.now() < earliest)) {
+      await new Promise<void>((resolve) => {
+        const finish = () => { clearTimeout(wait); signal.removeEventListener('abort', finish); resolve(); };
+        const wait = setTimeout(finish, 100);
+        signal.addEventListener('abort', finish, { once: true });
+      });
+    }
+  }
+
   async function load(recording: Recording) {
     const { signal } = recording.abort;
     const armTimeout = () => {
       clearTimeout(recording.timeout);
       recording.timeout = setTimeout(() => fail(recording, 'timeout'), streamTimeoutMs);
     };
-    armTimeout();
+    const parts = recording.request.sequence ?? [{ input: recording.request.input, offset: 0, sentenceId: recording.request.spans.length === 1 ? recording.request.spans[0].sentenceId : null }];
+    let lastDispatch = 0;
     try {
-      const response = await fetchAdmittedAudio('/api/tts', {
-        method: 'POST', mode: 'same-origin', credentials: 'same-origin', redirect: 'error', signal,
-        headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
-        body: JSON.stringify(recording.request.input),
-      }, { fetch: fetchAudio, onQueued: () => { recording.queued = true; armTimeout(); notify(true); } });
-      recording.queued = false;
-      armTimeout();
-      if (!live(recording)) { void response.body?.cancel().catch(() => {}); return; }
-      if (!response.ok) {
-        const error: unknown = await response.json().catch(() => null);
-        throw new TtsError(errorCode(error, 'provider_failure'));
-      }
-      if (!response.headers.get('content-type')?.toLowerCase().startsWith('application/x-ndjson') || !response.body) throw new TtsError('invalid_audio');
-      let started = false;
-      // Pipe cancellation reaches a pending reader even if a mocked fetch ignores abort.
-      const stream = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>(), { signal });
-      for await (const raw of readNdjson(stream)) {
+      for (let index = 0; index < parts.length; index += 1) {
+        const part = parts[index];
+        if (index) await waitForLookahead(recording, lastDispatch + sequencePaceMs);
         if (!live(recording)) return;
+        lastDispatch = Date.now();
         armTimeout();
-        const parsed = ttsEventSchema.safeParse(raw);
-        if (!parsed.success || recording.complete) throw new TtsError('invalid_audio');
-        const event = parsed.data;
-        if (event.type === 'error') throw new TtsError(event.code);
-        if (event.type === 'start') {
-          if (started) throw new TtsError('invalid_audio');
-          started = true;
-        } else {
-          if (!started) throw new TtsError('invalid_audio');
-          if (event.type === 'audio') {
-            const samples = decodePcm16(event.pcm);
-            if (recording.frames + samples.length > 600 * TTS_SAMPLE_RATE) throw new TtsError('invalid_audio');
-            recording.chunks.push({ samples, start: recording.frames });
-            recording.frames += samples.length;
-          } else if (event.type === 'alignment') {
-            for (const word of event.words) {
-              const previous = recording.words.at(-1);
-              if (word.end > recording.request.input.text.length || word.endTime > 600 || (previous && (word.start < previous.end || word.startTime < previous.endTime))) throw new TtsError('invalid_audio');
-              recording.words.push(word);
-            }
-            if (recording.words.length > MAX_TTS_CHARACTERS) throw new TtsError('invalid_audio');
-            resolveClip(recording);
-          } else if (event.type === 'complete') {
-            if (!recording.frames || Math.abs(event.duration - recording.frames / TTS_SAMPLE_RATE) > 0.05 || recording.words.some((word) => word.endTime > recording.frames / TTS_SAMPLE_RATE + 0.05)) throw new TtsError('invalid_audio');
-            if (recording.request.input.mode === 'word' && (!recording.clip || recording.clip.end > recording.frames)) throw new TtsError('alignment_unavailable');
-            recording.complete = true;
-          }
+        const response = await fetchAdmittedAudio('/api/tts', {
+          method: 'POST', mode: 'same-origin', credentials: 'same-origin', redirect: 'error', signal,
+          headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
+          body: JSON.stringify(part.input),
+        }, { fetch: fetchAudio, onQueued: () => { recording.queued = true; armTimeout(); notify(true); } });
+        recording.queued = false;
+        armTimeout();
+        if (!live(recording)) { void response.body?.cancel().catch(() => {}); return; }
+        if (!response.ok) {
+          const error: unknown = await response.json().catch(() => null);
+          throw new TtsError(errorCode(error, 'provider_failure'));
         }
-        if (recording === active) runClock();
+        if (!response.headers.get('content-type')?.toLowerCase().startsWith('application/x-ndjson') || !response.body) throw new TtsError('invalid_audio');
+        let started = false;
+        let complete = false;
+        const baseFrame = recording.frames;
+        const baseWord = recording.words.length;
+        const segment = part.sentenceId ? { sentenceId: part.sentenceId, start: baseFrame, end: baseFrame } : null;
+        if (segment) recording.segments.push(segment);
+        const stream = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>(), { signal });
+        for await (const raw of readNdjson(stream)) {
+          if (!live(recording)) return;
+          armTimeout();
+          const parsed = ttsEventSchema.safeParse(raw);
+          if (!parsed.success || complete) throw new TtsError('invalid_audio');
+          const event = parsed.data;
+          if (event.type === 'error') throw new TtsError(event.code);
+          if (event.type === 'start') {
+            if (started) throw new TtsError('invalid_audio');
+            started = true;
+          } else {
+            if (!started) throw new TtsError('invalid_audio');
+            if (event.type === 'audio') {
+              const samples = decodePcm16(event.pcm);
+              if (recording.frames + samples.length > 600 * TTS_SAMPLE_RATE) throw new TtsError('invalid_audio');
+              recording.chunks.push({ samples, start: recording.frames });
+              recording.frames += samples.length;
+              if (segment) segment.end = recording.frames;
+            } else if (event.type === 'alignment') {
+              for (const rawWord of event.words) {
+                if (rawWord.end > part.input.text.length) throw new TtsError('invalid_audio');
+                const word = { ...rawWord, start: rawWord.start + part.offset, end: rawWord.end + part.offset, startTime: rawWord.startTime + baseFrame / TTS_SAMPLE_RATE, endTime: rawWord.endTime + baseFrame / TTS_SAMPLE_RATE };
+                const previous = recording.words.at(-1);
+                if (word.endTime > 600 || (previous && (word.start < previous.end || word.startTime < previous.endTime))) throw new TtsError('invalid_audio');
+                recording.words.push(word);
+              }
+              if (recording.words.length > MAX_TTS_CHARACTERS) throw new TtsError('invalid_audio');
+              resolveClip(recording);
+            } else if (event.type === 'complete') {
+              if (recording.frames === baseFrame || Math.abs(event.duration - (recording.frames - baseFrame) / TTS_SAMPLE_RATE) > 0.05 || recording.words.slice(baseWord).some((word) => word.endTime > recording.frames / TTS_SAMPLE_RATE + 0.05)) throw new TtsError('invalid_audio');
+              if (recording.request.input.mode === 'word' && (!recording.clip || recording.clip.end > recording.frames)) throw new TtsError('alignment_unavailable');
+              complete = true;
+              recording.complete = index === parts.length - 1;
+            }
+          }
+          if (recording === active) runClock();
+        }
+        if (!complete) throw new TtsError('interrupted');
+        clearTimeout(recording.timeout);
+        if (recording === active) notify(true);
       }
-      if (live(recording) && !recording.complete) throw new TtsError('interrupted');
-      if (recording === active) notify(true);
     } catch (error) {
       if (live(recording)) fail(recording, errorCode(error, 'interrupted'));
     } finally { clearTimeout(recording.timeout); }
@@ -261,19 +304,19 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
   function play(request: AudioRequest) {
     if (disposed) return;
     if (active) freeze(active);
-    if (request.input.mode === 'word' && active?.request.input.mode === 'reading') {
+    if (isPreview(request) && active?.request.input.mode === 'reading') {
       cancel(heldReading);
       heldReading = active;
       heldReading.wantsPlay = false;
     } else cancel(active);
-    if (request.input.mode !== 'word') { cancel(heldReading); heldReading = null; }
+    if (!isPreview(request)) { cancel(heldReading); heldReading = null; }
     const recording: Recording = {
-      queued: false, request, abort: new AbortController(), chunks: [], frames: 0, words: [], complete: false, clip: null,
+      queued: false, request, abort: new AbortController(), chunks: [], segments: [], frames: 0, words: [], complete: false, clip: null,
       position: 0, anchorTime: null, anchorFrame: 0, scheduledFrame: 0, wantsPlay: true, ready: false, error: null,
     };
     active = recording;
     const parsed = ttsInputSchema.safeParse(request.input);
-    if (!parsed.success) { fail(recording, 'invalid_input'); return; }
+    if (!parsed.success || (request.sequence && (!request.sequence.length || request.sequence.length > 400 || request.sequence.some((part) => !ttsInputSchema.safeParse(part.input).success || part.input.mode !== 'sentence' || request.input.text.slice(part.offset, part.offset + part.input.text.length) !== part.input.text)))) { fail(recording, 'invalid_input'); return; }
     recording.request = { ...request, input: parsed.data };
     notify(true);
     activate(recording);
@@ -308,6 +351,14 @@ export function createAudioSession({ driver, fetch: fetchAudio = (...args) => fe
   }
   return {
     play, pause, resume, seek, stop, tick,
+    stepSentence(direction: -1 | 1) {
+      if (!active || active.error || isPreview(active.request)) return;
+      const frame = position(active);
+      const index = currentSegment(active, frame);
+      const current = index < 0 ? active.segments.length - 1 : index;
+      const target = direction === 1 ? active.segments[current + 1] : active.segments[frame - (active.segments[current]?.start ?? 0) > TTS_SAMPLE_RATE ? current : Math.max(0, current - 1)];
+      if (target && target.end > target.start) seek(target.start / TTS_SAMPLE_RATE);
+    },
     getSnapshot: () => snapshot,
     getWordSnapshot: () => wordSnapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },

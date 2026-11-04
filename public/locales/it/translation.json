@@ -457,6 +457,24 @@
     "settings": "Impostazioni"
   },
   "context_studio": {
+    "redesign": {
+      "hide_translation": "Nascondi traduzione",
+      "show_translation": "Mostra traduzione",
+      "more": "Altre opzioni",
+      "keyboard": "Scorciatoie da tastiera",
+      "player_shortcuts": "Spazio: riproduci o metti in pausa. Frecce: sposta di 10 secondi. Maiusc + frecce: frase precedente o successiva. Questi comandi non intervengono durante la scrittura o la navigazione tra parole.",
+      "about_audio": "Informazioni audio",
+      "timing_note": "La frase segue l’audio ricevuto. I tempi delle singole parole non sono disponibili. La velocità può modificare anche il tono. L’audio viene preparato in anticipo; la durata totale compare al termine della preparazione.",
+      "previous": "Frase precedente",
+      "next": "Frase successiva",
+      "audio_language": "Lingua dell’audio",
+      "pronouncing": "Pronuncia della parola…",
+      "resume_document": "Riprendi l’ascolto del testo",
+      "pronounce": "Ascolta la parola",
+      "expand_dictionary": "Espandi dizionario",
+      "collapse_dictionary": "Riduci dizionario",
+      "return_playback": "Torna all’ascolto"
+    },
     "audio": {
       "label": "Audio del testo",
       "play": "Riproduci",

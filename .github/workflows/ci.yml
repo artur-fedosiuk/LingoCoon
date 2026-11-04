@@ -5,9 +5,13 @@ on:
     branches:
       - main
       - 'codex/**'
+      - 'hardening/**'
+      - 'claude/**'
   pull_request:
     branches:
       - main
+      - 'hardening/**'
+      - 'claude/**'
 
 permissions:
   contents: read
@@ -55,3 +59,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high

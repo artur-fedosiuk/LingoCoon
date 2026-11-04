@@ -1,5 +1,6 @@
 import type { ContextSession, ContextTranslation, ContextUnit } from '../../types/context-studio';
 import { buildContextUnits, MAX_FOCUS_PHRASES } from './reader-contract';
+export { MAX_FOCUS_PHRASES };
 
 export interface ReaderToken {
   id: string;

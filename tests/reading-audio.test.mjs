@@ -18,7 +18,9 @@ const { TTS_ERROR_CODES } = await import('../src/lib/reading-tts/contract.ts');
 const sampleRate = 24_000;
 const session = { sourceText: '😀 We read, then read again.\n\nThe bank is near the river.', sourceLanguage: 'en', nativeLanguage: 'it', revision: 1 };
 const pairs = buildSentencePairs(session, null);
-const documentRequest = pairsAudioRequest(session, pairs, 'source', 'document');
+const sequenceRequest = pairsAudioRequest(session, pairs, 'source', 'document');
+// The transport tests below also cover legacy whole-document streams.
+const { sequence: documentSequence, ...documentRequest } = sequenceRequest;
 const selected = selectReaderToken(pairs[0], pairs[0].sourceTokens.filter((token) => token.text === 'read')[1]);
 const standaloneWordRequest = wordAudioRequest(session, selected);
 // Alignment-engine fixtures remain separate from the unaligned Chirp UI adapter.
@@ -389,4 +391,112 @@ test('Web Audio driver creates one context, schedules decoded PCM and disconnect
   oldEnd();
   driver.dispose();
   assert.equal(contexts[0].state, 'closed');
+});
+
+test('sentence sequence starts immediately and seeks across real PCM boundaries without word estimates', async (t) => {
+  const h = harness(t, { sequencePaceMs: 0 });
+  const first = await h.play(sequenceRequest);
+  assert.deepEqual(JSON.parse(first.init.body), documentSequence[0].input);
+  first.send(start, audio(2));
+  await flush();
+  h.advance(.4);
+  assert.equal(h.player.getSpeechSnapshot().sentenceId, pairs[0].id);
+  assert.equal(h.player.getSpeechSnapshot().tokenId, null);
+  assert.equal(h.player.getSnapshot().canNext, false);
+  first.send(complete(2)); first.end(); await flush();
+  assert.equal(h.requests.length, 2);
+  h.requests[1].send(start, audio(3), complete(3)); h.requests[1].end(); await flush();
+  assert.equal(h.player.getSnapshot().duration, 5);
+  assert.equal(h.player.getSnapshot().canNext, true);
+  h.player.stepSentence(1); h.advance(.1);
+  assert.equal(h.player.getSpeechSnapshot().sentenceId, pairs[1].id);
+  assert.equal(h.player.getSpeechSnapshot().tokenId, null);
+  h.player.stepSentence(-1); h.advance(.1);
+  assert.equal(h.player.getSpeechSnapshot().sentenceId, pairs[0].id);
+  h.player.seek(3); h.advance(.1);
+  assert.equal(h.player.getSpeechSnapshot().sentenceId, pairs[1].id);
+  h.player.pause();
+  const paused = h.player.getSnapshot().currentTime;
+  h.player.setRate(1.5); h.advance(2);
+  closeTo(h.player.getSnapshot().currentTime, paused);
+  h.player.resume(); await flush(); h.advance(.3);
+  assert.ok(h.player.getSnapshot().currentTime > paused);
+});
+
+test('standalone Google pronunciation holds the real document buffer and explicitly resumes it', async (t) => {
+  const h = harness(t);
+  const document = await h.play();
+  document.send(start, audio(10), complete(10)); document.end(); await flush(); h.advance(2);
+  const saved = h.player.getSnapshot().currentTime;
+  const word = await h.play(standaloneWordRequest);
+  assert.equal(JSON.parse(word.init.body).mode, 'sentence');
+  assert.equal(JSON.parse(word.init.body).purpose, undefined);
+  assert.equal(h.player.getSnapshot().hasPausedReading, true);
+  assert.equal(h.player.getSnapshot().mode, 'word');
+  word.send(start, audio(.5), complete(.5)); word.end(); await flush(); h.advance(1);
+  assert.equal(h.player.getSnapshot().status, 'paused');
+  assert.equal(h.player.getSnapshot().mode, 'reading');
+  closeTo(h.player.getSnapshot().currentTime, saved);
+  h.player.resume(); await flush(); h.advance(.3);
+  assert.ok(h.player.getSnapshot().currentTime > saved);
+  assert.equal(h.requests.length, 2);
+});
+
+test('sequence buffering never claims a future sentence and errors do not dispatch retries', async (t) => {
+  const h = harness(t, { sequencePaceMs: 0 });
+  const first = await h.play(sequenceRequest);
+  first.send(start, audio(1), complete(1)); first.end(); await flush();
+  h.advance(2);
+  assert.equal(h.player.getSnapshot().status, 'loading');
+  assert.equal(h.player.getSpeechSnapshot().sentenceId, null);
+  h.requests[1].send(start, { type: 'error', code: 'quota_exceeded' });
+  await flush();
+  assert.equal(h.player.getSnapshot().error, 'quota_exceeded');
+  assert.equal(h.requests.length, 2);
+  h.advance(100);
+  assert.equal(h.requests.length, 2);
+});
+
+test('sequence lookahead remains bounded and stop cancels undispatched work', async (t) => {
+  const h = harness(t, { sequencePaceMs: 0, streamTimeoutMs: 20 });
+  const first = await h.play(sequenceRequest);
+  first.send(start, audio(25), complete(25)); first.end(); await flush();
+  await new Promise((resolve) => setTimeout(resolve, 35));
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.player.getSnapshot().error, null);
+  h.player.stop();
+  await new Promise((resolve) => setTimeout(resolve, 110));
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.player.getSnapshot().status, 'idle');
+});
+
+test('sequence validates each duration against its own frames', async (t) => {
+  const h = harness(t, { sequencePaceMs: 0 });
+  const first = await h.play(sequenceRequest);
+  first.send(start, audio(2), complete(2)); first.end(); await flush();
+  h.requests[1].send(start, audio(3), complete(5));
+  await flush();
+  assert.equal(h.player.getSnapshot().error, 'invalid_audio');
+});
+
+test('word preview preserves an incomplete sentence sequence while its pending audio finishes', async (t) => {
+  const h = harness(t, { sequencePaceMs: 0 });
+  const first = await h.play(sequenceRequest);
+  first.send(start, audio(2), complete(2)); first.end(); await flush();
+  const second = h.requests[1];
+  h.advance(.5);
+  const saved = h.player.getSnapshot().currentTime;
+  const word = await h.play(standaloneWordRequest);
+  second.send(start, audio(3), complete(3)); second.end(); await flush();
+  word.send(start, audio(.5), complete(.5)); word.end(); await flush();
+  h.advance(1);
+  assert.equal(h.player.getSnapshot().status, 'paused');
+  closeTo(h.player.getSnapshot().currentTime, saved);
+  assert.equal(h.player.getSnapshot().duration, 5);
+  assert.equal(h.player.getSnapshot().canNext, true);
+  h.player.resume(); await flush(); h.advance(.3);
+  assert.ok(h.player.getSnapshot().currentTime > saved);
+  assert.equal(h.requests.length, 3);
+  h.player.stop();
+  assert.ok(h.requests.every((request) => request.init.signal.aborted));
 });

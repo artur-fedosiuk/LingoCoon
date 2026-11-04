@@ -170,7 +170,7 @@ function scanCurrentTree() {
     try {
       stat = lstatSync(absolutePath);
     } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      if (error instanceof Error && "code" in error && (error.code === "ENOENT" || error.code === "EPERM")) {
         continue;
       }
       throw error;

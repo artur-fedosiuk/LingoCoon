@@ -1,0 +1,6 @@
+interface:
+  display_name: "LingoCoon AI Learning"
+  short_description: "Design the personalized AI learning engine"
+  default_prompt: "Use $lingocoon-ai-learning to specify a safe, testable personalized learning workflow."
+policy:
+  allow_implicit_invocation: true

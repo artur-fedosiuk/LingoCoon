@@ -1,0 +1,6 @@
+interface:
+  display_name: "LingoCoon Research"
+  short_description: "Research product and learning decisions with evidence"
+  default_prompt: "Use $lingocoon-research to produce an evidence-based research brief for LingoCoon."
+policy:
+  allow_implicit_invocation: true

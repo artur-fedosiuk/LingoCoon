@@ -1,0 +1,6 @@
+interface:
+  display_name: "LingoCoon Minimal"
+  short_description: "Apply LingoCoon's monochrome accessible visual system"
+  default_prompt: "Use $lingocoon-minimal to review or design LingoCoon UI against the approved visual system."
+policy:
+  allow_implicit_invocation: true
