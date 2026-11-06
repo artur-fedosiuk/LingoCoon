@@ -28,6 +28,10 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(credentials);
 
+  logAuthDebug('signInWithPassword result', {
+    error: error ? { message: error.message, code: error.code, status: error.status } : null,
+  });
+
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath('/', 'layout');
@@ -39,12 +43,20 @@ export async function signup(formData: FormData) {
   if (!credentials) redirect('/login?error=Email and password are required');
 
   const siteUrl = getSiteUrl();
+  const emailRedirectTo = `${siteUrl}/auth/callback?next=/onboarding`;
+
+  logAuthDebug('signup start', { siteUrl, emailRedirectTo });
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     ...credentials,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/onboarding`,
+      emailRedirectTo,
     },
+  });
+
+  logAuthDebug('signUp result', {
+    error: error ? { message: error.message, code: error.code, status: error.status } : null,
   });
 
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
@@ -53,12 +65,21 @@ export async function signup(formData: FormData) {
   redirect('/login?message=Check your email to confirm your account');
 }
 
+function logAuthDebug(label: string, data: Record<string, unknown>) {
+  console.log(`[AUTH ACTIONS DEBUG] ${label}:`, JSON.stringify(data, null, 2));
+}
+
 export async function loginWithGoogle() {
+  const siteUrl = getSiteUrl();
+  const redirectTo = `${siteUrl}/auth/callback?next=/onboarding`;
+
+  logAuthDebug('loginWithGoogle start', { siteUrl, redirectTo });
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${getSiteUrl()}/auth/callback?next=/onboarding`,
+      redirectTo,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -66,8 +87,17 @@ export async function loginWithGoogle() {
     },
   });
 
-  if (error || !data.url) redirect('/login?error=Could not start Google login');
+  logAuthDebug('signInWithOAuth result', {
+    error: error ? { message: error.message, code: error.code, status: error.status } : null,
+    url: data.url,
+  });
 
+  if (error || !data.url) {
+    logAuthDebug('redirecting to login with error', { error: error?.message });
+    redirect('/login?error=Could not start Google login');
+  }
+
+  logAuthDebug('redirecting to Google', { url: data.url });
   redirect(data.url);
 }
 
