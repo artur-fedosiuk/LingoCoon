@@ -27,21 +27,22 @@ function isLocalUrl(value: string | null) {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
-function getVercelSiteUrl() {
-  return (
-    parseHttpOrigin(addHttpsProtocol(process.env.VERCEL_PROJECT_PRODUCTION_URL)) ??
-    parseHttpOrigin(addHttpsProtocol(process.env.VERCEL_URL)) ??
-    parseHttpOrigin(addHttpsProtocol(process.env.VERCEL_BRANCH_URL))
-  );
+function getVercelStableSiteUrl() {
+  return parseHttpOrigin(addHttpsProtocol(process.env.VERCEL_PROJECT_PRODUCTION_URL));
 }
 
 export function getSiteUrl(fallbackUrl = DEFAULT_LOCAL_SITE_URL): string {
   const configuredSiteUrl = parseHttpOrigin(process.env.NEXT_PUBLIC_SITE_URL);
-  const vercelSiteUrl = getVercelSiteUrl();
+  const vercelStableSiteUrl = getVercelStableSiteUrl();
 
   if (process.env.VERCEL === '1') {
     if (configuredSiteUrl && !isLocalUrl(configuredSiteUrl)) return configuredSiteUrl;
-    if (vercelSiteUrl) return vercelSiteUrl;
+    if (vercelStableSiteUrl) return vercelStableSiteUrl;
+
+    throw new Error(
+      'NEXT_PUBLIC_SITE_URL or VERCEL_PROJECT_PRODUCTION_URL must be set on Vercel. ' +
+      'Deployment-specific VERCEL_URL is not a valid site origin for auth cookies.'
+    );
   }
 
   return configuredSiteUrl ?? parseHttpOrigin(fallbackUrl) ?? DEFAULT_LOCAL_SITE_URL;
