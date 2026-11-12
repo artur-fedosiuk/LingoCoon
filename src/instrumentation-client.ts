@@ -11,15 +11,8 @@ Sentry.init({
   // 100% in dev, 10% in production
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
 
-  // Session Replay: 10% of all sessions, 100% of sessions with errors
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-
-  integrations: [
-    Sentry.replayIntegration(),
-    // Optional: user feedback widget
-    // Sentry.feedbackIntegration({ colorScheme: "system" }),
-  ],
+  // Session Replay is disabled until a privacy review and a user-consent flow exist.
+  integrations: [],
 
   // Filter events before sending - scrub sensitive data
   beforeSend: (event) => {

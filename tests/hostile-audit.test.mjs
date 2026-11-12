@@ -18,9 +18,17 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
     // Should not log full request bodies or headers
     assert.ok(!/console\.log|console\.error/.test(healthRoute), "health route contains console.log/error");
 
-    // Should return minimal non-sensitive state only (check source has all fields in response object)
-    assert.ok(/status[^}]*timestamp[^}]*latencyMs[^}]*checks[^}]*version[^}]*environment/.test(healthRoute), "health route missing expected response fields");
+    // Health endpoint is liveness-only: returns ONLY { status: "ok" } with Cache-Control no-store
+    // No timestamp, latencyMs, checks, version, environment fields (they would leak info)
+    assert.ok(/status\s*:\s*"ok"/.test(healthRoute), "health route missing status ok");
     assert.ok(/Cache-Control.*no-store/.test(healthRoute), "health route missing Cache-Control no-store");
+    // Verify NO extra fields in the JSON response that would leak database/provider/environment details
+    // Use a regex that matches field definitions in the response object, not comments
+    assert.ok(!/return\s+NextResponse\.json\(\s*\{[^}]*timestamp/.test(healthRoute), "health route must not include timestamp in response (leaks timing)");
+    assert.ok(!/return\s+NextResponse\.json\(\s*\{[^}]*latencyMs/.test(healthRoute), "health route must not include latencyMs in response (leaks internals)");
+    assert.ok(!/return\s+NextResponse\.json\(\s*\{[^}]*checks/.test(healthRoute), "health route must not include checks in response (leaks DB/provider status)");
+    assert.ok(!/return\s+NextResponse\.json\(\s*\{[^}]*version/.test(healthRoute), "health route must not include version in response (leaks build info)");
+    assert.ok(!/return\s+NextResponse\.json\(\s*\{[^}]*environment/.test(healthRoute), "health route must not include environment in response (leaks deployment)");
   });
 
   // 2. Verify Sentry beforeSend scrubs auth, cookies, and sensitive fields
@@ -70,31 +78,32 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
     }
   });
 
-  // 4. Verify Session Replay configured with privacy-safe defaults
-  await test("Session Replay uses privacy-safe configuration (no DOM text capture, masked inputs)", () => {
+  // 4. Verify Session Replay is DISABLED (privacy review + user consent required before enable)
+  await test("Session Replay is disabled until privacy review and user consent flow exist", () => {
     const clientConfig = readFileSync(resolve(ROOT, "src/instrumentation-client.ts"), "utf8");
     const serverConfig = readFileSync(resolve(ROOT, "src/sentry.server.config.ts"), "utf8");
+    const edgeConfig = readFileSync(resolve(ROOT, "src/sentry.edge.config.ts"), "utf8");
 
-    // Client should have replayIntegration (browser only)
-    assert.ok(/replayIntegration/.test(clientConfig), "client missing replayIntegration");
+    // Client should have integrations: [] (empty), NO replayIntegration, NO sample rates
+    assert.ok(/integrations:\s*\[\s*\]/.test(clientConfig), "client must have empty integrations array (replay disabled)");
+    assert.ok(!/replayIntegration/.test(clientConfig), "client must not have replayIntegration (replay disabled)");
+    assert.ok(!/replaysSessionSampleRate/.test(clientConfig), "client must not have replaysSessionSampleRate (replay disabled)");
+    assert.ok(!/replaysOnErrorSampleRate/.test(clientConfig), "client must not have replaysOnErrorSampleRate (replay disabled)");
 
     // Server should NOT have replayIntegration (not available in Node.js SDK)
     assert.ok(!/replayIntegration/.test(serverConfig), "server should not have replayIntegration (Node.js SDK doesn't support it)");
-
-    // Sample rates configured on client only (10% sessions, 100% errors)
-    assert.ok(/replaysSessionSampleRate:\s*0\.1/.test(clientConfig), "client missing replaysSessionSampleRate");
-    assert.ok(/replaysOnErrorSampleRate:\s*1\.0/.test(clientConfig), "client missing replaysOnErrorSampleRate");
 
     // Server should NOT have sample rates (replay not supported) - check for uncommented active config
     assert.ok(!/^[^/\n]*replaysSessionSampleRate:\s*0\.1/m.test(serverConfig), "server should not have active replaysSessionSampleRate");
     assert.ok(!/^[^/\n]*replaysOnErrorSampleRate:\s*1\.0/m.test(serverConfig), "server should not have active replaysOnErrorSampleRate");
 
     // Edge should NOT have replay (not supported in edge runtime) - check for uncommented active config
-    const edgeConfig = readFileSync(resolve(ROOT, "src/sentry.edge.config.ts"), "utf8");
-    // Only match uncommented lines (not starting with //)
     assert.ok(!/^[^/\n]*replaysSessionSampleRate:\s*0\.1/m.test(edgeConfig), "edge should not have active replaysSessionSampleRate");
     assert.ok(!/^[^/\n]*replaysOnErrorSampleRate:\s*1\.0/m.test(edgeConfig), "edge should not have active replaysOnErrorSampleRate");
     assert.ok(!/^[^/\n]*replayIntegration\(\)/m.test(edgeConfig), "edge should not have replayIntegration");
+
+    // Verify comment documents the privacy rationale
+    assert.ok(/Session Replay is disabled until a privacy review and a user-consent flow exist/.test(clientConfig), "client missing privacy rationale comment for disabled replay");
   });
 
   // 5. Verify error boundaries capture to Sentry without exposing sensitive data
