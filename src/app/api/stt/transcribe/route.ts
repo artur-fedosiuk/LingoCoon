@@ -53,8 +53,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const detail = await response.text();
-      console.error('STT API error:', response.status, detail);
+      console.error('STT API error:', { status: response.status });
 
       return NextResponse.json(
         { error: getSttErrorMessage(response.status) },
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    console.error('STT API route error:', error);
+    console.error('STT API route error:', { name: error instanceof Error ? error.name : 'UnknownError' });
     return NextResponse.json({ error: 'Speech recognition failed.' }, { status: 500 });
   }
 }

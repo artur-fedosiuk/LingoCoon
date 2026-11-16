@@ -23,16 +23,15 @@ function getCredentials(formData: FormData) {
 
 export async function login(formData: FormData) {
   const credentials = getCredentials(formData);
-  if (!credentials) redirect('/login?error=Email and password are required');
+  if (!credentials) redirect('/login?error=fill_all_fields');
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(credentials);
 
-  logAuthDebug('signInWithPassword result', {
-    error: error ? { message: error.message, code: error.code, status: error.status } : null,
-  });
-
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    console.error('[AUTH ACTIONS ERROR] signInWithPassword', { code: error.code, status: error.status });
+    redirect(`/login?error=${error.code ?? 'unknown'}`);
+  }
 
   revalidatePath('/', 'layout');
   redirect('/onboarding');
@@ -40,12 +39,10 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const credentials = getCredentials(formData);
-  if (!credentials) redirect('/login?error=Email and password are required');
+  if (!credentials) redirect('/login?error=fill_all_fields');
 
   const siteUrl = getSiteUrl();
   const emailRedirectTo = `${siteUrl}/auth/callback?next=/onboarding`;
-
-  logAuthDebug('signup start', { siteUrl, emailRedirectTo });
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
@@ -55,25 +52,18 @@ export async function signup(formData: FormData) {
     },
   });
 
-  logAuthDebug('signUp result', {
-    error: error ? { message: error.message, code: error.code, status: error.status } : null,
-  });
-
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    console.error('[AUTH ACTIONS ERROR] signUp', { code: error.code, status: error.status });
+    redirect(`/login?error=${error.code ?? 'unknown'}`);
+  }
 
   revalidatePath('/', 'layout');
-  redirect('/login?message=Check your email to confirm your account');
-}
-
-function logAuthDebug(label: string, data: Record<string, unknown>) {
-  console.log(`[AUTH ACTIONS DEBUG] ${label}:`, JSON.stringify(data, null, 2));
+  redirect('/login?message=email_confirmation_sent');
 }
 
 export async function loginWithGoogle() {
   const siteUrl = getSiteUrl();
   const redirectTo = `${siteUrl}/auth/callback?next=/onboarding`;
-
-  logAuthDebug('loginWithGoogle start', { siteUrl, redirectTo });
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -87,17 +77,13 @@ export async function loginWithGoogle() {
     },
   });
 
-  logAuthDebug('signInWithOAuth result', {
-    error: error ? { message: error.message, code: error.code, status: error.status } : null,
-    url: data.url,
-  });
-
   if (error || !data.url) {
-    logAuthDebug('redirecting to login with error', { error: error?.message });
-    redirect('/login?error=Could not start Google login');
+    if (error) {
+      console.error('[AUTH ACTIONS ERROR] signInWithOAuth', { code: error.code, status: error.status });
+    }
+    redirect('/login?error=oauth_error');
   }
 
-  logAuthDebug('redirecting to Google', { url: data.url });
   redirect(data.url);
 }
 
