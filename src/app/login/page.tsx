@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { login, loginWithGoogle, signup } from '@/app/login/actions';
+import { resolveAuthAlert } from '@/lib/auth-alerts';
 
 export default function LoginPage() {
   return (
@@ -19,12 +20,14 @@ export default function LoginPage() {
 function LoginContent() {
   const searchParams = useSearchParams();
   const { t } = useTranslation();
-  const error = searchParams.get('error');
-  const rawMessage = searchParams.get('message');
-  const message =
-    rawMessage === 'onboarding_complete' || rawMessage?.includes('Create an account to save')
-      ? t('onboarding.create_account_to_save')
-      : rawMessage;
+
+  // Use centralized resolveAuthAlert for secure error/message handling
+  const errorParam = searchParams.get('error');
+  const messageParam = searchParams.get('message');
+  const { errorKey, messageKey } = resolveAuthAlert(errorParam, messageParam);
+
+  const errorMessage = errorKey ? t(errorKey) : null;
+  const message = messageKey ? t(messageKey) : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -33,7 +36,7 @@ function LoginContent() {
           {t('auth.login_title')} - LingoCoon
         </h1>
 
-        {error && <Alert className="border-red-200 bg-red-50 text-red-600">{error}</Alert>}
+        {errorMessage && <Alert className="border-red-200 bg-red-50 text-red-600">{errorMessage}</Alert>}
         {message && <Alert className="border-green-200 bg-green-50 text-green-600">{message}</Alert>}
 
         <form className="mb-6">

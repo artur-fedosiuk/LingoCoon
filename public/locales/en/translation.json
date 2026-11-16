@@ -42,7 +42,29 @@
       "fill_all_fields": "Fill in all fields",
       "password_min_length": "Password must be at least 6 characters",
       "passwords_not_match": "Passwords don't match",
-      "invalid_email": "Enter a valid email"
+      "invalid_email": "Enter a valid email",
+      "invalid_credentials": "Invalid email or password",
+      "email_not_confirmed": "Please confirm your email before signing in",
+      "user_not_found": "No account found with this email",
+      "weak_password": "Password is too weak. Use at least 6 characters.",
+      "user_already_exists": "An account with this email already exists",
+      "signup_disabled": "Sign up is currently disabled",
+      "email_conflict": "This email is already associated with another account",
+      "reauthentication_needed": "Please sign in again to continue",
+      "session_not_found": "Your session has expired. Please sign in again.",
+      "token_expired": "The confirmation link has expired. Please request a new one.",
+      "invalid_token": "The confirmation link is invalid or has been used.",
+      "oauth_error": "Could not sign in with this provider. Please try again.",
+      "provider_disabled": "This sign-in method is not available.",
+      "unauthorized": "You are not authorized to perform this action.",
+      "forbidden": "Access denied.",
+      "server_error": "An unexpected error occurred. Please try again.",
+      "unknown": "An error occurred. Please try again."
+    },
+    "messages": {
+      "email_confirmation_sent": "Check your email to confirm your account",
+      "password_reset_sent": "Password reset email sent",
+      "signed_out": "You have been signed out"
     }
   },
   "onboarding": {
