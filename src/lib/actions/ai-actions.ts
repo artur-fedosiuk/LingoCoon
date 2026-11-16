@@ -58,7 +58,7 @@ export async function sendTutorConversation(
     });
   } catch (error) {
     const message = getHumanReadableAiError(error);
-    console.error('[sendTutorConversation]', message, error);
+    console.error('[sendTutorConversation]', { name: error instanceof Error ? error.name : 'UnknownError' });
     throw new Error(message);
   }
 }

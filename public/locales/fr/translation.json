@@ -42,7 +42,29 @@
       "fill_all_fields": "Remplissez tous les champs",
       "password_min_length": "Le mot de passe doit contenir au moins 6 caractères",
       "passwords_not_match": "Les mots de passe ne correspondent pas",
-      "invalid_email": "Entrez un email valide"
+      "invalid_email": "Entrez un email valide",
+      "invalid_credentials": "Email ou mot de passe invalide",
+      "email_not_confirmed": "Veuillez confirmer votre email avant de vous connecter",
+      "user_not_found": "Aucun compte trouvé avec cet email",
+      "weak_password": "Le mot de passe est trop faible. Utilisez au moins 6 caractères.",
+      "user_already_exists": "Un compte avec cet email existe déjà",
+      "signup_disabled": "L'inscription est actuellement désactivée",
+      "email_conflict": "Cet email est déjà associé à un autre compte",
+      "reauthentication_needed": "Veuillez vous reconnecter pour continuer",
+      "session_not_found": "Votre session a expiré. Veuillez vous reconnecter.",
+      "token_expired": "Le lien de confirmation a expiré. Veuillez en demander un nouveau.",
+      "invalid_token": "Le lien de confirmation est invalide ou a déjà été utilisé.",
+      "oauth_error": "Impossible de se connecter avec ce fournisseur. Veuillez réessayer.",
+      "provider_disabled": "Cette méthode de connexion n'est pas disponible.",
+      "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+      "forbidden": "Accès refusé.",
+      "server_error": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+      "unknown": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "messages": {
+      "email_confirmation_sent": "Vérifiez votre email pour confirmer votre compte",
+      "password_reset_sent": "Email de réinitialisation du mot de passe envoyé",
+      "signed_out": "Vous avez été déconnecté"
     }
   },
   "onboarding": {
