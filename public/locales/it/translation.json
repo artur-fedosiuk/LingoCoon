@@ -42,7 +42,29 @@
       "fill_all_fields": "Compila tutti i campi",
       "password_min_length": "La password deve essere di almeno 6 caratteri",
       "passwords_not_match": "Le password non corrispondono",
-      "invalid_email": "Inserisci un'email valida"
+      "invalid_email": "Inserisci un'email valida",
+      "invalid_credentials": "Email o password non validi",
+      "email_not_confirmed": "Conferma la tua email prima di accedere",
+      "user_not_found": "Nessun account trovato con questa email",
+      "weak_password": "La password è troppo debole. Usa almeno 6 caratteri.",
+      "user_already_exists": "Esiste già un account con questa email",
+      "signup_disabled": "La registrazione è attualmente disabilitata",
+      "email_conflict": "Questa email è già associata a un altro account",
+      "reauthentication_needed": "Effettua di nuovo l'accesso per continuare",
+      "session_not_found": "La tua sessione è scaduta. Accedi di nuovo.",
+      "token_expired": "Il link di conferma è scaduto. Richiedine uno nuovo.",
+      "invalid_token": "Il link di conferma non è valido o è già stato usato.",
+      "oauth_error": "Impossibile accedere con questo provider. Riprova.",
+      "provider_disabled": "Questo metodo di accesso non è disponibile.",
+      "unauthorized": "Non sei autorizzato a eseguire questa azione.",
+      "forbidden": "Accesso negato.",
+      "server_error": "Si è verificato un errore imprevisto. Riprova.",
+      "unknown": "Si è verificato un errore. Riprova."
+    },
+    "messages": {
+      "email_confirmation_sent": "Controlla la tua email per confermare l'account",
+      "password_reset_sent": "Email per il reset della password inviata",
+      "signed_out": "Sei stato disconnesso"
     }
   },
   "onboarding": {
