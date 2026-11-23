@@ -52,12 +52,12 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
     assert.ok(/headers\.cookie\s*=\s*"\[REDACTED\]"/.test(scrubEventModule), "missing cookie scrub in scrub-event module");
     assert.ok(/headers\[["']x-forwarded-for["']\]\s*=\s*"\[REDACTED\]"/.test(scrubEventModule), "missing x-forwarded-for scrub in scrub-event module");
 
-    // Scrubs cookies
-    assert.ok(/event\.request\.cookies\s*=\s*\{\s*"\[REDACTED\]"\s*:\s*"\[REDACTED\]"\s*\}/.test(scrubEventModule), "missing cookies scrub in scrub-event module");
+    // Scrubs cookies (deletes entirely)
+    assert.ok(/delete event\.request\.cookies/.test(scrubEventModule), "missing cookies deletion in scrub-event module");
 
     // Scrubs URL completely (removes query string entirely to prevent ?code= leaks)
     assert.ok(/delete event\.request\.query_string/.test(scrubEventModule), "missing query_string deletion in scrub-event module");
-    assert.ok(/urlObj\.origin \+ urlObj\.pathname/.test(scrubEventModule), "missing URL query string removal in scrub-event module");
+    assert.ok(/stripQueryString/.test(scrubEventModule), "missing URL query string removal in scrub-event module");
 
     // Scrubs span attributes (url.full, url.query, http.url, http.query, http.target) and span name
     assert.ok(/scrubStreamedSpanAttributes/.test(scrubEventModule), "missing scrubStreamedSpanAttributes in scrub-event module");
