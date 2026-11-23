@@ -36,7 +36,8 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
     const clientConfig = readFileSync(resolve(ROOT, "src/instrumentation-client.ts"), "utf8");
     const serverConfig = readFileSync(resolve(ROOT, "src/sentry.server.config.ts"), "utf8");
     const edgeConfig = readFileSync(resolve(ROOT, "src/sentry.edge.config.ts"), "utf8");
-    const sharedModule = readFileSync(resolve(ROOT, "src/lib/sentry-scrub.ts"), "utf8");
+    const scrubEventModule = readFileSync(resolve(ROOT, "src/lib/observability/scrub-event.ts"), "utf8");
+    const traceModule = readFileSync(resolve(ROOT, "src/lib/sentry-scrub.ts"), "utf8");
 
     // Config files must call the scrub functions
     const configs = [clientConfig, serverConfig, edgeConfig];
@@ -45,33 +46,32 @@ test("Phase 3 hostile audit — 6 bypass attempts against observability stack", 
       assert.ok(/scrubStreamedSpan\(span\)/.test(config), "config missing scrubStreamedSpan call");
     }
 
-    // Shared module must contain the actual scrubbing patterns
+    // scrub-event.ts must contain the actual scrubbing patterns for request data
     // Scrubs headers (exact pattern used in code - allows single or double quotes)
-    assert.ok(/headers\.authorization\s*=\s*"\[REDACTED\]"/.test(sharedModule), "missing authorization scrub in shared module");
-    assert.ok(/headers\.cookie\s*=\s*"\[REDACTED\]"/.test(sharedModule), "missing cookie scrub in shared module");
-    assert.ok(/headers\[["']x-forwarded-for["']\]\s*=\s*"\[REDACTED\]"/.test(sharedModule), "missing x-forwarded-for scrub in shared module");
+    assert.ok(/headers\.authorization\s*=\s*"\[REDACTED\]"/.test(scrubEventModule), "missing authorization scrub in scrub-event module");
+    assert.ok(/headers\.cookie\s*=\s*"\[REDACTED\]"/.test(scrubEventModule), "missing cookie scrub in scrub-event module");
+    assert.ok(/headers\[["']x-forwarded-for["']\]\s*=\s*"\[REDACTED\]"/.test(scrubEventModule), "missing x-forwarded-for scrub in scrub-event module");
 
-    // Scrubs cookies
-    assert.ok(/event\.request\.cookies\s*=\s*\{\s*"\[REDACTED\]"\s*:\s*"\[REDACTED\]"\s*\}/.test(sharedModule), "missing cookies scrub in shared module");
+    // Scrubs cookies (deletes entirely)
+    assert.ok(/delete event\.request\.cookies/.test(scrubEventModule), "missing cookies deletion in scrub-event module");
 
-    // Scrubs sensitive frame variables (password, secret, token, key, authorization, cookie, credit_card, api_key)
-    assert.ok(/lowerKey\.includes\(["']password["']\)/.test(sharedModule), "missing password scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']secret["']\)/.test(sharedModule), "missing secret scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']token["']\)/.test(sharedModule), "missing token scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']key["']\)/.test(sharedModule), "missing key scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']authorization["']\)/.test(sharedModule), "missing authorization scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']cookie["']\)/.test(sharedModule), "missing cookie scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']credit_card["']\)/.test(sharedModule), "missing credit_card scrub in shared module");
-    assert.ok(/lowerKey\.includes\(["']api_key["']\)/.test(sharedModule), "missing api_key scrub in shared module");
+    // Scrubs URL completely (removes query string entirely to prevent ?code= leaks)
+    assert.ok(/delete event\.request\.query_string/.test(scrubEventModule), "missing query_string deletion in scrub-event module");
+    assert.ok(/stripQueryString/.test(scrubEventModule), "missing URL query string removal in scrub-event module");
 
     // Scrubs span attributes (url.full, url.query, http.url, http.query, http.target) and span name
-    assert.ok(/scrubStreamedSpanAttributes/.test(sharedModule), "missing scrubStreamedSpanAttributes in shared module");
-    assert.ok(/url\.full/.test(sharedModule), "missing url.full scrub in shared module");
-    assert.ok(/url\.query/.test(sharedModule), "missing url.query scrub in shared module");
-    assert.ok(/http\.url/.test(sharedModule), "missing http.url scrub in shared module");
-    assert.ok(/http\.query/.test(sharedModule), "missing http.query scrub in shared module");
-    assert.ok(/http\.target/.test(sharedModule), "missing http.target scrub in shared module");
-    assert.ok(/span\.name/.test(sharedModule), "missing span.name scrub in shared module");
+    assert.ok(/scrubStreamedSpanAttributes/.test(scrubEventModule), "missing scrubStreamedSpanAttributes in scrub-event module");
+    assert.ok(/url\.full/.test(scrubEventModule), "missing url.full scrub in scrub-event module");
+    assert.ok(/url\.query/.test(scrubEventModule), "missing url.query scrub in scrub-event module");
+    assert.ok(/http\.url/.test(scrubEventModule), "missing http.url scrub in scrub-event module");
+    assert.ok(/http\.query/.test(scrubEventModule), "missing http.query scrub in scrub-event module");
+    assert.ok(/http\.target/.test(scrubEventModule), "missing http.target scrub in scrub-event module");
+    assert.ok(/span\.name/.test(scrubEventModule), "missing span.name scrub in scrub-event module");
+
+    // sentry-scrub.ts must contain traceSampleRate and SENSITIVE_QUERY_PARAMS
+    assert.ok(/SENSITIVE_QUERY_PARAMS/.test(traceModule), "missing SENSITIVE_QUERY_PARAMS in sentry-scrub module");
+    assert.ok(/traceSampleRate/.test(traceModule), "missing traceSampleRate in sentry-scrub module");
+    // frame.vars scrubbing is intentionally removed (not needed in JS)
   });
 
   // 3. Verify no secrets in Sentry DSN configuration (must come from env only)

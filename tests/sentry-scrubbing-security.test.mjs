@@ -1,15 +1,19 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   SENSITIVE_QUERY_PARAMS,
-  scrubQueryString,
-  scrubQueryParams,
-  scrubRequestData,
-  scrubStreamedSpanAttributes,
-  scrubStreamedSpan,
-  scrubErrorEvent,
   traceSampleRate,
 } from '../src/lib/sentry-scrub.ts';
+import {
+  scrubErrorEvent,
+  scrubStreamedSpan,
+} from '../src/lib/observability/scrub-event.ts';
+
+const __dirname = resolve(fileURLToPath(import.meta.url), '..');
+const ROOT = resolve(__dirname, '..');
 
 describe('Sentry Scrubbing Security - Sensitive params redacted', () => {
   test('SENSITIVE_QUERY_PARAMS includes all required params', () => {
@@ -24,172 +28,196 @@ describe('Sentry Scrubbing Security - Sensitive params redacted', () => {
     ]);
   });
 
-  test('scrubQueryString redacts code, token, token_hash, access_token, refresh_token, email, state', () => {
-    const url = 'https://example.com/auth/callback?code=abc123&token=xyz789&token_hash=hash123&access_token=at456&refresh_token=rt789&email=user%40example.com&state=xyz123&safe=keep';
-    const result = scrubQueryString(url);
-
-    assert.ok(!result.includes('abc123'), 'code should be redacted');
-    assert.ok(!result.includes('xyz789'), 'token should be redacted');
-    assert.ok(!result.includes('hash123'), 'token_hash should be redacted');
-    assert.ok(!result.includes('at456'), 'access_token should be redacted');
-    assert.ok(!result.includes('rt789'), 'refresh_token should be redacted');
-    assert.ok(!result.includes('user%40example.com'), 'email should be redacted');
-    assert.ok(!result.includes('xyz123'), 'state should be redacted');
-    // URLSearchParams encodes [REDACTED] as %5BREDACTED%5D
-    assert.ok(result.includes('%5BREDACTED%5D'), 'should contain encoded [REDACTED]');
-    assert.ok(result.includes('safe=keep'), 'safe params should be preserved');
-  });
-
-  test('scrubQueryString handles URLs without query string', () => {
-    const url = 'https://example.com/path';
-    const result = scrubQueryString(url);
-    assert.strictEqual(result, url);
-  });
-
-  test('scrubQueryString handles invalid URLs gracefully', () => {
-    const url = 'not-a-valid-url';
-    const result = scrubQueryString(url);
-    assert.strictEqual(result, url);
-  });
-
-  test('scrubQueryParams string form redacts sensitive params', () => {
-    const qs = 'code=abc123&token=xyz789&email=user%40example.com&state=xyz123&safe=keep';
-    const result = scrubQueryParams(qs);
-
-    assert.ok(!result.includes('abc123'));
-    assert.ok(!result.includes('xyz789'));
-    assert.ok(!result.includes('user%40example.com'));
-    assert.ok(!result.includes('xyz123'));
-    // URLSearchParams encodes [REDACTED] as %5BREDACTED%5D
-    assert.ok(result.includes('%5BREDACTED%5D'));
-    assert.ok(result.includes('safe=keep'));
-  });
-
-  test('scrubQueryParams object form redacts sensitive params', () => {
-    const qs = { code: 'abc123', token: 'xyz789', email: 'user@example.com', state: 'xyz123', safe: 'keep' };
-    const result = scrubQueryParams(qs);
-
-    assert.strictEqual(result.code, '[REDACTED]');
-    assert.strictEqual(result.token, '[REDACTED]');
-    assert.strictEqual(result.email, '[REDACTED]');
-    assert.strictEqual(result.state, '[REDACTED]');
-    assert.strictEqual(result.safe, 'keep');
-  });
-
-  test('scrubQueryParams array form redacts sensitive params', () => {
-    const qs = [['code', 'abc123'], ['token', 'xyz789'], ['email', 'user@example.com'], ['state', 'xyz123'], ['safe', 'keep']];
-    const result = scrubQueryParams(qs);
-
-    assert.strictEqual(result[0][0], 'code');
-    assert.strictEqual(result[0][1], '[REDACTED]');
-    assert.strictEqual(result[1][0], 'token');
-    assert.strictEqual(result[1][1], '[REDACTED]');
-    assert.strictEqual(result[2][0], 'email');
-    assert.strictEqual(result[2][1], '[REDACTED]');
-    assert.strictEqual(result[3][0], 'state');
-    assert.strictEqual(result[3][1], '[REDACTED]');
-    assert.strictEqual(result[4][0], 'safe');
-    assert.strictEqual(result[4][1], 'keep');
-  });
-
-  test('scrubRequestData scrubs event.request.url', () => {
+  test('scrubErrorEvent scrubs error event fully - removes query string entirely', () => {
     const event = {
       request: {
-        url: 'https://example.com/auth/callback?code=secret123&token=secret456',
-        query_string: 'code=secret123&token=secret456',
+        url: 'https://example.com/auth/callback?code=secret123',
+        headers: {
+          authorization: 'Bearer token123',
+          cookie: 'session=abc',
+          'x-forwarded-for': '1.2.3.4',
+        },
+        cookies: { session: 'abc' },
+      },
+      exception: {
+        values: [
+          {
+            stacktrace: {
+              frames: [
+                {
+                  vars: {
+                    password: 'secret',
+                    api_key: 'key123',
+                    normalVar: 'keep',
+                  },
+                },
+              ],
+            },
+          },
+        ],
       },
     };
 
-    scrubRequestData(event);
+    scrubErrorEvent(event);
 
-    assert.ok(!event.request.url.includes('secret123'));
-    assert.ok(!event.request.url.includes('secret456'));
-    // URLSearchParams encodes [REDACTED] as %5BREDACTED%5D
-    assert.ok(event.request.url.includes('%5BREDACTED%5D'));
+    // URL should have query string removed entirely (not just redacted)
+    assert.strictEqual(event.request.url, 'https://example.com/auth/callback');
+    assert.strictEqual(event.request.headers.authorization, '[REDACTED]');
+    assert.strictEqual(event.request.headers.cookie, '[REDACTED]');
+    assert.strictEqual(event.request.headers['x-forwarded-for'], '[REDACTED]');
+    // cookies should be deleted entirely
+    assert.ok(!('cookies' in event.request));
+    // query_string should be deleted
+    assert.ok(!('query_string' in event.request));
+    // frame.vars are NOT scrubbed (stackFrameVariables: false in config)
+    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.password, 'secret');
+    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.api_key, 'key123');
+    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.normalVar, 'keep');
   });
 
-  test('scrubRequestData scrubs event.request.query_string string form', () => {
-    const event = {
-      request: {
-        url: 'https://example.com/',
-        query_string: 'code=secret123&token=secret456',
-      },
-    };
-
-    scrubRequestData(event);
-
-    assert.ok(!event.request.query_string.includes('secret123'));
-    assert.ok(!event.request.query_string.includes('secret456'));
-    // URLSearchParams encodes [REDACTED] as %5BREDACTED%5D
-    assert.ok(event.request.query_string.includes('%5BREDACTED%5D'));
-  });
-
-  test('scrubRequestData scrubs event.request.query_string object form', () => {
-    const event = {
-      request: {
-        url: 'https://example.com/',
-        query_string: { code: 'secret123', token: 'secret456', safe: 'keep' },
-      },
-    };
-
-    scrubRequestData(event);
-
-    assert.strictEqual(event.request.query_string.code, '[REDACTED]');
-    assert.strictEqual(event.request.query_string.token, '[REDACTED]');
-    assert.strictEqual(event.request.query_string.safe, 'keep');
-  });
-
-  test('scrubRequestData handles missing request gracefully', () => {
+  test('scrubErrorEvent handles missing request gracefully', () => {
     const event = {};
-    assert.doesNotThrow(() => scrubRequestData(event));
+    assert.doesNotThrow(() => scrubErrorEvent(event));
   });
 
-  test('scrubRequestData handles missing query_string gracefully', () => {
-    const event = { request: { url: 'https://example.com/' } };
-    assert.doesNotThrow(() => scrubRequestData(event));
+  test('scrubErrorEvent handles relative URL gracefully (try/catch fallback)', () => {
+    const event = {
+      request: {
+        url: '/auth/callback?code=secret123',
+        headers: {},
+        cookies: {},
+      },
+    };
+    assert.doesNotThrow(() => scrubErrorEvent(event));
+    // Relative URL: split fallback should work
+    assert.strictEqual(event.request.url, '/auth/callback');
   });
 
-  test('scrubStreamedSpanAttributes redacts sensitive span attributes', () => {
-    const attributes = {
-      'url.full': 'https://example.com/auth/callback?code=secret123',
-      'url.query': 'code=secret123&token=secret456',
-      'http.url': 'https://example.com/auth/callback?code=secret123',
-      'http.query': 'code=secret123',
-      'http.target': '/auth/callback?code=secret123',
-      'safe.attr': 'keep',
+  test('scrubErrorEvent handles malformed URL gracefully (try/catch fallback)', () => {
+    const event = {
+      request: {
+        url: 'not-a-valid-url?code=secret123',
+        headers: {},
+        cookies: {},
+      },
+    };
+    assert.doesNotThrow(() => scrubErrorEvent(event));
+    // Malformed URL: split fallback should work
+    assert.strictEqual(event.request.url, 'not-a-valid-url');
+  });
+
+  test('scrubErrorEvent scrubs breadcrumbs with URLs containing sensitive params', () => {
+    const event = {
+      request: { url: 'https://example.com/', headers: {}, cookies: {} },
+      breadcrumbs: [
+        { category: 'navigation', data: { to: '/dashboard?code=abc123' } },
+        { category: 'fetch', data: { url: 'https://api.example.com/auth?token=xyz789' } },
+        { category: 'xhr', data: { target: '/api/user?access_token=at456' } },
+        { category: 'console', data: { message: 'log' } }, // console breadcrumbs already dropped in beforeBreadcrumb
+      ],
     };
 
-    scrubStreamedSpanAttributes(attributes);
+    scrubErrorEvent(event);
 
-    assert.ok(!attributes['url.full'].includes('secret123'));
-    assert.ok(!attributes['url.query'].includes('secret123'));
-    assert.ok(!attributes['http.url'].includes('secret123'));
-    assert.ok(!attributes['http.query'].includes('secret123'));
-    assert.ok(!attributes['http.target'].includes('secret123'));
-    assert.strictEqual(attributes['safe.attr'], 'keep');
+    assert.strictEqual(event.breadcrumbs[0].data.to, '/dashboard?code=[REDACTED]');
+    assert.strictEqual(event.breadcrumbs[1].data.url, 'https://api.example.com/auth?token=[REDACTED]');
+    assert.strictEqual(event.breadcrumbs[2].data.target, '/api/user?access_token=[REDACTED]');
   });
 
-  test('scrubStreamedSpanAttributes preserves non-sensitive http.target with query', () => {
-    const attributes = {
-      'http.target': '/dashboard?tab=1',
+  test('scrubErrorEvent scrubs request body (POST data)', () => {
+    const event = {
+      request: {
+        url: 'https://example.com/api/login',
+        headers: { 'content-type': 'application/json' },
+        cookies: {},
+        data: {
+          code: 'auth_code_123',
+          token: 'user_token_456',
+          email: 'user@example.com',
+          safeField: 'keep_this',
+          nested: {
+            refresh_token: 'refresh_789',
+            normal: 'value',
+          },
+        },
+      },
     };
 
-    scrubStreamedSpanAttributes(attributes);
+    scrubErrorEvent(event);
 
-    // Non-sensitive query params should be preserved exactly
-    assert.strictEqual(attributes['http.target'], '/dashboard?tab=1');
+    assert.strictEqual(event.request.data.code, '[REDACTED]');
+    assert.strictEqual(event.request.data.token, '[REDACTED]');
+    assert.strictEqual(event.request.data.email, '[REDACTED]');
+    assert.strictEqual(event.request.data.safeField, 'keep_this');
+    assert.strictEqual(event.request.data.nested.refresh_token, '[REDACTED]');
+    assert.strictEqual(event.request.data.nested.normal, 'value');
   });
 
-  test('scrubStreamedSpanAttributes redacts sensitive params but keeps non-sensitive in http.target', () => {
-    const attributes = {
-      'http.target': '/auth/callback?code=secret123&tab=1',
+  test('scrubErrorEvent scrubs request body as string (form data)', () => {
+    const event = {
+      request: {
+        url: 'https://example.com/api/login',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        cookies: {},
+        data: 'code=auth123&token=tok456&safe=keep',
+      },
     };
 
-    scrubStreamedSpanAttributes(attributes);
+    scrubErrorEvent(event);
 
-    assert.ok(!attributes['http.target'].includes('secret123'));
-    assert.ok(attributes['http.target'].includes('tab=1'));
-    assert.ok(attributes['http.target'].startsWith('/auth/callback?'));
+    assert.ok(!event.request.data.includes('auth123'));
+    assert.ok(!event.request.data.includes('tok456'));
+    assert.ok(event.request.data.includes('safe=keep'));
+    // URLSearchParams encodes [REDACTED] as %5BREDACTED%5D
+    assert.ok(event.request.data.includes('%5BREDACTED%5D'));
+  });
+
+  test('scrubErrorEvent scrubs error message values containing tokens', () => {
+    const event = {
+      request: { url: 'https://example.com/', headers: {}, cookies: {} },
+      exception: {
+        values: [
+          {
+            value: 'Error: Invalid code=abc123 token=xyz789',
+            type: 'Error',
+            stacktrace: { frames: [] },
+          },
+        ],
+      },
+    };
+
+    scrubErrorEvent(event);
+
+    assert.ok(!event.exception.values[0].value.includes('abc123'));
+    assert.ok(!event.exception.values[0].value.includes('xyz789'));
+    assert.ok(event.exception.values[0].value.includes('[REDACTED]'));
+  });
+
+  test('scrubErrorEvent scrubs pathname tokens in stacktrace frame filenames', () => {
+    const event = {
+      request: { url: 'https://example.com/', headers: {}, cookies: {} },
+      exception: {
+        values: [
+          {
+            value: 'Error',
+            type: 'Error',
+            stacktrace: {
+              frames: [
+                { filename: '/app/src/auth/reset/abc123/handler.ts', lineno: 10 },
+                { filename: '/app/src/invite/xyz789/accept.ts', lineno: 20 },
+                { filename: '/app/src/dashboard/page.tsx', lineno: 30 },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    scrubErrorEvent(event);
+
+    assert.ok(event.exception.values[0].stacktrace.frames[0].filename.includes('[REDACTED]'));
+    assert.ok(event.exception.values[0].stacktrace.frames[1].filename.includes('[REDACTED]'));
+    assert.strictEqual(event.exception.values[0].stacktrace.frames[2].filename, '/app/src/dashboard/page.tsx');
   });
 
   test('scrubStreamedSpan scrubs streamed span fully', () => {
@@ -204,6 +232,8 @@ describe('Sentry Scrubbing Security - Sensitive params redacted', () => {
         'url.full': 'https://example.com/auth/callback?code=spansecret',
         'http.url': 'https://example.com/api?token=spantoken',
         'http.target': '/auth/callback?code=spansecret',
+        'url.query': 'code=spansecret&token=spantoken',
+        'http.query': 'code=spansecret',
       },
     };
 
@@ -216,6 +246,45 @@ describe('Sentry Scrubbing Security - Sensitive params redacted', () => {
     assert.ok(!result.attributes['url.full'].includes('spansecret'));
     assert.ok(!result.attributes['http.url'].includes('spantoken'));
     assert.ok(!result.attributes['http.target'].includes('spansecret'));
+    assert.ok(!result.attributes['url.query'].includes('spansecret'));
+    assert.ok(!result.attributes['http.query'].includes('spantoken'));
+  });
+
+  test('scrubStreamedSpan scrubs pathname tokens in span name and attributes', () => {
+    const span = {
+      trace_id: 'abc123',
+      span_id: 'def456',
+      name: 'GET /reset/abc123?tab=1',
+      start_timestamp: Date.now() / 1000,
+      status: 'ok',
+      is_segment: true,
+      attributes: {
+        'http.target': '/invite/xyz789?code=secret',
+        'url.full': 'https://example.com/verify/token123',
+      },
+    };
+
+    const result = scrubStreamedSpan(span);
+
+    // Pathname tokens redacted
+    assert.ok(result.name.includes('[REDACTED]'));
+    assert.ok(!result.name.includes('abc123'));
+    assert.ok(result.attributes['http.target'].includes('[REDACTED]'));
+    assert.ok(!result.attributes['http.target'].includes('xyz789'));
+    assert.ok(result.attributes['url.full'].includes('[REDACTED]'));
+    assert.ok(!result.attributes['url.full'].includes('token123'));
+  });
+
+  // Verify server config has stackFrameVariables: false
+  test('sentry.server.config.ts has stackFrameVariables: false', () => {
+    const config = readFileSync(resolve(ROOT, 'src/sentry.server.config.ts'), 'utf8');
+    assert.ok(/stackFrameVariables:\s*false/.test(config), 'server config must have stackFrameVariables: false');
+  });
+
+  // Verify edge config has stackFrameVariables: false
+  test('sentry.edge.config.ts has stackFrameVariables: false', () => {
+    const config = readFileSync(resolve(ROOT, 'src/sentry.edge.config.ts'), 'utf8');
+    assert.ok(/stackFrameVariables:\s*false/.test(config), 'edge config must have stackFrameVariables: false');
   });
 
   test('scrubStreamedSpan handles span without sensitive data', () => {
@@ -269,190 +338,5 @@ describe('Sentry Scrubbing Security - Sensitive params redacted', () => {
     const result = scrubStreamedSpan(span);
 
     assert.strictEqual(result.name, 'GET /dashboard?tab=1');
-  });
-
-  test('scrubErrorEvent scrubs error event fully', () => {
-    const event = {
-      request: {
-        url: 'https://example.com/auth/callback?code=secret123',
-        headers: {
-          authorization: 'Bearer token123',
-          cookie: 'session=abc',
-        },
-        cookies: { session: 'abc' },
-      },
-      exception: {
-        values: [
-          {
-            stacktrace: {
-              frames: [
-                {
-                  vars: {
-                    password: 'secret',
-                    api_key: 'key123',
-                    normalVar: 'keep',
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    };
-
-    scrubErrorEvent(event);
-
-    assert.ok(!event.request.url.includes('secret123'));
-    assert.strictEqual(event.request.headers.authorization, '[REDACTED]');
-    assert.strictEqual(event.request.headers.cookie, '[REDACTED]');
-    assert.deepStrictEqual(event.request.cookies, { '[REDACTED]': '[REDACTED]' });
-    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.password, '[REDACTED]');
-    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.api_key, '[REDACTED]');
-    assert.strictEqual(event.exception.values[0].stacktrace.frames[0].vars.normalVar, 'keep');
-  });
-
-  test('traceSampleRate returns 0 for /auth/ routes via normalizedRequest.url', () => {
-    const ctx = {
-      name: 'GET /auth/callback',
-      normalizedRequest: { url: 'https://example.com/auth/callback?code=abc' },
-      location: { pathname: '/dashboard' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, '/auth/ routes via normalizedRequest.url should return 0 sample rate');
-  });
-
-  test('traceSampleRate returns 0 for /auth/ routes via location.pathname', () => {
-    const ctx = {
-      name: 'GET /dashboard',
-      normalizedRequest: { url: 'https://example.com/dashboard' },
-      location: { pathname: '/auth/login' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, '/auth/ routes via location.pathname should return 0 sample rate');
-  });
-
-  test('traceSampleRate returns 0 for /auth/ routes via span name', () => {
-    const ctx = {
-      name: 'GET /auth/callback',
-      normalizedRequest: { url: 'https://example.com/other' },
-      location: { pathname: '/other' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, '/auth/ routes via span name should return 0 sample rate');
-  });
-
-  test('traceSampleRate returns fallback rate for non-auth routes', () => {
-    const ctx = {
-      name: 'GET /dashboard',
-      normalizedRequest: { url: 'https://example.com/dashboard' },
-      location: { pathname: '/dashboard' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0.1, 'non-auth routes should return fallback rate');
-  });
-
-  test('traceSampleRate uses inheritOrSampleWith for non-auth routes', () => {
-    let inheritedRate = 0;
-    const ctx = {
-      name: 'GET /dashboard',
-      normalizedRequest: { url: 'https://example.com/dashboard' },
-      location: { pathname: '/dashboard' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => {
-        inheritedRate = rate;
-        return rate;
-      },
-    };
-
-    traceSampleRate(ctx, 0.1);
-    assert.strictEqual(inheritedRate, 0.1, 'should call inheritOrSampleWith with fallback rate');
-  });
-
-  test('traceSampleRate handles missing normalizedRequest and location gracefully', () => {
-    const ctx = {
-      name: 'GET /dashboard',
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0.1, 'should default to fallback rate when context is minimal');
-  });
-
-  test('traceSampleRate returns 0 when normalizedRequest.url has sensitive param code', () => {
-    const ctx = {
-      name: 'GET /',
-      normalizedRequest: { url: 'https://example.com/?code=abc123' },
-      location: { pathname: '/', search: '' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, 'should return 0 when URL has sensitive param code');
-  });
-
-  test('traceSampleRate returns 0 when normalizedRequest.url has sensitive param state', () => {
-    const ctx = {
-      name: 'GET /',
-      normalizedRequest: { url: 'https://example.com/?state=xyz789' },
-      location: { pathname: '/', search: '' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, 'should return 0 when URL has sensitive param state');
-  });
-
-  test('traceSampleRate returns 0 when location.search has sensitive param email', () => {
-    const ctx = {
-      name: 'GET /',
-      normalizedRequest: { url: 'https://example.com/' },
-      location: { pathname: '/', search: '?email=user%40example.com' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0, 'should return 0 when location.search has sensitive param email');
-  });
-
-  test('traceSampleRate returns fallback when location.search has non-sensitive param', () => {
-    const ctx = {
-      name: 'GET /',
-      normalizedRequest: { url: 'https://example.com/' },
-      location: { pathname: '/', search: '?tab=1' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0.1, 'should return fallback when location.search has non-sensitive param');
-  });
-
-  test('traceSampleRate returns fallback when normalizedRequest.url has non-sensitive param', () => {
-    const ctx = {
-      name: 'GET /',
-      normalizedRequest: { url: 'https://example.com/?tab=1' },
-      location: { pathname: '/', search: '' },
-      attributes: {},
-      inheritOrSampleWith: (rate) => rate,
-    };
-
-    const result = traceSampleRate(ctx, 0.1);
-    assert.strictEqual(result, 0.1, 'should return fallback when URL has non-sensitive param');
   });
 });
