@@ -1,11 +1,11 @@
 import * as Sentry from "@sentry/nextjs";
 import type { ErrorEvent } from "@sentry/core";
 import type { StreamedSpanJSON } from "@sentry/core";
+import { traceSampleRate } from "@/lib/sentry-scrub";
 import {
-  traceSampleRate,
   scrubErrorEvent,
   scrubStreamedSpan,
-} from "@/lib/sentry-scrub";
+} from "@/lib/observability/scrub-event";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
