@@ -22,6 +22,7 @@ import {
   InvalidGeneratedDeckError,
   parseGeneratedDeck,
 } from '@/lib/server/ai-deck-generation';
+import { consumeAiQuota } from '@/lib/server/ai-quota';
 import { resolveTutorContext } from '@/lib/server/tutor-context';
 import {
   buildSafeTutorHistory,
@@ -49,6 +50,7 @@ export async function sendTutorConversation(
   try {
     const request = parseTutorConversationRequest(value);
     const { claims, supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'tutor');
     const tutorContext = await resolveTutorContext(request, supabase, claims.sub);
     const systemPrompt = `${tutorContext.systemPrompt}\n\n${TUTOR_SECURITY_INSTRUCTIONS}`;
     const history = buildSafeTutorHistory(tutorContext.context, request.history);
@@ -79,6 +81,7 @@ export async function generateFlashcardDeckWithAi(
 
   try {
     const { claims, supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'deck_generation');
     const profile = await getProfile(supabase, claims.sub);
 
     const studentContext: AiDeckStudentContext = {

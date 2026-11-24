@@ -1,6 +1,7 @@
 'use server';
 
 import { sendStructuredRequestToGemini } from '@/lib/server/ai-client';
+import { consumeAiQuota } from '@/lib/server/ai-quota';
 import { CONTEXT_EXPLANATION_JSON_SCHEMA, CONTEXT_TRANSLATION_JSON_SCHEMA, InvalidContextStudioResponseError, parseContextExplanation, parseContextTranslation, prepareContextExplanation, prepareContextTranslation } from '@/lib/server/context-studio-ai';
 import { isContextStudioEnabled } from '@/lib/server/context-studio-feature-flag';
 import { contextFailureCode } from '@/lib/server/context-studio-errors';
@@ -16,7 +17,8 @@ export async function lookupContextDictionary(input: unknown): Promise<ContextRe
   const parsed = contextDictionaryRequestSchema.safeParse(input);
   if (!parsed.success) return { errorKey: 'invalid_input' };
   try {
-    await requireAuthenticatedClaims();
+    const { supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'context_studio');
     const request = prepareContextDictionary(parsed.data);
     const response = await sendStructuredRequestToGemini(request.prompt, request.history, {
       jsonSchema: CONTEXT_DICTIONARY_JSON_SCHEMA, maxTokens: 1000, schemaName: 'reader_dictionary',
@@ -41,7 +43,8 @@ export async function translateContextText(input: unknown): Promise<ContextResul
   const parsed = contextSessionSchema.safeParse(input);
   if (!parsed.success) return { errorKey: 'invalid_input' };
   try {
-    await requireAuthenticatedClaims();
+    const { supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'context_studio');
     const request = prepareContextTranslation(parsed.data);
     const response = await sendStructuredRequestToGemini(request.prompt, request.history, {
       jsonSchema: CONTEXT_TRANSLATION_JSON_SCHEMA, maxTokens: 1_600, schemaName: 'context_units',
@@ -58,7 +61,8 @@ export async function explainContextSelection(input: unknown): Promise<ContextRe
   const parsed = contextSelectionSchema.safeParse(input);
   if (!parsed.success) return { errorKey: 'invalid_input' };
   try {
-    await requireAuthenticatedClaims();
+    const { supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'context_studio');
     const request = prepareContextExplanation(parsed.data);
     const response = await sendStructuredRequestToGemini(request.prompt, request.history, {
       jsonSchema: CONTEXT_EXPLANATION_JSON_SCHEMA, maxTokens: 900, schemaName: 'context_explanation',

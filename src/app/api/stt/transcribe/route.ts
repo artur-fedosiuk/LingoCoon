@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeLanguageCode } from '@/lib/languages';
+import { AiQuotaExceededError, consumeAiQuota } from '@/lib/server/ai-quota';
 import { getSpeechToTextConfig } from '@/lib/server/stt-config';
 import {
   AuthenticationRequiredError,
@@ -7,9 +8,6 @@ import {
 } from '@/lib/supabase/auth';
 
 const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
-const MAX_REQUESTS_PER_MINUTE = 10;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const recentRequestsByUser = new Map<string, number[]>();
 
 class InvalidSttRequestError extends Error {
   constructor(message: string) {
@@ -20,8 +18,8 @@ class InvalidSttRequestError extends Error {
 
 export async function POST(request: NextRequest) {
   try {
-    const { claims } = await requireAuthenticatedClaims();
-    enforceRateLimit(claims.sub);
+    const { supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'stt');
 
     const formData = await request.formData();
     const audio = formData.get('audio');
@@ -71,6 +69,9 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthenticationRequiredError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
+    if (error instanceof AiQuotaExceededError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     if (error instanceof InvalidSttRequestError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -78,19 +79,6 @@ export async function POST(request: NextRequest) {
     console.error('STT API route error:', { name: error instanceof Error ? error.name : 'UnknownError' });
     return NextResponse.json({ error: 'Speech recognition failed.' }, { status: 500 });
   }
-}
-
-function enforceRateLimit(userId: string) {
-  const now = Date.now();
-  const recentRequests = (recentRequestsByUser.get(userId) ?? [])
-    .filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-
-  if (recentRequests.length >= MAX_REQUESTS_PER_MINUTE) {
-    throw new InvalidSttRequestError('Too many recordings. Wait a moment and try again.');
-  }
-
-  recentRequests.push(now);
-  recentRequestsByUser.set(userId, recentRequests);
 }
 
 function getAudioFileName(mimeType: string): string {
