@@ -375,6 +375,12 @@
     "press_enter": "Premi Invio per inviare",
     "error": "Qualcosa è andato storto. Riprova."
   },
+  "ai_tutor_errors": {
+    "authentication_required": "La tua sessione è scaduta. Accedi di nuovo.",
+    "invalid_request": "Impossibile elaborare la richiesta. Ricarica la pagina e riprova.",
+    "quota_exceeded": "Limite di utilizzo dell'AI raggiunto. Riprova più tardi.",
+    "service_unavailable": "Il tutor AI non è al momento disponibile. Riprova."
+  },
   "deck_actions": {
     "delete_confirm": "Sei sicuro di voler eliminare \"{{title}}\"?\n\nQuesto eliminerà permanentemente il mazzo e tutte le sue carte. Questa azione è irreversibile.",
     "deleting": "Eliminazione...",

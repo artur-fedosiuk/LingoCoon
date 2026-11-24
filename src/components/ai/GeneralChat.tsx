@@ -69,19 +69,25 @@ export default function GeneralChat({ nativeLanguage, targetLanguage }: GeneralC
     setIsLoading(true);
 
     try {
-      const reply = await sendTutorConversation({
+      const { reply, errorKey } = await sendTutorConversation({
         operation: 'general_chat',
         history: updatedHistory,
       });
+
+      if (errorKey || reply === undefined) {
+        setMessages((previous) => [...previous, {
+          role: 'ai',
+          text: t(`ai_tutor_errors.${errorKey ?? 'service_unavailable'}`),
+        }]);
+        return;
+      }
+
       const aiTurn: ConversationTurn = { role: 'model', parts: [{ text: reply }] };
 
       setHistory([...updatedHistory, aiTurn]);
       setMessages((previous) => [...previous, { role: 'ai', text: reply }]);
-    } catch (error) {
-      setMessages((previous) => [...previous, {
-        role: 'ai',
-        text: error instanceof Error ? error.message : t('chat.error'),
-      }]);
+    } catch {
+      setMessages((previous) => [...previous, { role: 'ai', text: t('chat.error') }]);
     } finally {
       isSendingRef.current = false;
       setIsLoading(false);

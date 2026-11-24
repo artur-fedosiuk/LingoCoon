@@ -76,12 +76,21 @@ export default function StudySession({ cards, deck, nativeLanguage }: StudySessi
     setIsAiLoading(true);
 
     try {
-      const response = await sendTutorConversation({
+      const { reply: response, errorKey } = await sendTutorConversation({
         operation: 'classic_study',
         deckId: deck.id,
         cardId: currentCard.id,
         history: updatedHistory,
       });
+
+      if (errorKey || response === undefined) {
+        setAiMessages((previous) => [...previous, {
+          role: 'ai',
+          text: t(`ai_tutor_errors.${errorKey ?? 'service_unavailable'}`),
+        }]);
+        return;
+      }
+
       setAiHistory([
         ...updatedHistory,
         { role: 'model', parts: [{ text: response }] },
