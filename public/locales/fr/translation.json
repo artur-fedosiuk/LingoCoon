@@ -375,6 +375,12 @@
     "press_enter": "Appuyez sur Entrée pour envoyer",
     "error": "Quelque chose s'est mal passé. Réessayez."
   },
+  "ai_tutor_errors": {
+    "authentication_required": "Votre session a expiré. Veuillez vous reconnecter.",
+    "invalid_request": "Impossible de traiter cette demande. Rechargez la page et réessayez.",
+    "quota_exceeded": "Limite d'utilisation de l'IA atteinte. Réessayez plus tard.",
+    "service_unavailable": "Le tuteur IA est temporairement indisponible. Réessayez."
+  },
   "deck_actions": {
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer \"{{title}}\" ?\n\nCela supprimera définitivement le paquet et toutes ses cartes. Cette action est irréversible.",
     "deleting": "Suppression...",

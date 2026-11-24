@@ -104,16 +104,21 @@ export default function DeckStudySession({
     setAiLoading(true);
 
     try {
-      const reply = await sendTutorConversation({
+      const { reply, errorKey } = await sendTutorConversation({
         operation: 'deck_study',
         deckId,
         cardId: currentCard.id,
         history: updatedHistory,
       });
+
+      if (errorKey || reply === undefined) {
+        setSessionError(t(`ai_tutor_errors.${errorKey ?? 'service_unavailable'}`));
+        return;
+      }
+
       setAiHistory((history) => [...history, { role: 'model', parts: [{ text: reply }] }]);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('study.ai_error');
-      setSessionError(message);
+    } catch {
+      setSessionError(t('study.ai_error'));
     } finally {
       aiRequestInFlight.current = false;
       setAiLoading(false);

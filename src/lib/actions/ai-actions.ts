@@ -22,14 +22,15 @@ import {
   InvalidGeneratedDeckError,
   parseGeneratedDeck,
 } from '@/lib/server/ai-deck-generation';
-import { consumeAiQuota } from '@/lib/server/ai-quota';
+import { AiQuotaExceededError, consumeAiQuota } from '@/lib/server/ai-quota';
+import { InvalidAiRequestError } from '@/lib/server/ai-validation';
 import { resolveTutorContext } from '@/lib/server/tutor-context';
 import {
   buildSafeTutorHistory,
   parseTutorConversationRequest,
   TUTOR_SECURITY_INSTRUCTIONS,
 } from '@/lib/server/tutor-request';
-import { requireAuthenticatedClaims } from '@/lib/supabase/auth';
+import { AuthenticationRequiredError, requireAuthenticatedClaims } from '@/lib/supabase/auth';
 import { getProfile } from '@/lib/supabase/profile';
 import type { GeneratedDeck } from '@/types/ai-deck';
 import type { ConversationTurn, TutorConversationRequest } from '@/types/ai';
@@ -41,12 +42,32 @@ export type AiDeckGenerationErrorKey =
   | 'unexpected_format'
   | 'service_unavailable';
 
+export type TutorConversationErrorKey =
+  | 'authentication_required'
+  | 'invalid_request'
+  | 'quota_exceeded'
+  | 'service_unavailable';
+
+export interface TutorConversationResult {
+  reply?: string;
+  errorKey?: TutorConversationErrorKey;
+}
+
+function getTutorConversationErrorKey(error: unknown): TutorConversationErrorKey {
+  if (error instanceof AuthenticationRequiredError) return 'authentication_required';
+  if (error instanceof AiQuotaExceededError) return 'quota_exceeded';
+  if (error instanceof InvalidAiRequestError) return 'invalid_request';
+  return 'service_unavailable';
+}
+
 /**
  * Resolve a typed tutor operation into server-owned instructions and untrusted user messages.
+ * Returns either the tutor reply or an error key for the UI to translate.
+ * Never throws: Next.js hides the message of errors thrown by Server Actions in production.
  */
 export async function sendTutorConversation(
   value: TutorConversationRequest,
-): Promise<string> {
+): Promise<TutorConversationResult> {
   try {
     const request = parseTutorConversationRequest(value);
     const { claims, supabase } = await requireAuthenticatedClaims();
@@ -55,13 +76,14 @@ export async function sendTutorConversation(
     const systemPrompt = `${tutorContext.systemPrompt}\n\n${TUTOR_SECURITY_INSTRUCTIONS}`;
     const history = buildSafeTutorHistory(tutorContext.context, request.history);
 
-    return await sendChatMessageToGemini(systemPrompt, history, {
+    const reply = await sendChatMessageToGemini(systemPrompt, history, {
       userId: claims.sub,
     });
+
+    return { reply };
   } catch (error) {
-    const message = getHumanReadableAiError(error);
     console.error('[sendTutorConversation]', { name: error instanceof Error ? error.name : 'UnknownError' });
-    throw new Error(message);
+    return { errorKey: getTutorConversationErrorKey(error) };
   }
 }
 

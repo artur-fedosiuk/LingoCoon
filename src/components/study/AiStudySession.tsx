@@ -127,12 +127,21 @@ export default function AiStudySession({
       try {
         const startTurn = createConversationTurn('user', 'Start the session.');
         const initialHistory = [startTurn];
-        const rawResponse = await sendTutorConversation({
+        const { reply: rawResponse, errorKey } = await sendTutorConversation({
           operation: 'ai_study',
           deckId: deck.id,
           cardIds: cardIdsRef.current,
           history: initialHistory,
         });
+
+        if (errorKey || rawResponse === undefined) {
+          setMessages([{
+            role: 'ai',
+            text: t(`ai_tutor_errors.${errorKey ?? 'service_unavailable'}`),
+          }]);
+          return;
+        }
+
         const aiTurn = createConversationTurn('model', rawResponse);
 
         setHistory([...initialHistory, aiTurn]);
@@ -178,12 +187,21 @@ export default function AiStudySession({
     setIsLoading(true);
 
     try {
-      const rawResponse = await sendTutorConversation({
+      const { reply: rawResponse, errorKey } = await sendTutorConversation({
         operation: 'ai_study',
         deckId: deck.id,
         cardIds: cardIdsRef.current,
         history: newHistory,
       });
+
+      if (errorKey || rawResponse === undefined) {
+        setMessages((previous) => [...previous, {
+          role: 'ai',
+          text: t(`ai_tutor_errors.${errorKey ?? 'service_unavailable'}`),
+        }]);
+        return;
+      }
+
       const parsed = parseAiStudyReply(rawResponse) ?? createFallbackAiStudyReply(rawResponse);
       const aiTurn = createConversationTurn('model', rawResponse);
 
