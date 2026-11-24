@@ -1,9 +1,9 @@
 /**
  * Handwritten Supabase boundary types used by the application.
  *
- * The repository does not contain database migrations, and the configured
- * PostgREST schema endpoint is not currently accessible. Replace this file with
- * generated Supabase types when schema access is available.
+ * The database schema is versioned in supabase/migrations (starting state in
+ * supabase/baseline). These types are NOT generated from it and can drift.
+ * Replace this file with generated Supabase types when schema access is available.
  */
 
 export type Profile = {

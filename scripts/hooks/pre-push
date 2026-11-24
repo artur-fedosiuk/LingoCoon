@@ -6,6 +6,7 @@
 set -euo pipefail
 
 # Read stdin to check what refs are being pushed
+remote_branch=""
 while read local_ref local_sha remote_ref remote_sha; do
     # Extract branch name from remote ref (refs/heads/<branch>)
     remote_branch="${remote_ref#refs/heads/}"
@@ -17,6 +18,11 @@ while read local_ref local_sha remote_ref remote_sha; do
         exit 1
     fi
 done
+
+# If no refs were read (e.g., first push), infer from current branch
+if [[ -z "$remote_branch" ]]; then
+    remote_branch=$(git rev-parse --abbrev-ref HEAD)
+fi
 
 # If we get here, it's a push to a non-protected branch - run full check
 echo "🔍 pre-push: running full check pipeline on $remote_branch..."
