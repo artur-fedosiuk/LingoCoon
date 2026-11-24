@@ -8,6 +8,7 @@ import {
   InvalidLexicoonResponseError,
   parseLexicoonEntry,
 } from '@/lib/server/lexicoon';
+import { consumeAiQuota } from '@/lib/server/ai-quota';
 import { getLanguageEnglishName, isAppLanguageCode } from '@/lib/languages';
 import { requireAuthenticatedClaims } from '@/lib/supabase/auth';
 import { getLanguageProfile } from '@/lib/supabase/profile';
@@ -35,6 +36,7 @@ export async function lookUpLexicoonEntry(
 
   try {
     const { claims, supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'lexicoon');
     const profile = await getLanguageProfile(supabase, claims.sub);
     const languages = getLexicoonLanguages(profile);
     const systemPrompt = buildLexicoonSystemPrompt(

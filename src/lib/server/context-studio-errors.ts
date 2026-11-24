@@ -2,6 +2,7 @@
 export function contextFailureCode(error: unknown): string {
   if (!(error instanceof Error)) return 'unknown';
   if (error.name === 'AuthenticationRequiredError') return 'authentication_required';
+  if (error.name === 'AiQuotaExceededError') return 'quota_exceeded';
   if (error.name === 'TimeoutError' || error.name === 'AbortError') return 'timeout';
   if (error.message === 'Invalid Context Studio response.') return 'invalid_response';
   if (error.message === 'GEMINI_API_KEY environment variable is missing.') return 'provider_not_configured';

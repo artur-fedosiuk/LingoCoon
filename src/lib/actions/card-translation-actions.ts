@@ -9,6 +9,7 @@ import {
   InvalidCardTranslationResponseError,
   parseCardTranslationSuggestions,
 } from '@/lib/server/card-translation';
+import { consumeAiQuota } from '@/lib/server/ai-quota';
 import { loadOwnedDeck } from '@/lib/server/deck-data';
 import { requireAuthenticatedClaims } from '@/lib/supabase/auth';
 import type { CardTranslationSuggestion } from '@/types/card-translation';
@@ -40,6 +41,7 @@ export async function suggestCardTranslations(
 
   try {
     const { claims, supabase } = await requireAuthenticatedClaims();
+    await consumeAiQuota(supabase, 'card_translation');
     const { deck, error } = await loadOwnedDeck(supabase, claims.sub, deckId);
     if (error || !deck) return { errorKey: 'deck_not_found' };
 

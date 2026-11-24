@@ -5,6 +5,7 @@
  * This function maps each case to a simple message the user can understand.
  */
 
+import { AiQuotaExceededError } from '@/lib/server/ai-quota';
 import { InvalidAiRequestError } from '@/lib/server/ai-validation';
 import { AuthenticationRequiredError } from '@/lib/supabase/auth';
 
@@ -14,7 +15,8 @@ export function getHumanReadableAiError(error: unknown): string {
   // Auth and validation errors already have clear messages — pass them through.
   if (
     error instanceof AuthenticationRequiredError ||
-    error instanceof InvalidAiRequestError
+    error instanceof InvalidAiRequestError ||
+    error instanceof AiQuotaExceededError
   ) {
     return message;
   }
